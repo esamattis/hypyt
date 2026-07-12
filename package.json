@@ -16,7 +16,9 @@
         "test:tsc": "tsc --noEmit",
         "prettier-write": "prettier --write .",
         "prettier-check": "prettier --check .",
-        "test": "$npm_execpath run prettier-check && $npm_execpath run test:tsc && $npm_execpath run test:e2e"
+        "lint": "oxlint",
+        "lint:fix": "oxlint --fix",
+        "test": "$npm_execpath run prettier-check && $npm_execpath run lint && $npm_execpath run test:tsc && $npm_execpath run test:e2e"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.3.2",
@@ -32,6 +34,8 @@
         "@cloudflare/vite-plugin": "^1.2.3",
         "@playwright/test": "^1.61.1",
         "drizzle-kit": "^0.31.10",
+        "oxfmt": "^0.58.0",
+        "oxlint": "^1.73.0",
         "prettier": "^3.9.4",
         "typescript": "^6.0.3",
         "vite": "^6.3.5",
