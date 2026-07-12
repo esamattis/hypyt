@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `options` text DEFAULT '{"altitudeUnits":"meters","speedUnits":"kilometers-per-hour"}' NOT NULL;

@@ -59,7 +59,7 @@ async function derivePasswordHash(
     return bytesToBase64(new Uint8Array(derived));
 }
 
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
     const salt = crypto.getRandomValues(new Uint8Array(new ArrayBuffer(16)));
     const hash = await derivePasswordHash(password, salt, PBKDF2_ITERATIONS);
     return `${PBKDF2_ITERATIONS}:${bytesToBase64(salt)}:${hash}`;
@@ -86,7 +86,7 @@ async function verifyPassword(
     return computedHash === hash;
 }
 
-function Password(props: {
+export function Password(props: {
     name: string;
     label: string;
     placeholder?: string;

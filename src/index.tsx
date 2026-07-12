@@ -1,5 +1,6 @@
 import { app, getAppContext, type AppRequestContext } from "./app";
 import "./login";
+import "./preferences";
 import "./logbook";
 import * as routes from "./routes";
 

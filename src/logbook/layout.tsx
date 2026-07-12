@@ -213,6 +213,12 @@ export function LogbookPage(props: { title: string; children: any }) {
                     </a>
                     <div className="ml-auto flex items-center gap-2">
                         <LogbookActions />
+                        <a
+                            href={routes.preferences({})}
+                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        >
+                            Preferences
+                        </a>
                         <form method="post" action={routes.logout({})}>
                             <button
                                 type="submit"

@@ -4,6 +4,7 @@ export const home = route("/");
 export const register = route("/register");
 export const login = route("/login");
 export const logout = route("/logout");
+export const preferences = route("/preferences");
 export const logbook = route("/logbook");
 export const logbookTransfer = route("/logbook/transfer");
 export const logbookExport = route("/logbook/export");

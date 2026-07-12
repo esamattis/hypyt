@@ -20,6 +20,11 @@ import {
     locations,
 } from "../schema";
 import { LogbookPage } from "./layout";
+import {
+    altitudeInputValue,
+    altitudeToMeters,
+    altitudeUnitLabel,
+} from "../options";
 
 interface Resource {
     uuid: string;
@@ -70,6 +75,7 @@ function JumpForm(props: {
     jumpTypes: Resource[];
     errors?: string[];
     submitLabel: string;
+    altitudeUnits: "meters" | "feet";
 }) {
     const values = props.values ?? {};
     const selectedGear = new Set(values.gearUuids ?? []);
@@ -94,14 +100,14 @@ function JumpForm(props: {
                 />
                 <NumberInput
                     name="exitAltitude"
-                    label="Exit altitude (m)"
+                    label={`Exit altitude (${altitudeUnitLabel(props.altitudeUnits)})`}
                     min="1"
                     required
                     value={values.exitAltitude ?? ""}
                 />
                 <NumberInput
                     name="openingAltitude"
-                    label="Opening altitude (m)"
+                    label={`Opening altitude (${altitudeUnitLabel(props.altitudeUnits)})`}
                     min="0"
                     required
                     value={values.openingAltitude ?? ""}
@@ -242,6 +248,7 @@ function JumpFormPage(props: {
     errors?: string[];
     resources: Awaited<ReturnType<typeof getJumpFormResources>>;
     copyHref?: string;
+    altitudeUnits: "meters" | "feet";
 }) {
     return (
         <LogbookPage title={props.title}>
@@ -249,6 +256,7 @@ function JumpFormPage(props: {
                 values={props.values}
                 errors={props.errors}
                 submitLabel={props.submitLabel}
+                altitudeUnits={props.altitudeUnits}
                 {...props.resources}
             />
             {props.copyHref && (
@@ -303,6 +311,7 @@ function getJumpFormValues(formData: FormData): JumpFormValues {
 async function renderNewJump(c: AppRequestContext) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
+    const altitudeUnits = getAppContext(c).getUser().options.altitudeUnits;
     const { from } = routes.jumpNew.query(c);
     const latestJump = await db
         .select({ uuid: jumps.uuid, jumpNumber: jumps.jumpNumber })
@@ -342,8 +351,14 @@ async function renderNewJump(c: AppRequestContext) {
                 ...values,
                 locationUuid: jump.locationUuid,
                 aircraftUuid: jump.aircraftUuid,
-                exitAltitude: String(jump.exitAltitude),
-                openingAltitude: String(jump.openingAltitude),
+                exitAltitude: altitudeInputValue(
+                    jump.exitAltitude,
+                    altitudeUnits,
+                ),
+                openingAltitude: altitudeInputValue(
+                    jump.openingAltitude,
+                    altitudeUnits,
+                ),
                 freefallTime: String(jump.freefallTime),
                 description: jump.description ?? undefined,
                 gearUuids: gearRows.map((item) => item.gearUuid),
@@ -358,6 +373,7 @@ async function renderNewJump(c: AppRequestContext) {
             submitLabel="Add jump"
             values={values}
             resources={await getJumpFormResources(c)}
+            altitudeUnits={altitudeUnits}
         />,
     );
 }
@@ -369,6 +385,7 @@ async function handleNewJump(c: AppRequestContext) {
     const resources = await getJumpFormResources(c);
 
     if (!result.success) {
+        const altitudeUnits = getAppContext(c).getUser().options.altitudeUnits;
         return c.render(
             <JumpFormPage
                 title="Add jump"
@@ -376,11 +393,13 @@ async function handleNewJump(c: AppRequestContext) {
                 errors={result.error.issues.map((issue) => issue.message)}
                 values={raw}
                 resources={resources}
+                altitudeUnits={altitudeUnits}
             />,
         );
     }
 
     const userUuid = getAppContext(c).getUser().uuid;
+    const altitudeUnits = getAppContext(c).getUser().options.altitudeUnits;
     const ownsResources =
         resources.locations.some(
             (item) => item.uuid === result.data.locationUuid,
@@ -404,6 +423,7 @@ async function handleNewJump(c: AppRequestContext) {
                 ]}
                 values={raw}
                 resources={resources}
+                altitudeUnits={altitudeUnits}
             />,
         );
     }
@@ -417,8 +437,14 @@ async function handleNewJump(c: AppRequestContext) {
             locationUuid: result.data.locationUuid,
             aircraftUuid: result.data.aircraftUuid,
             jumpNumber: result.data.jumpNumber,
-            exitAltitude: result.data.exitAltitude,
-            openingAltitude: result.data.openingAltitude,
+            exitAltitude: altitudeToMeters(
+                result.data.exitAltitude,
+                altitudeUnits,
+            ),
+            openingAltitude: altitudeToMeters(
+                result.data.openingAltitude,
+                altitudeUnits,
+            ),
             freefallTime: result.data.freefallTime,
             description: result.data.description || null,
         }),
@@ -435,6 +461,7 @@ async function handleNewJump(c: AppRequestContext) {
 async function renderEditJump(c: AppRequestContext) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
+    const altitudeUnits = getAppContext(c).getUser().options.altitudeUnits;
     const { uuid } = routes.jumpEdit.params(c);
     if (!uuid) {
         return c.notFound();
@@ -463,8 +490,14 @@ async function renderEditJump(c: AppRequestContext) {
                 locationUuid: jump.locationUuid,
                 aircraftUuid: jump.aircraftUuid,
                 jumpNumber: String(jump.jumpNumber),
-                exitAltitude: String(jump.exitAltitude),
-                openingAltitude: String(jump.openingAltitude),
+                exitAltitude: altitudeInputValue(
+                    jump.exitAltitude,
+                    altitudeUnits,
+                ),
+                openingAltitude: altitudeInputValue(
+                    jump.openingAltitude,
+                    altitudeUnits,
+                ),
                 freefallTime: String(jump.freefallTime),
                 description: jump.description ?? undefined,
                 gearUuids: gearRows.map((item) => item.gearUuid),
@@ -472,6 +505,7 @@ async function renderEditJump(c: AppRequestContext) {
             }}
             resources={await getJumpFormResources(c)}
             copyHref={routes.jumpNew({}, { from: jump.uuid })}
+            altitudeUnits={altitudeUnits}
         />,
     );
 }
@@ -479,6 +513,7 @@ async function renderEditJump(c: AppRequestContext) {
 async function handleEditJump(c: AppRequestContext) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
+    const altitudeUnits = getAppContext(c).getUser().options.altitudeUnits;
     const { uuid } = routes.jumpEdit.params(c);
     if (!uuid) {
         return c.notFound();
@@ -501,6 +536,7 @@ async function handleEditJump(c: AppRequestContext) {
         submitLabel: "Save jump",
         values: raw,
         resources,
+        altitudeUnits,
     };
     if (!result.success) {
         return c.render(
@@ -541,8 +577,14 @@ async function handleEditJump(c: AppRequestContext) {
                 locationUuid: result.data.locationUuid,
                 aircraftUuid: result.data.aircraftUuid,
                 jumpNumber: result.data.jumpNumber,
-                exitAltitude: result.data.exitAltitude,
-                openingAltitude: result.data.openingAltitude,
+                exitAltitude: altitudeToMeters(
+                    result.data.exitAltitude,
+                    altitudeUnits,
+                ),
+                openingAltitude: altitudeToMeters(
+                    result.data.openingAltitude,
+                    altitudeUnits,
+                ),
                 freefallTime: result.data.freefallTime,
                 description: result.data.description || null,
             })

@@ -7,6 +7,7 @@ import { getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
 import { users } from "./schema";
 import * as routes from "./routes";
+import { parseUserOptions, type UserOptions } from "./options";
 
 export type AppType = Hono<Env>;
 
@@ -26,6 +27,8 @@ export interface User {
     username: string;
     uuid: string;
     displayName: string | null;
+    email: string;
+    options: UserOptions;
     getDisplayName(): string;
 }
 
@@ -163,6 +166,8 @@ async function authenticateMiddleware(
                 uuid: users.uuid,
                 username: users.username,
                 displayName: users.displayName,
+                email: users.email,
+                options: users.options,
             })
             .from(users)
             .where(eq(users.uuid, sessionUuid))
@@ -174,6 +179,8 @@ async function authenticateMiddleware(
                 uuid: userRow.uuid,
                 username: userRow.username,
                 displayName: userRow.displayName || null,
+                email: userRow.email,
+                options: parseUserOptions(userRow.options),
                 getDisplayName() {
                     return userRow.displayName || userRow.username;
                 },

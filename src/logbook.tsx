@@ -11,6 +11,7 @@ import {
     locations,
 } from "./schema";
 import { LogbookPage } from "./logbook/layout";
+import { formatAltitude, type UserOptions } from "./options";
 import "./logbook/aircraft";
 import "./logbook/gear";
 import "./logbook/jump";
@@ -35,12 +36,25 @@ function jumpAvgSpeed(jump: {
     return jumpFreefallDistance(jump) / jump.freefallTime;
 }
 
-function formatSpeed(metersPerSecond: number): string {
+function formatSpeed(
+    metersPerSecond: number,
+    units: UserOptions["speedUnits"],
+): string {
+    if (units === "meters-per-second") {
+        return `${metersPerSecond.toFixed(1).replace(/\.0$/, "")} m/s`;
+    }
     const kmh = Math.round(metersPerSecond * 3.6);
     return `${kmh} km/h`;
 }
 
-function formatDistance(meters: number): string {
+function formatDistance(
+    meters: number,
+    units: UserOptions["altitudeUnits"],
+): string {
+    if (units === "feet") {
+        const feet = Math.round(meters / 0.3048);
+        return `${feet.toLocaleString("en-US")} ft`;
+    }
     const kilometers = meters / 1000;
     const formatted = kilometers.toFixed(1).replace(/\.0$/, "");
     return `${formatted} km`;
@@ -61,6 +75,7 @@ function formatDuration(totalSeconds: number): string {
 function LogbookStats(props: {
     totalJumps: number;
     totalFreefallMeters: number;
+    options: UserOptions;
 }) {
     return (
         <section
@@ -120,7 +135,10 @@ function LogbookStats(props: {
                     </p>
                 </div>
                 <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
-                    {formatDistance(props.totalFreefallMeters)}
+                    {formatDistance(
+                        props.totalFreefallMeters,
+                        props.options.altitudeUnits,
+                    )}
                 </p>
             </div>
         </section>
@@ -150,6 +168,7 @@ function JumpCard(props: {
     freefallTime: number;
     description: string | null;
     jumpTypes: string[];
+    options: UserOptions;
 }) {
     const avgSpeed = jumpAvgSpeed(props);
 
@@ -182,10 +201,19 @@ function JumpCard(props: {
                     )}
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <JumpStat label="Exit" value={`${props.exitAltitude} m`} />
+                    <JumpStat
+                        label="Exit"
+                        value={formatAltitude(
+                            props.exitAltitude,
+                            props.options.altitudeUnits,
+                        )}
+                    />
                     <JumpStat
                         label="Opening"
-                        value={`${props.openingAltitude} m`}
+                        value={formatAltitude(
+                            props.openingAltitude,
+                            props.options.altitudeUnits,
+                        )}
                     />
                     <JumpStat
                         label="Freefall"
@@ -193,7 +221,14 @@ function JumpCard(props: {
                     />
                     <JumpStat
                         label="Avg speed"
-                        value={avgSpeed === null ? "—" : formatSpeed(avgSpeed)}
+                        value={
+                            avgSpeed === null
+                                ? "—"
+                                : formatSpeed(
+                                      avgSpeed,
+                                      props.options.speedUnits,
+                                  )
+                        }
                     />
                 </dl>
                 {props.description && (
@@ -509,6 +544,7 @@ function getTotalFreefallMeters(
 }
 
 async function renderLogbook(c: AppRequestContext) {
+    const options = getAppContext(c).getUser().options;
     const resources = await getLogbookFilterResources(c);
     const filters = getLogbookFilters(c, resources);
     const [jumpRows, jumpTypesByJump] = await Promise.all([
@@ -523,6 +559,7 @@ async function renderLogbook(c: AppRequestContext) {
                 <LogbookStats
                     totalJumps={jumpRows.length}
                     totalFreefallMeters={totalFreefallMeters}
+                    options={options}
                 />
             )}
             <JumpFilters
@@ -565,6 +602,7 @@ async function renderLogbook(c: AppRequestContext) {
                                 freefallTime={jump.freefallTime}
                                 description={jump.description}
                                 jumpTypes={jumpTypesByJump.get(jump.uuid) ?? []}
+                                options={options}
                             />
                         ))}
                     </ul>
