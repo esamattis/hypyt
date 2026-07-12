@@ -15,9 +15,32 @@ import { LogbookPage } from "./layout";
 import { formatAltitude, type UserOptions } from "../options";
 
 function formatDuration(totalSeconds: number): string {
-    const minutes = Math.floor(totalSeconds / 60);
+    const days = Math.floor(totalSeconds / 86_400);
+    const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+    const minutes = Math.floor((totalSeconds % 3_600) / 60);
     const seconds = totalSeconds % 60;
-    return minutes > 0 ? `${minutes} min ${seconds} s` : `${seconds} s`;
+    const parts = [];
+    if (days > 0) {
+        parts.push(`${days} d`);
+    }
+    if (hours > 0 || days > 0) {
+        parts.push(`${hours} h`);
+    }
+    if (minutes > 0 || hours > 0 || days > 0) {
+        parts.push(`${minutes} min`);
+    }
+    parts.push(`${seconds} s`);
+    return parts.join(" ");
+}
+
+function formatDistance(
+    meters: number,
+    units: UserOptions["altitudeUnits"],
+): string {
+    if (units === "feet") {
+        return `${Math.round(meters / 0.3048).toLocaleString("en-US")} ft`;
+    }
+    return `${(meters / 1000).toFixed(1).replace(/\.0$/, "")} km`;
 }
 
 function formatSpeed(
@@ -344,6 +367,8 @@ interface DetailedStatisticsResult {
     jumpTypeRows: StatisticsItemRow[];
     years: number[];
     totalJumps: number;
+    totalFreefallTime: number;
+    totalFreefallDistance: number;
     longestFreefall: RecordJump | undefined;
     highestExit: RecordJump | undefined;
     highestOpening: RecordJump | undefined;
@@ -412,6 +437,7 @@ async function fetchDetailedStatistics(
         highestOpeningRows,
         lowestOpeningRows,
         highestAverageSpeedRows,
+        [freefallTotals],
     ] = await Promise.all([
         db
             .select({
@@ -567,6 +593,13 @@ async function fetchDetailedStatistics(
                 ),
             )
             .limit(1),
+        db
+            .select({
+                totalFreefallTime: sql<number>`coalesce(sum(${jumps.freefallTime}), 0)`,
+                totalFreefallDistance: sql<number>`coalesce(sum(max(${jumps.exitAltitude} - ${jumps.openingAltitude}, 0)), 0)`,
+            })
+            .from(jumps)
+            .where(jumpCondition),
     ]);
 
     const years = yearRows
@@ -588,6 +621,8 @@ async function fetchDetailedStatistics(
         jumpTypeRows,
         years,
         totalJumps,
+        totalFreefallTime: freefallTotals?.totalFreefallTime ?? 0,
+        totalFreefallDistance: freefallTotals?.totalFreefallDistance ?? 0,
         longestFreefall: longestFreefallRows[0]
             ? {
                   ...longestFreefallRows[0],
@@ -645,6 +680,8 @@ async function renderDetailedStatistics(c: AppRequestContext) {
         jumpTypeRows,
         years: availableYears,
         totalJumps,
+        totalFreefallTime,
+        totalFreefallDistance,
         longestFreefall,
         highestExit,
         highestOpening,
@@ -693,10 +730,23 @@ async function renderDetailedStatistics(c: AppRequestContext) {
                     ? `Showing jumps recorded in ${year}.`
                     : "Total jumps include jumps recorded before this logbook."}
             </p>
-            <SummaryCard
-                label="Total jumps"
-                value={totalJumps.toLocaleString("en-US")}
-            />
+            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <SummaryCard
+                    label="Total jumps"
+                    value={totalJumps.toLocaleString("en-US")}
+                />
+                <SummaryCard
+                    label="Total freefall time"
+                    value={formatDuration(totalFreefallTime)}
+                />
+                <SummaryCard
+                    label="Total freefall distance"
+                    value={formatDistance(
+                        totalFreefallDistance,
+                        getAppContext(c).getUser().options.altitudeUnits,
+                    )}
+                />
+            </dl>
             <div className="space-y-6">
                 <RecordJumps
                     records={[

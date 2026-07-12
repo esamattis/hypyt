@@ -65,15 +65,22 @@ function formatDistance(
 }
 
 function formatDuration(totalSeconds: number): string {
-    const minutes = Math.floor(totalSeconds / 60);
+    const days = Math.floor(totalSeconds / 86_400);
+    const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+    const minutes = Math.floor((totalSeconds % 3_600) / 60);
     const seconds = totalSeconds % 60;
-    if (minutes === 0) {
-        return `${seconds} s`;
+    const parts = [];
+    if (days > 0) {
+        parts.push(`${days} d`);
     }
-    if (seconds === 0) {
-        return `${minutes} min`;
+    if (hours > 0 || days > 0) {
+        parts.push(`${hours} h`);
     }
-    return `${minutes} min ${seconds} s`;
+    if (minutes > 0 || hours > 0 || days > 0) {
+        parts.push(`${minutes} min`);
+    }
+    parts.push(`${seconds} s`);
+    return parts.join(" ");
 }
 
 function LogbookStatsCard(props: { label: string; value: string | number }) {
