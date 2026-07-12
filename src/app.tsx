@@ -7,6 +7,7 @@ import { getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
 import htmx from "htmx.org/dist/htmx.esm.js?raw";
 import tailwind from "./tailwind.css?inline";
+import { Script } from "./components/helpers";
 import { users } from "./schema";
 import * as routes from "./routes";
 import { parseUserOptions, type UserOptions } from "./options";
@@ -103,6 +104,31 @@ export function getAppContext(c: AppRequestContext): AppContext {
 export function useAppContext(): AppContext {
     const c = useRequestContext<Env>();
     return getAppContext(c);
+}
+
+function $restoreFormScrollPosition() {
+    const storageKey = "form-scroll-position";
+    const storedPosition = sessionStorage.getItem(storageKey);
+
+    if (storedPosition) {
+        const [x, y] = storedPosition.split(",").map(Number);
+        if (
+            x !== undefined &&
+            y !== undefined &&
+            Number.isFinite(x) &&
+            Number.isFinite(y)
+        ) {
+            window.scrollTo(x, y);
+        }
+        sessionStorage.removeItem(storageKey);
+    }
+
+    document.addEventListener("submit", () => {
+        sessionStorage.setItem(
+            storageKey,
+            `${window.scrollX},${window.scrollY}`,
+        );
+    });
 }
 
 function errorHandler(err: Error, c: AppRequestContext) {
@@ -293,6 +319,7 @@ app.use(
                     className="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200"
                 >
                     <div className="min-h-screen">{props.children}</div>
+                    <Script $exec={$restoreFormScrollPosition} />
                 </body>
             </html>
         );
