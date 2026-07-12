@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `jumps_user_jump_number_unique` ON `jumps` (`user_uuid`,`jump_number`);

@@ -4,6 +4,7 @@ import {
   integer,
   text,
   primaryKey,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -64,22 +65,31 @@ export const jumpTypes = sqliteTable("jump_types", {
   description: text("description"),
 });
 
-export const jumps = sqliteTable("jumps", {
-  uuid: text("uuid")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userUuid: text("user_uuid")
-    .references(() => users.uuid, { onDelete: "cascade" })
-    .notNull(),
-  locationUuid: text("location_uuid")
-    .references(() => locations.uuid, { onDelete: "cascade" })
-    .notNull(),
-  aircraftUuid: text("aircraft_uuid")
-    .references(() => aircrafts.uuid, { onDelete: "cascade" })
-    .notNull(),
-  jumpNumber: integer("jump_number").notNull(),
-  description: text("description"),
-});
+export const jumps = sqliteTable(
+  "jumps",
+  {
+    uuid: text("uuid")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userUuid: text("user_uuid")
+      .references(() => users.uuid, { onDelete: "cascade" })
+      .notNull(),
+    locationUuid: text("location_uuid")
+      .references(() => locations.uuid, { onDelete: "cascade" })
+      .notNull(),
+    aircraftUuid: text("aircraft_uuid")
+      .references(() => aircrafts.uuid, { onDelete: "cascade" })
+      .notNull(),
+    jumpNumber: integer("jump_number").notNull(),
+    description: text("description"),
+  },
+  (t) => ({
+    userJumpNumber: uniqueIndex("jumps_user_jump_number_unique").on(
+      t.userUuid,
+      t.jumpNumber,
+    ),
+  }),
+);
 
 export const jumpsToGear = sqliteTable(
   "jumps_to_gear",

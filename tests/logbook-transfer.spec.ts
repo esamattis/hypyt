@@ -40,6 +40,19 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await expect(page.getByText("Edited after import")).toBeVisible();
 
     await page.getByRole("link", { name: "Import or export" }).click();
+    await page.locator('input[name="file"]').setInputFiles(fixturePath);
+    await page.getByRole("button", { name: "Import logbook" }).click();
+    await expect(page.getByText("Imported 2 jumps")).toBeVisible();
+    await page.getByRole("link", { name: /first-skydiver's logbook/ }).click();
+    await expect(page.getByRole("link", { name: /Jump #\d+/ })).toHaveCount(2);
+    await page.getByRole("link", { name: /Jump #301/ }).click();
+    await expect(page.locator('textarea[name="description"]')).toHaveValue(
+        "Imported training jump",
+    );
+    await page.locator('textarea[name="description"]').fill("Edited after import");
+    await page.getByRole("button", { name: "Save jump" }).click();
+
+    await page.getByRole("link", { name: "Import or export" }).click();
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("link", { name: "Export logbook" }).click();
     const download = await downloadPromise;

@@ -149,9 +149,10 @@ async function readImportRecords(file: File): Promise<ImportRecord[] | string[]>
 async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
-    const [aircraftRows, gearRows, jumpTypeRows, locationRows] = await Promise.all([
+    const [aircraftRows, gearRows, jumpRows, jumpTypeRows, locationRows] = await Promise.all([
         db.select({ uuid: aircrafts.uuid, name: aircrafts.name }).from(aircrafts).where(eq(aircrafts.userUuid, userUuid)),
         db.select({ uuid: gear.uuid, name: gear.name }).from(gear).where(eq(gear.userUuid, userUuid)),
+        db.select({ uuid: jumps.uuid, jumpNumber: jumps.jumpNumber }).from(jumps).where(eq(jumps.userUuid, userUuid)),
         db.select({ uuid: jumpTypes.uuid, name: jumpTypes.name }).from(jumpTypes).where(eq(jumpTypes.userUuid, userUuid)),
         db.select({ uuid: locations.uuid, name: locations.name }).from(locations).where(eq(locations.userUuid, userUuid)),
     ]);
@@ -161,6 +162,7 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         jumpType: resourceMap(jumpTypeRows),
         location: resourceMap(locationRows),
     };
+    const jumpUuids = new Map(jumpRows.map((jump) => [jump.jumpNumber, jump.uuid]));
     const queries = [];
 
     for (const record of records) {
@@ -210,7 +212,9 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         if (record.type !== "jump") {
             continue;
         }
-        const jumpUuid = crypto.randomUUID();
+        const existingJumpUuid = jumpUuids.get(record.jumpNumber);
+        const jumpUuid = existingJumpUuid ?? crypto.randomUUID();
+        jumpUuids.set(record.jumpNumber, jumpUuid);
         const locationUuid = resolveResource("location", record.location);
         const aircraftUuid = resolveResource("aircraft", record.aircraft);
         const gearUuids = record.gear.map((name) =>
@@ -219,15 +223,26 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         const jumpTypeUuids = record.jumpTypes.map((name) =>
             resolveResource("jumpType", name),
         );
-        queries.push(
-            db.insert(jumps).values({
+        const jumpValues = {
+            locationUuid,
+            aircraftUuid,
+            description: record.description || null,
+        };
+        if (existingJumpUuid) {
+            queries.push(
+                db.update(jumps).set(jumpValues).where(eq(jumps.uuid, jumpUuid)),
+                db.delete(jumpsToGear).where(eq(jumpsToGear.jumpUuid, jumpUuid)),
+                db.delete(jumpsToJumpTypes).where(eq(jumpsToJumpTypes.jumpUuid, jumpUuid)),
+            );
+        } else {
+            queries.push(db.insert(jumps).values({
                 uuid: jumpUuid,
                 userUuid,
                 jumpNumber: record.jumpNumber,
-                locationUuid,
-                aircraftUuid,
-                description: record.description || null,
-            }),
+                ...jumpValues,
+            }));
+        }
+        queries.push(
             ...gearUuids.map((gearUuid) =>
                 db.insert(jumpsToGear).values({ jumpUuid, gearUuid }),
             ),
