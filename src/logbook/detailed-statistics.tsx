@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, lt, sql } from "drizzle-orm";
 import clsx from "clsx";
 import { app, getAppContext, type AppRequestContext } from "../app";
 import * as routes from "../routes";
@@ -12,6 +12,75 @@ import {
     locations,
 } from "../schema";
 import { LogbookPage } from "./layout";
+import { formatAltitude, type UserOptions } from "../options";
+
+function formatDuration(totalSeconds: number): string {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return minutes > 0 ? `${minutes} min ${seconds} s` : `${seconds} s`;
+}
+
+function formatSpeed(
+    metersPerSecond: number,
+    units: UserOptions["speedUnits"],
+): string {
+    return units === "meters-per-second"
+        ? `${metersPerSecond.toFixed(1).replace(/\.0$/, "")} m/s`
+        : `${Math.round(metersPerSecond * 3.6)} km/h`;
+}
+
+interface RecordJump {
+    uuid: string;
+    jumpNumber: number;
+    jumpDate: string;
+    value: string;
+}
+
+function RecordJumps(props: {
+    records: Array<{ label: string; jump: RecordJump | undefined }>;
+}) {
+    return (
+        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    Record jumps
+                </h2>
+            </div>
+            <dl className="divide-y divide-slate-100 dark:divide-slate-800">
+                {props.records.map((record) => (
+                    <div
+                        key={record.label}
+                        className="flex items-center justify-between gap-4 px-5 py-3.5"
+                    >
+                        <dt className="text-sm text-slate-600 dark:text-slate-400">
+                            {record.label}
+                        </dt>
+                        <dd className="text-right">
+                            {record.jump ? (
+                                <a
+                                    href={routes.jumpEdit({
+                                        uuid: record.jump.uuid,
+                                    })}
+                                    className="font-medium text-indigo-600 transition hover:underline dark:text-indigo-400"
+                                >
+                                    {record.jump.value}{" "}
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                                        Jump #{record.jump.jumpNumber} (
+                                        {record.jump.jumpDate})
+                                    </span>
+                                </a>
+                            ) : (
+                                <span className="text-sm text-slate-400 dark:text-slate-500">
+                                    No recorded jump
+                                </span>
+                            )}
+                        </dd>
+                    </div>
+                ))}
+            </dl>
+        </section>
+    );
+}
 
 function SummaryCard(props: { label: string; value: string }) {
     return (
@@ -275,6 +344,11 @@ interface DetailedStatisticsResult {
     jumpTypeRows: StatisticsItemRow[];
     years: number[];
     totalJumps: number;
+    longestFreefall: RecordJump | undefined;
+    highestExit: RecordJump | undefined;
+    highestOpening: RecordJump | undefined;
+    lowestOpening: RecordJump | undefined;
+    highestAverageSpeed: RecordJump | undefined;
 }
 
 interface StatisticsItemRow {
@@ -303,6 +377,8 @@ async function fetchTotalJumps(
     return row?.totalJumps ?? 0;
 }
 
+// The grouped resource queries are kept together so they execute concurrently.
+// oxlint-disable-next-line max-lines-per-function
 async function fetchDetailedStatistics(
     c: AppRequestContext,
     year: number | undefined,
@@ -317,105 +393,177 @@ async function fetchDetailedStatistics(
         : undefined;
     const joinCondition = (base: ReturnType<typeof and>) =>
         yearCondition ? and(base, yearCondition) : base;
+    const jumpCondition = yearCondition
+        ? and(eq(jumps.userUuid, userUuid), yearCondition)
+        : eq(jumps.userUuid, userUuid);
 
-    const [locationRows, aircraftRows, gearRows, jumpTypeRows, yearRows] =
-        await Promise.all([
-            db
-                .select({
-                    uuid: locations.uuid,
-                    name: locations.name,
-                    archived: locations.archived,
-                    previousJumpCount: locations.previousJumpCount,
-                    recordedJumpCount: sql<number>`count(${jumps.uuid})`,
-                })
-                .from(locations)
-                .leftJoin(
-                    jumps,
-                    joinCondition(
-                        and(
-                            eq(locations.uuid, jumps.locationUuid),
-                            eq(jumps.userUuid, userUuid),
-                        ),
+    const [
+        locationRows,
+        aircraftRows,
+        gearRows,
+        jumpTypeRows,
+        yearRows,
+        longestFreefallRows,
+        highestExitRows,
+        highestOpeningRows,
+        lowestOpeningRows,
+        highestAverageSpeedRows,
+    ] = await Promise.all([
+        db
+            .select({
+                uuid: locations.uuid,
+                name: locations.name,
+                archived: locations.archived,
+                previousJumpCount: locations.previousJumpCount,
+                recordedJumpCount: sql<number>`count(${jumps.uuid})`,
+            })
+            .from(locations)
+            .leftJoin(
+                jumps,
+                joinCondition(
+                    and(
+                        eq(locations.uuid, jumps.locationUuid),
+                        eq(jumps.userUuid, userUuid),
                     ),
-                )
-                .where(eq(locations.userUuid, userUuid))
-                .groupBy(locations.uuid)
-                .orderBy(asc(locations.name)),
-            db
-                .select({
-                    uuid: aircrafts.uuid,
-                    name: aircrafts.name,
-                    archived: aircrafts.archived,
-                    previousJumpCount: aircrafts.previousJumpCount,
-                    recordedJumpCount: sql<number>`count(${jumps.uuid})`,
-                })
-                .from(aircrafts)
-                .leftJoin(
-                    jumps,
-                    joinCondition(
-                        and(
-                            eq(aircrafts.uuid, jumps.aircraftUuid),
-                            eq(jumps.userUuid, userUuid),
-                        ),
+                ),
+            )
+            .where(eq(locations.userUuid, userUuid))
+            .groupBy(locations.uuid)
+            .orderBy(asc(locations.name)),
+        db
+            .select({
+                uuid: aircrafts.uuid,
+                name: aircrafts.name,
+                archived: aircrafts.archived,
+                previousJumpCount: aircrafts.previousJumpCount,
+                recordedJumpCount: sql<number>`count(${jumps.uuid})`,
+            })
+            .from(aircrafts)
+            .leftJoin(
+                jumps,
+                joinCondition(
+                    and(
+                        eq(aircrafts.uuid, jumps.aircraftUuid),
+                        eq(jumps.userUuid, userUuid),
                     ),
-                )
-                .where(eq(aircrafts.userUuid, userUuid))
-                .groupBy(aircrafts.uuid)
-                .orderBy(asc(aircrafts.name)),
-            db
-                .select({
-                    uuid: gear.uuid,
-                    name: gear.name,
-                    archived: gear.archived,
-                    previousJumpCount: gear.previousUsageCount,
-                    recordedJumpCount: sql<number>`count(${jumps.uuid})`,
-                })
-                .from(gear)
-                .leftJoin(jumpsToGear, eq(gear.uuid, jumpsToGear.gearUuid))
-                .leftJoin(
-                    jumps,
-                    joinCondition(
-                        and(
-                            eq(jumpsToGear.jumpUuid, jumps.uuid),
-                            eq(jumps.userUuid, userUuid),
-                        ),
+                ),
+            )
+            .where(eq(aircrafts.userUuid, userUuid))
+            .groupBy(aircrafts.uuid)
+            .orderBy(asc(aircrafts.name)),
+        db
+            .select({
+                uuid: gear.uuid,
+                name: gear.name,
+                archived: gear.archived,
+                previousJumpCount: gear.previousUsageCount,
+                recordedJumpCount: sql<number>`count(${jumps.uuid})`,
+            })
+            .from(gear)
+            .leftJoin(jumpsToGear, eq(gear.uuid, jumpsToGear.gearUuid))
+            .leftJoin(
+                jumps,
+                joinCondition(
+                    and(
+                        eq(jumpsToGear.jumpUuid, jumps.uuid),
+                        eq(jumps.userUuid, userUuid),
                     ),
-                )
-                .where(eq(gear.userUuid, userUuid))
-                .groupBy(gear.uuid)
-                .orderBy(asc(gear.name)),
-            db
-                .select({
-                    uuid: jumpTypes.uuid,
-                    name: jumpTypes.name,
-                    archived: jumpTypes.archived,
-                    previousJumpCount: jumpTypes.previousUsageCount,
-                    recordedJumpCount: sql<number>`count(${jumps.uuid})`,
-                })
-                .from(jumpTypes)
-                .leftJoin(
-                    jumpsToJumpTypes,
-                    eq(jumpTypes.uuid, jumpsToJumpTypes.jumpTypeUuid),
-                )
-                .leftJoin(
-                    jumps,
-                    joinCondition(
-                        and(
-                            eq(jumpsToJumpTypes.jumpUuid, jumps.uuid),
-                            eq(jumps.userUuid, userUuid),
-                        ),
+                ),
+            )
+            .where(eq(gear.userUuid, userUuid))
+            .groupBy(gear.uuid)
+            .orderBy(asc(gear.name)),
+        db
+            .select({
+                uuid: jumpTypes.uuid,
+                name: jumpTypes.name,
+                archived: jumpTypes.archived,
+                previousJumpCount: jumpTypes.previousUsageCount,
+                recordedJumpCount: sql<number>`count(${jumps.uuid})`,
+            })
+            .from(jumpTypes)
+            .leftJoin(
+                jumpsToJumpTypes,
+                eq(jumpTypes.uuid, jumpsToJumpTypes.jumpTypeUuid),
+            )
+            .leftJoin(
+                jumps,
+                joinCondition(
+                    and(
+                        eq(jumpsToJumpTypes.jumpUuid, jumps.uuid),
+                        eq(jumps.userUuid, userUuid),
                     ),
-                )
-                .where(eq(jumpTypes.userUuid, userUuid))
-                .groupBy(jumpTypes.uuid)
-                .orderBy(asc(jumpTypes.name)),
-            db
-                .select({ year: sql<string>`substr(${jumps.jumpDate}, 1, 4)` })
-                .from(jumps)
-                .where(eq(jumps.userUuid, userUuid))
-                .groupBy(sql`substr(${jumps.jumpDate}, 1, 4)`)
-                .orderBy(sql`substr(${jumps.jumpDate}, 1, 4) desc`),
-        ]);
+                ),
+            )
+            .where(eq(jumpTypes.userUuid, userUuid))
+            .groupBy(jumpTypes.uuid)
+            .orderBy(asc(jumpTypes.name)),
+        db
+            .select({ year: sql<string>`substr(${jumps.jumpDate}, 1, 4)` })
+            .from(jumps)
+            .where(eq(jumps.userUuid, userUuid))
+            .groupBy(sql`substr(${jumps.jumpDate}, 1, 4)`)
+            .orderBy(sql`substr(${jumps.jumpDate}, 1, 4) desc`),
+        db
+            .select({
+                uuid: jumps.uuid,
+                jumpNumber: jumps.jumpNumber,
+                jumpDate: jumps.jumpDate,
+                value: jumps.freefallTime,
+            })
+            .from(jumps)
+            .where(jumpCondition)
+            .orderBy(desc(jumps.freefallTime))
+            .limit(1),
+        db
+            .select({
+                uuid: jumps.uuid,
+                jumpNumber: jumps.jumpNumber,
+                jumpDate: jumps.jumpDate,
+                value: jumps.exitAltitude,
+            })
+            .from(jumps)
+            .where(jumpCondition)
+            .orderBy(desc(jumps.exitAltitude))
+            .limit(1),
+        db
+            .select({
+                uuid: jumps.uuid,
+                jumpNumber: jumps.jumpNumber,
+                jumpDate: jumps.jumpDate,
+                value: jumps.openingAltitude,
+            })
+            .from(jumps)
+            .where(jumpCondition)
+            .orderBy(desc(jumps.openingAltitude))
+            .limit(1),
+        db
+            .select({
+                uuid: jumps.uuid,
+                jumpNumber: jumps.jumpNumber,
+                jumpDate: jumps.jumpDate,
+                value: jumps.openingAltitude,
+            })
+            .from(jumps)
+            .where(jumpCondition)
+            .orderBy(asc(jumps.openingAltitude))
+            .limit(1),
+        db
+            .select({
+                uuid: jumps.uuid,
+                jumpNumber: jumps.jumpNumber,
+                jumpDate: jumps.jumpDate,
+                value: sql<number>`(${jumps.exitAltitude} - ${jumps.openingAltitude}) * 1.0 / ${jumps.freefallTime}`,
+            })
+            .from(jumps)
+            .where(and(jumpCondition, gt(jumps.freefallTime, 0)))
+            .orderBy(
+                desc(
+                    sql`(${jumps.exitAltitude} - ${jumps.openingAltitude}) * 1.0 / ${jumps.freefallTime}`,
+                ),
+            )
+            .limit(1),
+    ]);
 
     const years = yearRows
         .map((row) => Number(row.year))
@@ -431,6 +579,48 @@ async function fetchDetailedStatistics(
         jumpTypeRows,
         years,
         totalJumps,
+        longestFreefall: longestFreefallRows[0]
+            ? {
+                  ...longestFreefallRows[0],
+                  value: formatDuration(longestFreefallRows[0].value),
+              }
+            : undefined,
+        highestExit: highestExitRows[0]
+            ? {
+                  ...highestExitRows[0],
+                  value: formatAltitude(
+                      highestExitRows[0].value,
+                      getAppContext(c).getUser().options.altitudeUnits,
+                  ),
+              }
+            : undefined,
+        highestOpening: highestOpeningRows[0]
+            ? {
+                  ...highestOpeningRows[0],
+                  value: formatAltitude(
+                      highestOpeningRows[0].value,
+                      getAppContext(c).getUser().options.altitudeUnits,
+                  ),
+              }
+            : undefined,
+        lowestOpening: lowestOpeningRows[0]
+            ? {
+                  ...lowestOpeningRows[0],
+                  value: formatAltitude(
+                      lowestOpeningRows[0].value,
+                      getAppContext(c).getUser().options.altitudeUnits,
+                  ),
+              }
+            : undefined,
+        highestAverageSpeed: highestAverageSpeedRows[0]
+            ? {
+                  ...highestAverageSpeedRows[0],
+                  value: formatSpeed(
+                      highestAverageSpeedRows[0].value,
+                      getAppContext(c).getUser().options.speedUnits,
+                  ),
+              }
+            : undefined,
     };
 }
 
@@ -446,6 +636,11 @@ async function renderDetailedStatistics(c: AppRequestContext) {
         jumpTypeRows,
         years: availableYears,
         totalJumps,
+        longestFreefall,
+        highestExit,
+        highestOpening,
+        lowestOpening,
+        highestAverageSpeed,
     } = await fetchDetailedStatistics(c, year);
 
     const locationsWithCounts = toStatisticsItems(locationRows, (uuid) =>
@@ -494,6 +689,21 @@ async function renderDetailedStatistics(c: AppRequestContext) {
                 value={totalJumps.toLocaleString("en-US")}
             />
             <div className="space-y-6">
+                <RecordJumps
+                    records={[
+                        {
+                            label: "Longest freefall time",
+                            jump: longestFreefall,
+                        },
+                        { label: "Highest jump altitude", jump: highestExit },
+                        { label: "Highest opening", jump: highestOpening },
+                        { label: "Lowest opening", jump: lowestOpening },
+                        {
+                            label: "Highest freefall speed avg",
+                            jump: highestAverageSpeed,
+                        },
+                    ]}
+                />
                 <StatisticsSection
                     title="Locations"
                     items={locationsWithCounts}

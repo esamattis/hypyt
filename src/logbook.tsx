@@ -76,9 +76,24 @@ function formatDuration(totalSeconds: number): string {
     return `${minutes} min ${seconds} s`;
 }
 
+function LogbookStatsCard(props: { label: string; value: string | number }) {
+    return (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-black/30">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                {props.label}
+            </p>
+            <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                {props.value}
+            </p>
+        </div>
+    );
+}
+
 function LogbookStats(props: {
     totalJumps: number;
     totalFreefallMeters: number;
+    totalFreefallTime: number;
+    activeJumpYears: number;
     options: UserOptions;
 }) {
     return (
@@ -86,65 +101,22 @@ function LogbookStats(props: {
             aria-label="Logbook summary"
             className="grid grid-cols-2 gap-4"
         >
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-black/30">
-                <div className="flex items-center gap-2">
-                    <span
-                        aria-hidden="true"
-                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400"
-                    >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M3 17l6-6 4 4 8-8M21 7h-4m4 0v4"
-                            />
-                        </svg>
-                    </span>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Total jumps
-                    </p>
-                </div>
-                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                    {props.totalJumps}
-                </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-black/30">
-                <div className="flex items-center gap-2">
-                    <span
-                        aria-hidden="true"
-                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400"
-                    >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                            />
-                        </svg>
-                    </span>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Total freefall
-                    </p>
-                </div>
-                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                    {formatDistance(
-                        props.totalFreefallMeters,
-                        props.options.altitudeUnits,
-                    )}
-                </p>
-            </div>
+            <LogbookStatsCard label="Total jumps" value={props.totalJumps} />
+            <LogbookStatsCard
+                label="Total freefall"
+                value={formatDistance(
+                    props.totalFreefallMeters,
+                    props.options.altitudeUnits,
+                )}
+            />
+            <LogbookStatsCard
+                label="Total freefall time"
+                value={formatDuration(props.totalFreefallTime)}
+            />
+            <LogbookStatsCard
+                label="Active jump years"
+                value={props.activeJumpYears}
+            />
         </section>
     );
 }
@@ -584,11 +556,20 @@ async function getLogbookStats(c: AppRequestContext, filters: LogbookFilters) {
         .select({
             totalJumps: sql<number>`count(*)`,
             totalFreefallMeters: sql<number>`coalesce(sum(max(${jumps.exitAltitude} - ${jumps.openingAltitude}, 0)), 0)`,
+            totalFreefallTime: sql<number>`coalesce(sum(${jumps.freefallTime}), 0)`,
+            activeJumpYears: sql<number>`count(distinct substr(${jumps.jumpDate}, 1, 4))`,
         })
         .from(jumps)
         .where(and(...getLogbookJumpConditions(c, filters)));
 
-    return stats ?? { totalJumps: 0, totalFreefallMeters: 0 };
+    return (
+        stats ?? {
+            totalJumps: 0,
+            totalFreefallMeters: 0,
+            totalFreefallTime: 0,
+            activeJumpYears: 0,
+        }
+    );
 }
 
 async function getJumpTypesByJump(c: AppRequestContext, jumpUuids: string[]) {
@@ -722,6 +703,8 @@ async function renderLogbook(c: AppRequestContext) {
                     <LogbookStats
                         totalJumps={stats.totalJumps}
                         totalFreefallMeters={stats.totalFreefallMeters}
+                        totalFreefallTime={stats.totalFreefallTime}
+                        activeJumpYears={stats.activeJumpYears}
                         options={options}
                     />
                 </>
