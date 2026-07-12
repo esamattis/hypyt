@@ -27,6 +27,65 @@ async function openManageLogbook(page: Page) {
     await page.getByRole("button", { name: "Manage logbook" }).click();
 }
 
+test("statistics show recorded and previous jump counts for every item", async ({
+    page,
+}) => {
+    await registerUser(page, "statistics-skydiver");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Import or export" }).click();
+    await page.locator('input[name="file"]').setInputFiles(fixturePath);
+    await page.getByRole("button", { name: "Import logbook" }).click();
+    await expect(page.getByText("Imported 2 jumps")).toBeVisible();
+
+    await page
+        .getByRole("link", { name: /statistics-skydiver's logbook/ })
+        .click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Statistics", exact: true }).click();
+
+    await expect(page).toHaveURL("/logbook/statistics");
+    await expect(
+        page.getByRole("heading", { name: "Statistics" }),
+    ).toBeVisible();
+    await expect(page.getByText("Total jumps").locator("..")).toContainText(
+        "2",
+    );
+    await expect(page.getByText("Jumps this year").locator("..")).toContainText(
+        "2",
+    );
+    await expect(
+        page.getByText("Jumps in the last 12 months").locator(".."),
+    ).toContainText("2");
+    await expect(
+        page.getByText("Jumps last month").locator(".."),
+    ).toContainText("0");
+    await expect(page.getByText("1 min 43 s", { exact: true })).toBeVisible();
+    await page.getByRole("link", { name: "View detailed statistics" }).click();
+
+    await expect(page).toHaveURL("/logbook/statistics/detailed");
+    await expect(
+        page.getByRole("heading", { name: "Detailed statistics" }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole("row").filter({ hasText: "Skydive Example" }),
+    ).toContainText("2");
+    await expect(
+        page.getByRole("row").filter({ hasText: "Skydive Example" }),
+    ).toContainText("300");
+    await expect(
+        page.getByRole("row").filter({ hasText: "Skydive Example" }),
+    ).toContainText("302");
+    await expect(
+        page.getByRole("row").filter({ hasText: "Twin Otter" }),
+    ).toContainText("122");
+    await expect(
+        page.getByRole("row").filter({ hasText: "Navigator 260" }),
+    ).toContainText("44");
+    await expect(
+        page.getByRole("row").filter({ hasText: "Formation skydiving" }),
+    ).toContainText("20");
+});
+
 test("a logbook can be imported, edited, exported, and imported by another user", async ({
     page,
 }) => {

@@ -71,6 +71,13 @@ function ManageLogbookMenu() {
                 </a>
                 <div className="my-1 h-px bg-slate-100"></div>
                 <a
+                    href={routes.logbookStatistics({})}
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                >
+                    Statistics
+                </a>
+                <div className="my-1 h-px bg-slate-100"></div>
+                <a
                     href={routes.logbookTransfer({})}
                     className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                 >

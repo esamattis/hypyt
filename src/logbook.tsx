@@ -14,10 +14,12 @@ import { Details } from "./components/ui";
 import { LogbookPage } from "./logbook/layout";
 import { formatAltitude, type UserOptions } from "./options";
 import "./logbook/aircraft";
+import "./logbook/detailed-statistics";
 import "./logbook/gear";
 import "./logbook/jump";
 import "./logbook/jump-type";
 import "./logbook/location";
+import "./logbook/statistics";
 import "./logbook/transfer";
 function jumpFreefallDistance(jump: {
     exitAltitude: number;
