@@ -256,7 +256,7 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
         const description = xmlString(record, "notes");
         const cutaway = xmlString(record, "cutaway");
         const descriptionWithCutaway =
-            cutaway === "true" ? `\nCUTAWAY!${description ?? ""}` : description;
+            cutaway === "true" ? `${description ?? ""}\nCUTAWAY!` : description;
         jumps.push({
             type: "jump",
             jumpNumber,
