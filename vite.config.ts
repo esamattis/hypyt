@@ -14,5 +14,5 @@ export default defineConfig({
         }),
         ssrPlugin(),
         tailwindcss(),
-    ] as PluginOption[],
+    ] satisfies PluginOption[],
 });
