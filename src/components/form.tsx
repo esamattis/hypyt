@@ -1,8 +1,8 @@
 import clsx from "clsx";
 
-const labelClassName = "block text-sm font-medium text-gray-700";
+const labelClassName = "block text-sm font-medium text-slate-700";
 const controlClassName =
-    "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2";
+    "mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30";
 
 export function Input(props: {
     name: string;
@@ -77,7 +77,17 @@ export function Select(props: {
                 name={props.name}
                 required={props.required}
                 defaultValue={props.defaultValue}
-                className={clsx(controlClassName, props.selectClassName)}
+                className={clsx(
+                    "appearance-none bg-no-repeat pr-10",
+                    controlClassName,
+                    props.selectClassName,
+                )}
+                style={{
+                    backgroundImage:
+                        "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
+                    backgroundPosition: "right 0.6rem center",
+                    backgroundSize: "1.1rem",
+                }}
             >
                 {props.children}
             </select>
@@ -99,7 +109,11 @@ export function Textarea(props: {
             <textarea
                 name={props.name}
                 rows={props.rows ?? 4}
-                className={clsx(controlClassName, props.textareaClassName)}
+                className={clsx(
+                    "resize-y",
+                    controlClassName,
+                    props.textareaClassName,
+                )}
             >
                 {props.defaultValue}
             </textarea>
@@ -117,7 +131,7 @@ export function Checkbox(props: {
     return (
         <label
             className={clsx(
-                "flex items-center gap-2 rounded border border-gray-200 px-3 py-2 text-sm",
+                "flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900",
                 props.className,
             )}
         >
@@ -126,6 +140,7 @@ export function Checkbox(props: {
                 type="checkbox"
                 value={props.value}
                 checked={props.checked}
+                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40"
             />
             {props.label}
         </label>
@@ -137,16 +152,16 @@ export function FormActions(props: {
     cancelHref: string;
 }) {
     return (
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
             <button
                 type="submit"
-                className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
             >
                 {props.submitLabel}
             </button>
             <a
                 href={props.cancelHref}
-                className="rounded-md border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
             >
                 Cancel
             </a>

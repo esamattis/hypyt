@@ -99,7 +99,7 @@ function Password(props: {
         <div>
             <label
                 htmlFor={id}
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
             >
                 {props.label}
             </label>
@@ -111,7 +111,7 @@ function Password(props: {
                     name={props.name}
                     required={props.required}
                     className={clsx(
-                        "w-full px-3 py-3 sm:py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base",
+                        "w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 pr-12 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 sm:py-2",
                         props.className,
                     )}
                     placeholder={props.placeholder}
@@ -119,7 +119,7 @@ function Password(props: {
                 <button
                     type="button"
                     id={`togglePassword-${id}`}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-lg text-slate-400 transition hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 rounded-full p-1"
                     aria-label="Show/hide password"
                 >
                     <span id={`eyeIcon-${id}`}>👁️</span>
@@ -178,7 +178,7 @@ function TextInput(props: {
         <div className={props.className}>
             <label
                 htmlFor={id}
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
             >
                 {props.label}
             </label>
@@ -189,7 +189,7 @@ function TextInput(props: {
                 name={props.name}
                 required={props.required}
                 defaultValue={props.defaultValue}
-                className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 sm:py-2"
                 placeholder={props.placeholder}
             />
         </div>

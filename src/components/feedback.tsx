@@ -6,9 +6,9 @@ export function ErrorList(props: { errors: string[]; className?: string }) {
     }
 
     return (
-        <div className={clsx("rounded-md border p-3 text-sm", props.className)}>
+        <div className={clsx("rounded-lg p-3 text-sm", props.className)}>
             {props.errors.map((error) => (
-                <p>{error}</p>
+                <p key={error}>{error}</p>
             ))}
         </div>
     );

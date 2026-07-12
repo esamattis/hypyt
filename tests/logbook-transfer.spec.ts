@@ -43,10 +43,10 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await expect(page.getByText("Imported 2 jumps")).toBeVisible();
 
     await page.getByRole("link", { name: /first-skydiver's logbook/ }).click();
-    await expect(page.getByRole("link", { name: /Jump #301/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Jump #302/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Jump #\d+/ })).toHaveCount(2);
-    await page.getByRole("link", { name: /Jump #301/ }).click();
+    await expect(page.getByRole("link", { name: /#301/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /#302/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /#\d+/ })).toHaveCount(2);
+    await page.getByRole("link", { name: /#301/ }).click();
     await page
         .locator('textarea[name="description"]')
         .fill("Edited after import");
@@ -59,8 +59,8 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await page.getByRole("button", { name: "Import logbook" }).click();
     await expect(page.getByText("Imported 2 jumps")).toBeVisible();
     await page.getByRole("link", { name: /first-skydiver's logbook/ }).click();
-    await expect(page.getByRole("link", { name: /Jump #\d+/ })).toHaveCount(2);
-    await page.getByRole("link", { name: /Jump #301/ }).click();
+    await expect(page.getByRole("link", { name: /#\d+/ })).toHaveCount(2);
+    await page.getByRole("link", { name: /#301/ }).click();
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Imported training jump",
     );
@@ -94,14 +94,14 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await expect(page.getByText("Imported 2 jumps")).toBeVisible();
 
     await page.getByRole("link", { name: /second-skydiver's logbook/ }).click();
-    await expect(page.getByRole("link", { name: /Jump #301/ })).toContainText(
+    await expect(page.getByRole("link", { name: /#301/ })).toContainText(
         "Skydive Example / Twin Otter",
     );
-    await expect(page.getByRole("link", { name: /Jump #302/ })).toContainText(
+    await expect(page.getByRole("link", { name: /#302/ })).toContainText(
         "Skydive Example / Twin Otter",
     );
-    await expect(page.getByRole("link", { name: /Jump #\d+/ })).toHaveCount(2);
-    await page.getByRole("link", { name: /Jump #301/ }).click();
+    await expect(page.getByRole("link", { name: /#\d+/ })).toHaveCount(2);
+    await page.getByRole("link", { name: /#301/ }).click();
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Edited after import",
     );
@@ -129,10 +129,10 @@ test("a Skydiving Logbook XML file can be imported", async ({ page }) => {
     await expect(page.getByText("Imported 1 jump")).toBeVisible();
 
     await page.getByRole("link", { name: /xml-skydiver's logbook/ }).click();
-    await expect(page.getByRole("link", { name: /Jump #401/ })).toContainText(
+    await expect(page.getByRole("link", { name: /#401/ })).toContainText(
         "Skydive XML / Caravan",
     );
-    await page.getByRole("link", { name: /Jump #401/ }).click();
+    await page.getByRole("link", { name: /#401/ }).click();
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Imported from XML",
     );

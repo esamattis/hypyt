@@ -40,6 +40,12 @@ function formatSpeed(metersPerSecond: number): string {
     return `${kmh} km/h`;
 }
 
+function formatDistance(meters: number): string {
+    const kilometers = meters / 1000;
+    const formatted = kilometers.toFixed(1).replace(/\.0$/, "");
+    return `${formatted} km`;
+}
+
 function formatDuration(totalSeconds: number): string {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -52,26 +58,69 @@ function formatDuration(totalSeconds: number): string {
     return `${minutes} min ${seconds} s`;
 }
 
-function LogbookStats(props: { totalJumps: number; avgSpeed: number | null }) {
+function LogbookStats(props: {
+    totalJumps: number;
+    totalFreefallMeters: number;
+}) {
     return (
         <section
             aria-label="Logbook summary"
-            className="grid grid-cols-2 gap-3 rounded-lg bg-white p-5 shadow-sm sm:grid-cols-2"
+            className="grid grid-cols-2 gap-4"
         >
-            <div>
-                <p className="text-sm font-medium text-gray-500">Total jumps</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+                <div className="flex items-center gap-2">
+                    <span
+                        aria-hidden="true"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"
+                    >
+                        <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M3 17l6-6 4 4 8-8M21 7h-4m4 0v4"
+                            />
+                        </svg>
+                    </span>
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Total jumps
+                    </p>
+                </div>
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
                     {props.totalJumps}
                 </p>
             </div>
-            <div>
-                <p className="text-sm font-medium text-gray-500">
-                    Avg skydiving speed
-                </p>
-                <p className="mt-1 text-2xl font-bold text-gray-900">
-                    {props.avgSpeed === null
-                        ? "—"
-                        : formatSpeed(props.avgSpeed)}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+                <div className="flex items-center gap-2">
+                    <span
+                        aria-hidden="true"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600"
+                    >
+                        <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                            />
+                        </svg>
+                    </span>
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Total freefall
+                    </p>
+                </div>
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+                    {formatDistance(props.totalFreefallMeters)}
                 </p>
             </div>
         </section>
@@ -81,10 +130,10 @@ function LogbookStats(props: { totalJumps: number; avgSpeed: number | null }) {
 function JumpStat(props: { label: string; value: string }) {
     return (
         <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 {props.label}
             </dt>
-            <dd className="mt-0.5 text-sm font-medium text-gray-900">
+            <dd className="mt-0.5 text-sm font-semibold text-slate-700">
                 {props.value}
             </dd>
         </div>
@@ -108,26 +157,31 @@ function JumpCard(props: {
         <li>
             <a
                 href={routes.jumpEdit({ uuid: props.uuid })}
-                className="block px-5 py-4 hover:bg-gray-50"
+                className="block rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-indigo-300 hover:bg-slate-50/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
             >
-                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <span className="font-semibold text-blue-700">
-                        Jump #{props.jumpNumber}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                        {props.locationName} / {props.aircraftName}
-                    </span>
-                </div>
-                {props.jumpTypes.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                        {props.jumpTypes.map((name) => (
-                            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-                                {name}
-                            </span>
-                        ))}
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                    <div className="flex items-center gap-3">
+                        <span className="flex min-w-9 items-center justify-center rounded-xl bg-indigo-100 px-2 py-1.5 text-sm font-bold text-indigo-700 tabular-nums">
+                            #{props.jumpNumber}
+                        </span>
+                        <span className="text-base font-semibold text-slate-900">
+                            {props.locationName} / {props.aircraftName}
+                        </span>
                     </div>
-                )}
-                <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {props.jumpTypes.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                            {props.jumpTypes.map((name) => (
+                                <span
+                                    key={name}
+                                    className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200/60"
+                                >
+                                    {name}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <JumpStat label="Exit" value={`${props.exitAltitude} m`} />
                     <JumpStat
                         label="Opening"
@@ -143,7 +197,7 @@ function JumpCard(props: {
                     />
                 </dl>
                 {props.description && (
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-500">
                         {props.description}
                     </p>
                 )}
@@ -191,10 +245,32 @@ function JumpFilters(props: {
     return (
         <details
             open={hasFilters}
-            className="rounded-lg bg-white p-5 shadow-sm"
+            className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
         >
-            <summary className="cursor-pointer font-semibold text-gray-900">
+            <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold text-slate-900 marker:hidden">
+                <svg
+                    aria-hidden="true"
+                    className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-90"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 5l7 7-7 7"
+                    />
+                </svg>
                 Filter jumps
+                {hasFilters && (
+                    <a
+                        href={routes.logbook({})}
+                        className="ml-auto text-sm font-normal text-indigo-600 hover:underline"
+                    >
+                        Clear filters
+                    </a>
+                )}
             </summary>
             <form
                 action={routes.logbook({})}
@@ -202,12 +278,15 @@ function JumpFilters(props: {
                 className="mt-5 space-y-5"
             >
                 <fieldset>
-                    <legend className="text-sm font-medium text-gray-700">
+                    <legend className="text-sm font-semibold text-slate-700">
                         Locations
                     </legend>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {props.locations.map((location) => (
-                            <label className="flex items-center gap-2 rounded border border-gray-200 px-3 py-2 text-sm">
+                            <label
+                                key={location.uuid}
+                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900"
+                            >
                                 <input
                                     name="locationUuids"
                                     type="checkbox"
@@ -215,6 +294,7 @@ function JumpFilters(props: {
                                     checked={selectedLocations.has(
                                         location.uuid,
                                     )}
+                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40"
                                 />
                                 {location.name}
                             </label>
@@ -222,17 +302,21 @@ function JumpFilters(props: {
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend className="text-sm font-medium text-gray-700">
+                    <legend className="text-sm font-semibold text-slate-700">
                         Gear
                     </legend>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {props.gear.map((item) => (
-                            <label className="flex items-center gap-2 rounded border border-gray-200 px-3 py-2 text-sm">
+                            <label
+                                key={item.uuid}
+                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900"
+                            >
                                 <input
                                     name="gearUuids"
                                     type="checkbox"
                                     value={item.uuid}
                                     checked={selectedGear.has(item.uuid)}
+                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40"
                                 />
                                 {item.name}
                             </label>
@@ -240,38 +324,34 @@ function JumpFilters(props: {
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend className="text-sm font-medium text-gray-700">
+                    <legend className="text-sm font-semibold text-slate-700">
                         Jump types
                     </legend>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {props.jumpTypes.map((item) => (
-                            <label className="flex items-center gap-2 rounded border border-gray-200 px-3 py-2 text-sm">
+                            <label
+                                key={item.uuid}
+                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900"
+                            >
                                 <input
                                     name="jumpTypeUuids"
                                     type="checkbox"
                                     value={item.uuid}
                                     checked={selectedJumpTypes.has(item.uuid)}
+                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40"
                                 />
                                 {item.name}
                             </label>
                         ))}
                     </div>
                 </fieldset>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3 pt-2">
                     <button
                         type="submit"
-                        className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+                        className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                     >
                         Apply filters
                     </button>
-                    {hasFilters && (
-                        <a
-                            href={routes.logbook({})}
-                            className="rounded-md border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Clear filters
-                        </a>
-                    )}
                 </div>
             </form>
         </details>
@@ -415,24 +495,17 @@ async function getJumpTypesByJump(c: AppRequestContext) {
     return jumpTypesByJump;
 }
 
-function getOverallAvgSpeed(
+function getTotalFreefallMeters(
     jumpRows: {
         exitAltitude: number;
         openingAltitude: number;
-        freefallTime: number;
     }[],
-): number | null {
-    let totalFreefallDistance = 0;
-    let totalFreefallTime = 0;
+): number {
+    let totalFreefallMeters = 0;
     for (const jump of jumpRows) {
-        if (jump.freefallTime > 0) {
-            totalFreefallDistance += jumpFreefallDistance(jump);
-            totalFreefallTime += jump.freefallTime;
-        }
+        totalFreefallMeters += jumpFreefallDistance(jump);
     }
-    return totalFreefallTime > 0
-        ? totalFreefallDistance / totalFreefallTime
-        : null;
+    return totalFreefallMeters;
 }
 
 async function renderLogbook(c: AppRequestContext) {
@@ -442,14 +515,14 @@ async function renderLogbook(c: AppRequestContext) {
         getLogbookJumps(c, filters),
         getJumpTypesByJump(c),
     ]);
-    const overallAvgSpeed = getOverallAvgSpeed(jumpRows);
+    const totalFreefallMeters = getTotalFreefallMeters(jumpRows);
 
     return c.render(
         <LogbookPage title="Jump Logbook">
             {jumpRows.length > 0 && (
                 <LogbookStats
                     totalJumps={jumpRows.length}
-                    avgSpeed={overallAvgSpeed}
+                    totalFreefallMeters={totalFreefallMeters}
                 />
             )}
             <JumpFilters
@@ -458,20 +531,29 @@ async function renderLogbook(c: AppRequestContext) {
                 gear={resources.gear}
                 jumpTypes={resources.jumpTypes}
             />
-            <section className="overflow-hidden rounded-lg bg-white shadow-sm">
-                <h2 className="border-b border-gray-200 px-5 py-4 text-lg font-semibold">
-                    Jumps
-                </h2>
+            <section className="space-y-3">
+                <div className="flex items-baseline justify-between">
+                    <h2 className="text-lg font-semibold text-slate-900">
+                        Jumps
+                    </h2>
+                    {jumpRows.length > 0 && (
+                        <span className="text-sm text-slate-400">
+                            {jumpRows.length} total
+                        </span>
+                    )}
+                </div>
                 {jumpRows.length === 0 ? (
-                    <p className="p-5 text-gray-600">
-                        {filters.locationUuids.length > 0 ||
-                        filters.gearUuids.length > 0 ||
-                        filters.jumpTypeUuids.length > 0
-                            ? "No jumps match the selected filters."
-                            : "No jumps yet."}
-                    </p>
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                        <p className="text-sm text-slate-500">
+                            {filters.locationUuids.length > 0 ||
+                            filters.gearUuids.length > 0 ||
+                            filters.jumpTypeUuids.length > 0
+                                ? "No jumps match the selected filters."
+                                : "No jumps yet. Add your first jump to start your logbook."}
+                        </p>
+                    </div>
                 ) : (
-                    <ul className="divide-y divide-gray-200">
+                    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {jumpRows.map((jump) => (
                             <JumpCard
                                 uuid={jump.uuid}

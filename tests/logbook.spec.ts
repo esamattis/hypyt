@@ -78,20 +78,20 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("button", { name: "Add jump" }).click();
 
     await expect(page).toHaveURL("/logbook");
-    await expect(page.getByRole("link", { name: /Jump #1/ })).toContainText(
+    await expect(page.getByRole("link", { name: /#1/ })).toContainText(
         "Skydive Test Center / Cessna 182",
     );
     await expect(page.getByText("First test jump")).toBeVisible();
     await expect(page.getByText("4000 m", { exact: true })).toBeVisible();
     await expect(page.getByText("1000 m", { exact: true })).toBeVisible();
     await expect(page.getByText("55 s", { exact: true })).toBeVisible();
-    await expect(page.getByText("Avg skydiving speed")).toBeVisible();
-    await expect(page.getByText(/196 km\/h/).first()).toBeVisible();
+    await expect(page.getByText("Total freefall")).toBeVisible();
+    await expect(page.getByText("3 km").first()).toBeVisible();
     await expect(
-        page.getByRole("link", { name: /Jump #1/ }).getByText("Freefly"),
+        page.getByRole("link", { name: /#1/ }).getByText("Freefly"),
     ).toBeVisible();
     await expect(
-        page.getByRole("link", { name: /Jump #1/ }).getByText("Tracking"),
+        page.getByRole("link", { name: /#1/ }).getByText("Tracking"),
     ).toBeVisible();
 
     await page.getByText("Filter jumps", { exact: true }).click();
@@ -99,10 +99,10 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("checkbox", { name: "Tracking" }).check();
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page).toHaveURL(/\/logbook\?jumpTypeUuids=/);
-    await expect(page.getByRole("link", { name: /Jump #1/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Jump #2/ })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /#2/ })).toHaveCount(0);
 
-    await page.getByRole("link", { name: /Jump #1/ }).click();
+    await page.getByRole("link", { name: /#1/ }).click();
     await page.getByRole("link", { name: "Copy to new" }).click();
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?from=/);
@@ -129,7 +129,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("button", { name: "Add jump" }).click();
 
     await expect(page).toHaveURL("/logbook");
-    await expect(page.getByRole("link", { name: /Jump #2/ })).toContainText(
+    await expect(page.getByRole("link", { name: /#2/ })).toContainText(
         "Skydive Test Center / Cessna 182",
     );
 
@@ -416,11 +416,9 @@ test("gear can be converted to a jump type with its jump references", async ({
         .getByRole("link", { name: /Conversion Skydiver's logbook/ })
         .click();
     await expect(
-        page
-            .getByRole("link", { name: /Jump #1/ })
-            .getByText("Convertible gear"),
+        page.getByRole("link", { name: /#1/ }).getByText("Convertible gear"),
     ).toBeVisible();
-    await page.getByRole("link", { name: /Jump #1/ }).click();
+    await page.getByRole("link", { name: /#1/ }).click();
     await expect(
         page.getByRole("checkbox", { name: "Convertible gear" }),
     ).toBeChecked();

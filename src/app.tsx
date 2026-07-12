@@ -85,17 +85,26 @@ export function useAppContext(): AppContext {
 
 function errorHandler(err: Error, c: AppRequestContext) {
     return c.render(
-        <div className="p-5 border border-red-400 bg-red-100 rounded-lg m-5">
-            <h1 className="text-red-700 mb-2">An error occurred</h1>
-            <p className="text-gray-800 my-1">
-                <strong>Message:</strong> {err.message}
-            </p>
-            <p className="text-gray-600 my-1 text-sm">
-                <strong>Stack:</strong>
-            </p>
-            <pre className="bg-gray-100 p-2 rounded overflow-x-auto text-xs text-gray-700">
-                {err.stack}
-            </pre>
+        <div className="mx-auto mt-16 max-w-xl rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm ring-1 ring-red-100">
+            <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-red-100 text-xl">
+                    ⚠
+                </div>
+                <div className="min-w-0">
+                    <h1 className="text-lg font-bold text-red-700">
+                        An error occurred
+                    </h1>
+                    <p className="mt-1 break-words text-sm text-red-900">
+                        <strong>Message:</strong> {err.message}
+                    </p>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-red-500">
+                        Stack
+                    </p>
+                    <pre className="mt-1 overflow-x-auto rounded-lg bg-white/80 p-3 text-xs text-red-900 ring-1 ring-red-200">
+                        {err.stack}
+                    </pre>
+                </div>
+            </div>
         </div>,
     );
 }
@@ -229,11 +238,9 @@ app.use(
                     style={{
                         ["--animation-duration"]: "5000ms",
                     }}
-                    className="bg-gray-100 text-gray-800 min-h-screen"
+                    className="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased"
                 >
-                    <div className="container mx-auto p-2 sm:p-5 max-w-none sm:max-w-screen-xl">
-                        {props.children}
-                    </div>
+                    <div className="min-h-screen">{props.children}</div>
                 </body>
             </html>
         );

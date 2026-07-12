@@ -78,7 +78,7 @@ function JumpForm(props: {
     return (
         <form
             method="post"
-            className="space-y-5 rounded-lg bg-white p-5 shadow-sm"
+            className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
         >
             <ErrorList
                 errors={props.errors ?? []}
@@ -141,7 +141,7 @@ function JumpForm(props: {
                 </Select>
             </div>
             <fieldset>
-                <legend className="text-sm font-medium text-gray-700">
+                <legend className="text-sm font-semibold text-slate-700">
                     Gear used
                 </legend>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -156,7 +156,7 @@ function JumpForm(props: {
                 </div>
             </fieldset>
             <fieldset>
-                <legend className="text-sm font-medium text-gray-700">
+                <legend className="text-sm font-semibold text-slate-700">
                     Jump types
                 </legend>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -254,8 +254,22 @@ function JumpFormPage(props: {
             {props.copyHref && (
                 <a
                     href={props.copyHref}
-                    className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                 >
+                    <svg
+                        aria-hidden="true"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
+                    </svg>
                     Copy to new
                 </a>
             )}

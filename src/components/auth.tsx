@@ -9,26 +9,26 @@ export function AuthFormShell(props: {
     children: any;
 }) {
     return (
-        <div className="mx-auto mt-4 max-w-md rounded-lg bg-white p-4 shadow-md sm:mt-10 sm:p-6">
-            <h2 className="mb-4 text-center text-xl font-bold sm:text-2xl">
+        <div className="mx-auto mt-8 max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5 sm:mt-16 sm:p-8">
+            <h2 className="mb-6 text-center text-2xl font-bold tracking-tight text-slate-900">
                 {props.title}
             </h2>
             <ErrorList
                 errors={props.errors}
-                className="mb-4 space-y-1 border-red-400 bg-red-100 text-red-700"
+                className="mb-5 space-y-1 rounded-lg bg-red-50 p-3 text-red-700 ring-1 ring-red-200"
             />
             <form method="post" className="space-y-4">
                 {props.children}
                 <button
                     type="submit"
-                    className="w-full rounded-md bg-blue-500 px-4 py-3 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:py-2"
+                    className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 sm:py-2.5"
                 >
                     {props.submitLabel}
                 </button>
-                <div className="mt-4 text-center">
+                <div className="pt-2 text-center text-sm text-slate-600">
                     <a
                         href={props.alternateHref}
-                        className="text-sm text-gray-600 underline hover:text-gray-800"
+                        className="font-medium text-indigo-600 underline-offset-2 hover:text-indigo-700 hover:underline"
                     >
                         {props.alternateLabel}
                     </a>
