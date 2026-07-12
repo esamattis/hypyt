@@ -164,6 +164,7 @@ function JumpStat(props: { label: string; value: string }) {
 interface LogbookJump {
     uuid: string;
     jumpNumber: number;
+    jumpDate: string;
     locationName: string;
     aircraftName: string;
     exitAltitude: number;
@@ -188,6 +189,12 @@ function JumpCard(props: LogbookJump) {
                         <span className="flex min-w-9 items-center justify-center rounded-xl bg-indigo-100 px-2 py-1.5 text-sm font-bold text-indigo-700 tabular-nums">
                             #{props.jumpNumber}
                         </span>
+                        <time
+                            dateTime={props.jumpDate}
+                            className="text-sm text-slate-500 tabular-nums"
+                        >
+                            {props.jumpDate}
+                        </time>
                         <span className="text-base font-semibold text-slate-900">
                             {props.locationName} / {props.aircraftName}
                         </span>
@@ -526,6 +533,7 @@ async function getLogbookJumps(
         .select({
             uuid: jumps.uuid,
             jumpNumber: jumps.jumpNumber,
+            jumpDate: jumps.jumpDate,
             exitAltitude: jumps.exitAltitude,
             openingAltitude: jumps.openingAltitude,
             freefallTime: jumps.freefallTime,

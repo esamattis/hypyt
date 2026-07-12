@@ -14,7 +14,7 @@
     </skydive_types>
     <log_entries>
         <log_entry>
-            <jump_number>401</jump_number><exit_altitude>4000</exit_altitude><deployment_altitude>1000</deployment_altitude><freefall_time>55</freefall_time><location_id>location-1</location_id><aircraft_id>aircraft-1</aircraft_id><rigs><rig_id>rig-1</rig_id></rigs><skydive_type_id>type-1</skydive_type_id><notes>Imported from XML</notes>
+            <jump_number>401</jump_number><date>2024-06-15</date><exit_altitude>4000</exit_altitude><deployment_altitude>1000</deployment_altitude><freefall_time>55</freefall_time><location_id>location-1</location_id><aircraft_id>aircraft-1</aircraft_id><rigs><rig_id>rig-1</rig_id></rigs><skydive_type_id>type-1</skydive_type_id><notes>Imported from XML</notes>
         </log_entry>
     </log_entries>
 </skydiving_logbook>

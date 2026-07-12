@@ -257,6 +257,7 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
         jumps.push({
             type: "jump",
             jumpNumber,
+            jumpDate: requiredXmlString(record, "date"),
             exitAltitude: xmlNumber(record, "exit_altitude", 1),
             openingAltitude: xmlNumber(record, "deployment_altitude", 0),
             freefallTime: xmlNumber(record, "freefall_time", 0),

@@ -12,6 +12,7 @@ interface ImportResource {
 interface ImportJump {
     type: "jump";
     jumpNumber: number;
+    jumpDate: string;
     exitAltitude: number;
     openingAltitude: number;
     freefallTime: number;
@@ -191,6 +192,7 @@ function createJumps(
         const jump: ImportJump = {
             type: "jump",
             jumpNumber,
+            jumpDate: requiredStringField(record, "date"),
             exitAltitude: numberField(record, "exit_altitude", 1),
             openingAltitude: numberField(record, "deployment_altitude", 0),
             freefallTime: numberField(record, "freefall_time", 0),

@@ -244,10 +244,13 @@ test("a Skydiving Logbook XML file can be imported", async ({ page }) => {
     await expect(page.getByText("Imported 1 jump")).toBeVisible();
 
     await page.getByRole("link", { name: /xml-skydiver's logbook/ }).click();
-    await expect(page.getByRole("link", { name: /#401/ })).toContainText(
-        "Skydive XML / Caravan",
+    const importedJump = page.getByRole("link", { name: /#401/ });
+    await expect(importedJump).toContainText("Skydive XML / Caravan");
+    await expect(importedJump).toContainText("2024-06-15");
+    await importedJump.click();
+    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+        "2024-06-15",
     );
-    await page.getByRole("link", { name: /#401/ }).click();
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Imported from XML",
     );
