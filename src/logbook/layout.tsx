@@ -173,57 +173,51 @@ export function LogbookPage(props: { title: string; children: any }) {
         <div className="min-h-screen">
             <Style>
                 {`
-                    html { scroll-padding-top: 4rem; }
+                    html { scroll-padding-top: 8rem; }
                     summary { list-style: none; }
                     summary::-webkit-details-marker { display: none; }
                 `}
             </Style>
             <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur-md">
-                <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2.5 sm:py-3">
-                    <a
-                        href={routes.logbook({})}
-                        className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-lg"
-                    >
-                        <span
-                            aria-hidden="true"
-                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 text-sm text-white shadow-sm"
-                        >
-                            <svg
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2.2"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M12 19V5M5 12l7-7 7 7"
-                                />
-                            </svg>
-                        </span>
-                        <span className="hidden sm:inline">Jump Logbook</span>
-                    </a>
-                    <span className="hidden text-slate-300 sm:inline">·</span>
-                    <a
-                        href={routes.logbook({})}
-                        className="truncate text-sm text-slate-500 transition hover:text-indigo-600 hover:underline"
-                    >
-                        {user.getDisplayName()}'s logbook
-                    </a>
-                    <div className="ml-auto flex items-center gap-2">
-                        <LogbookActions />
+                <div className="mx-auto max-w-3xl px-4 py-2.5 sm:py-3">
+                    <div className="flex items-center gap-3">
                         <a
-                            href={routes.preferences({})}
-                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            href={routes.logbook({})}
+                            className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-lg"
                         >
-                            Preferences
+                            <span
+                                aria-hidden="true"
+                                className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 text-sm text-white shadow-sm"
+                            >
+                                <svg
+                                    className="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2.2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 19V5M5 12l7-7 7 7"
+                                    />
+                                </svg>
+                            </span>
+                            <span className="hidden sm:inline">
+                                Jump Logbook
+                            </span>
                         </a>
-                        <form method="post" action={routes.logout({})}>
-                            <button
-                                type="submit"
+                        <a
+                            href={routes.logbook({})}
+                            className="min-w-0 flex-1 truncate text-sm text-slate-500 transition hover:text-indigo-600 hover:underline"
+                        >
+                            {user.getDisplayName()}'s logbook
+                        </a>
+                        <div className="ml-auto flex shrink-0 items-center gap-2">
+                            <a
+                                href={routes.preferences({})}
+                                aria-label="Preferences"
                                 className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                                title="Log out"
                             >
                                 <svg
                                     aria-hidden="true"
@@ -236,14 +230,42 @@ export function LogbookPage(props: { title: string; children: any }) {
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"
+                                        d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM19.4 15a1.7 1.7 0 00.34 1.88l.06.06-1.7 1.7-.06-.06a1.7 1.7 0 00-1.88-.34 1.7 1.7 0 00-1.03 1.56v.08h-2.4v-.08a1.7 1.7 0 00-1.03-1.56 1.7 1.7 0 00-1.88.34l-.06.06-1.7-1.7.06-.06A1.7 1.7 0 008.46 15a1.7 1.7 0 00-1.56-1.03h-.08v-2.4h.08A1.7 1.7 0 008.46 10a1.7 1.7 0 00-.34-1.88l-.06-.06 1.7-1.7.06.06a1.7 1.7 0 001.88.34 1.7 1.7 0 001.03-1.56v-.08h2.4v.08a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.88-.34l.06-.06 1.7 1.7-.06.06A1.7 1.7 0 0019.4 10a1.7 1.7 0 001.56 1.03h.08v2.4h-.08A1.7 1.7 0 0019.4 15z"
                                     />
                                 </svg>
                                 <span className="hidden sm:inline">
-                                    Log out
+                                    Preferences
                                 </span>
-                            </button>
-                        </form>
+                            </a>
+                            <form method="post" action={routes.logout({})}>
+                                <button
+                                    type="submit"
+                                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                    title="Log out"
+                                >
+                                    <svg
+                                        aria-hidden="true"
+                                        className="h-4 w-4 sm:hidden"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"
+                                        />
+                                    </svg>
+                                    <span className="hidden sm:inline">
+                                        Log out
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div className="mt-2 border-t border-slate-100 pt-2">
+                        <LogbookActions />
                     </div>
                 </div>
             </header>
