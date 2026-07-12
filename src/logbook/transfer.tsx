@@ -61,9 +61,12 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
         <LogbookPage title="Import or export logbook">
             <section className="space-y-5 rounded-lg bg-white p-5 shadow-sm">
                 <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Export</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        Export
+                    </h2>
                     <p className="mt-1 text-sm text-gray-600">
-                        Download your logbook as a JSON Lines file. It uses names instead of internal IDs.
+                        Download your logbook as a JSON Lines file. It uses
+                        names instead of internal IDs.
                     </p>
                     <a
                         href={routes.logbookExport({})}
@@ -73,9 +76,12 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
                     </a>
                 </div>
                 <div className="border-t border-gray-200 pt-5">
-                    <h2 className="text-lg font-semibold text-gray-900">Import</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        Import
+                    </h2>
                     <p className="mt-1 text-sm text-gray-600">
-                        Import a JSON Lines file. Existing gear, locations, aircraft, and jump types are matched by name.
+                        Import a JSON Lines file. Existing gear, locations,
+                        aircraft, and jump types are matched by name.
                     </p>
                     {props.notice && (
                         <p className="mt-3 rounded-md border border-green-300 bg-green-50 p-3 text-sm text-green-800">
@@ -89,7 +95,11 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
                             ))}
                         </ul>
                     )}
-                    <form method="post" encType="multipart/form-data" className="mt-4 flex flex-wrap items-end gap-3">
+                    <form
+                        method="post"
+                        encType="multipart/form-data"
+                        className="mt-4 flex flex-wrap items-end gap-3"
+                    >
                         <label className="block text-sm font-medium text-gray-700">
                             JSONL file
                             <input
@@ -108,17 +118,40 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
                         </button>
                     </form>
                     <details className="mt-5 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-                        <summary className="cursor-pointer font-medium text-gray-900">Export file format</summary>
+                        <summary className="cursor-pointer font-medium text-gray-900">
+                            Export file format
+                        </summary>
                         <div className="mt-3 space-y-3">
-                            <p>Export files use JSON Lines: one JSON object per line. Resources appear before jumps, which refer to them by name.</p>
-                            <p>For example, this file imports an aircraft, gear, jump type, location, and one jump:</p>
-                            <pre className="overflow-x-auto rounded bg-gray-900 p-3 text-xs text-gray-100"><code>{`{"type":"aircraft","name":"Twin Otter","previousCount":120,"description":"Fast turbine aircraft"}
+                            <p>
+                                Export files use JSON Lines: one JSON object per
+                                line. Resources appear before jumps, which refer
+                                to them by name.
+                            </p>
+                            <p>
+                                For example, this file imports an aircraft,
+                                gear, jump type, location, and one jump:
+                            </p>
+                            <pre className="overflow-x-auto rounded bg-gray-900 p-3 text-xs text-gray-100">
+                                <code>{`{"type":"aircraft","name":"Twin Otter","previousCount":120,"description":"Fast turbine aircraft"}
 {"type":"gear","name":"Navigator 260","previousCount":42,"description":"Main canopy"}
 {"type":"jumpType","name":"Formation skydiving","previousCount":18,"description":"Four-way training"}
 {"type":"location","name":"Skydive Example","previousCount":300,"description":"Home drop zone"}
-{"type":"jump","jumpNumber":301,"location":"Skydive Example","aircraft":"Twin Otter","gear":["Navigator 260"],"jumpTypes":["Formation skydiving"],"description":"Training jump"}`}</code></pre>
-                            <p>Resource records require <code>type</code>, <code>name</code>, and <code>previousCount</code>. Jump records require <code>type</code>, <code>jumpNumber</code>, <code>location</code>, and <code>aircraft</code>. Descriptions may be omitted or <code>null</code>, and <code>gear</code> and <code>jumpTypes</code> may be omitted or empty.</p>
-                            <p>Re-importing a jump with the same jump number updates it.</p>
+{"type":"jump","jumpNumber":301,"location":"Skydive Example","aircraft":"Twin Otter","gear":["Navigator 260"],"jumpTypes":["Formation skydiving"],"description":"Training jump"}`}</code>
+                            </pre>
+                            <p>
+                                Resource records require <code>type</code>,{" "}
+                                <code>name</code>, and{" "}
+                                <code>previousCount</code>. Jump records require{" "}
+                                <code>type</code>, <code>jumpNumber</code>,{" "}
+                                <code>location</code>, and <code>aircraft</code>
+                                . Descriptions may be omitted or{" "}
+                                <code>null</code>, and <code>gear</code> and{" "}
+                                <code>jumpTypes</code> may be omitted or empty.
+                            </p>
+                            <p>
+                                Re-importing a jump with the same jump number
+                                updates it.
+                            </p>
                         </div>
                     </details>
                 </div>
@@ -127,8 +160,12 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
     );
 }
 
-async function readImportRecords(file: File): Promise<ImportRecord[] | string[]> {
-    const lines = (await file.text()).split(/\r?\n/).filter((line) => line.trim());
+async function readImportRecords(
+    file: File,
+): Promise<ImportRecord[] | string[]> {
+    const lines = (await file.text())
+        .split(/\r?\n/)
+        .filter((line) => line.trim());
     if (lines.length === 0) {
         return ["The import file is empty"];
     }
@@ -158,20 +195,38 @@ async function readImportRecords(file: File): Promise<ImportRecord[] | string[]>
 async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
-    const [aircraftRows, gearRows, jumpRows, jumpTypeRows, locationRows] = await Promise.all([
-        db.select({ uuid: aircrafts.uuid, name: aircrafts.name }).from(aircrafts).where(eq(aircrafts.userUuid, userUuid)),
-        db.select({ uuid: gear.uuid, name: gear.name }).from(gear).where(eq(gear.userUuid, userUuid)),
-        db.select({ uuid: jumps.uuid, jumpNumber: jumps.jumpNumber }).from(jumps).where(eq(jumps.userUuid, userUuid)),
-        db.select({ uuid: jumpTypes.uuid, name: jumpTypes.name }).from(jumpTypes).where(eq(jumpTypes.userUuid, userUuid)),
-        db.select({ uuid: locations.uuid, name: locations.name }).from(locations).where(eq(locations.userUuid, userUuid)),
-    ]);
+    const [aircraftRows, gearRows, jumpRows, jumpTypeRows, locationRows] =
+        await Promise.all([
+            db
+                .select({ uuid: aircrafts.uuid, name: aircrafts.name })
+                .from(aircrafts)
+                .where(eq(aircrafts.userUuid, userUuid)),
+            db
+                .select({ uuid: gear.uuid, name: gear.name })
+                .from(gear)
+                .where(eq(gear.userUuid, userUuid)),
+            db
+                .select({ uuid: jumps.uuid, jumpNumber: jumps.jumpNumber })
+                .from(jumps)
+                .where(eq(jumps.userUuid, userUuid)),
+            db
+                .select({ uuid: jumpTypes.uuid, name: jumpTypes.name })
+                .from(jumpTypes)
+                .where(eq(jumpTypes.userUuid, userUuid)),
+            db
+                .select({ uuid: locations.uuid, name: locations.name })
+                .from(locations)
+                .where(eq(locations.userUuid, userUuid)),
+        ]);
     const resources = {
         aircraft: resourceMap(aircraftRows),
         gear: resourceMap(gearRows),
         jumpType: resourceMap(jumpTypeRows),
         location: resourceMap(locationRows),
     };
-    const jumpUuids = new Map(jumpRows.map((jump) => [jump.jumpNumber, jump.uuid]));
+    const jumpUuids = new Map(
+        jumpRows.map((jump) => [jump.jumpNumber, jump.uuid]),
+    );
     const queries = [];
 
     for (const record of records) {
@@ -186,17 +241,60 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         resources[record.type].set(key, uuid);
         const description = record.description || null;
         if (record.type === "aircraft") {
-            queries.push(db.insert(aircrafts).values({ uuid, userUuid, name: record.name, previousJumpCount: record.previousCount, description }));
+            queries.push(
+                db
+                    .insert(aircrafts)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name: record.name,
+                        previousJumpCount: record.previousCount,
+                        description,
+                    }),
+            );
         } else if (record.type === "gear") {
-            queries.push(db.insert(gear).values({ uuid, userUuid, name: record.name, previousUsageCount: record.previousCount, description }));
+            queries.push(
+                db
+                    .insert(gear)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name: record.name,
+                        previousUsageCount: record.previousCount,
+                        description,
+                    }),
+            );
         } else if (record.type === "jumpType") {
-            queries.push(db.insert(jumpTypes).values({ uuid, userUuid, name: record.name, previousUsageCount: record.previousCount, description }));
+            queries.push(
+                db
+                    .insert(jumpTypes)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name: record.name,
+                        previousUsageCount: record.previousCount,
+                        description,
+                    }),
+            );
         } else {
-            queries.push(db.insert(locations).values({ uuid, userUuid, name: record.name, previousJumpCount: record.previousCount, description }));
+            queries.push(
+                db
+                    .insert(locations)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name: record.name,
+                        previousJumpCount: record.previousCount,
+                        description,
+                    }),
+            );
         }
     }
 
-    function resolveResource(type: "aircraft" | "gear" | "jumpType" | "location", name: string): string {
+    function resolveResource(
+        type: "aircraft" | "gear" | "jumpType" | "location",
+        name: string,
+    ): string {
         const key = normalizeName(name);
         const existing = resources[type].get(key);
         if (existing) {
@@ -205,13 +303,53 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         const uuid = crypto.randomUUID();
         resources[type].set(key, uuid);
         if (type === "aircraft") {
-            queries.push(db.insert(aircrafts).values({ uuid, userUuid, name, previousJumpCount: 0, description: null }));
+            queries.push(
+                db
+                    .insert(aircrafts)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name,
+                        previousJumpCount: 0,
+                        description: null,
+                    }),
+            );
         } else if (type === "gear") {
-            queries.push(db.insert(gear).values({ uuid, userUuid, name, previousUsageCount: 0, description: null }));
+            queries.push(
+                db
+                    .insert(gear)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name,
+                        previousUsageCount: 0,
+                        description: null,
+                    }),
+            );
         } else if (type === "jumpType") {
-            queries.push(db.insert(jumpTypes).values({ uuid, userUuid, name, previousUsageCount: 0, description: null }));
+            queries.push(
+                db
+                    .insert(jumpTypes)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name,
+                        previousUsageCount: 0,
+                        description: null,
+                    }),
+            );
         } else {
-            queries.push(db.insert(locations).values({ uuid, userUuid, name, previousJumpCount: 0, description: null }));
+            queries.push(
+                db
+                    .insert(locations)
+                    .values({
+                        uuid,
+                        userUuid,
+                        name,
+                        previousJumpCount: 0,
+                        description: null,
+                    }),
+            );
         }
         return uuid;
     }
@@ -239,17 +377,26 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         };
         if (existingJumpUuid) {
             queries.push(
-                db.update(jumps).set(jumpValues).where(eq(jumps.uuid, jumpUuid)),
-                db.delete(jumpsToGear).where(eq(jumpsToGear.jumpUuid, jumpUuid)),
-                db.delete(jumpsToJumpTypes).where(eq(jumpsToJumpTypes.jumpUuid, jumpUuid)),
+                db
+                    .update(jumps)
+                    .set(jumpValues)
+                    .where(eq(jumps.uuid, jumpUuid)),
+                db
+                    .delete(jumpsToGear)
+                    .where(eq(jumpsToGear.jumpUuid, jumpUuid)),
+                db
+                    .delete(jumpsToJumpTypes)
+                    .where(eq(jumpsToJumpTypes.jumpUuid, jumpUuid)),
             );
         } else {
-            queries.push(db.insert(jumps).values({
-                uuid: jumpUuid,
-                userUuid,
-                jumpNumber: record.jumpNumber,
-                ...jumpValues,
-            }));
+            queries.push(
+                db.insert(jumps).values({
+                    uuid: jumpUuid,
+                    userUuid,
+                    jumpNumber: record.jumpNumber,
+                    ...jumpValues,
+                }),
+            );
         }
         queries.push(
             ...gearUuids.map((gearUuid) =>
@@ -277,7 +424,9 @@ async function handleTransfer(c: AppRequestContext) {
     const formData = await c.req.formData();
     const file = formData.get("file");
     if (!(file instanceof File)) {
-        return c.render(<TransferPage errors={["Choose a JSONL file to import"]} />);
+        return c.render(
+            <TransferPage errors={["Choose a JSONL file to import"]} />,
+        );
     }
     const result = await readImportRecords(file);
     if (result.length > 0 && typeof result[0] === "string") {
@@ -296,10 +445,26 @@ async function exportLogbook(c: AppRequestContext) {
     const userUuid = getAppContext(c).getUser().uuid;
     const [aircraftRows, gearRows, jumpTypeRows, locationRows, jumpRows] =
         await Promise.all([
-            db.select().from(aircrafts).where(eq(aircrafts.userUuid, userUuid)).orderBy(aircrafts.name),
-            db.select().from(gear).where(eq(gear.userUuid, userUuid)).orderBy(gear.name),
-            db.select().from(jumpTypes).where(eq(jumpTypes.userUuid, userUuid)).orderBy(jumpTypes.name),
-            db.select().from(locations).where(eq(locations.userUuid, userUuid)).orderBy(locations.name),
+            db
+                .select()
+                .from(aircrafts)
+                .where(eq(aircrafts.userUuid, userUuid))
+                .orderBy(aircrafts.name),
+            db
+                .select()
+                .from(gear)
+                .where(eq(gear.userUuid, userUuid))
+                .orderBy(gear.name),
+            db
+                .select()
+                .from(jumpTypes)
+                .where(eq(jumpTypes.userUuid, userUuid))
+                .orderBy(jumpTypes.name),
+            db
+                .select()
+                .from(locations)
+                .where(eq(locations.userUuid, userUuid))
+                .orderBy(locations.name),
             db
                 .select({
                     uuid: jumps.uuid,
@@ -322,25 +487,57 @@ async function exportLogbook(c: AppRequestContext) {
             .innerJoin(jumps, eq(jumpsToGear.jumpUuid, jumps.uuid))
             .where(eq(jumps.userUuid, userUuid)),
         db
-            .select({ jumpUuid: jumpsToJumpTypes.jumpUuid, name: jumpTypes.name })
+            .select({
+                jumpUuid: jumpsToJumpTypes.jumpUuid,
+                name: jumpTypes.name,
+            })
             .from(jumpsToJumpTypes)
-            .innerJoin(jumpTypes, eq(jumpsToJumpTypes.jumpTypeUuid, jumpTypes.uuid))
+            .innerJoin(
+                jumpTypes,
+                eq(jumpsToJumpTypes.jumpTypeUuid, jumpTypes.uuid),
+            )
             .innerJoin(jumps, eq(jumpsToJumpTypes.jumpUuid, jumps.uuid))
             .where(eq(jumps.userUuid, userUuid)),
     ]);
     const gearByJump = new Map<string, string[]>();
     const jumpTypesByJump = new Map<string, string[]>();
     for (const row of jumpGearRows) {
-        gearByJump.set(row.jumpUuid, [...(gearByJump.get(row.jumpUuid) ?? []), row.name]);
+        gearByJump.set(row.jumpUuid, [
+            ...(gearByJump.get(row.jumpUuid) ?? []),
+            row.name,
+        ]);
     }
     for (const row of jumpTypeRelationRows) {
-        jumpTypesByJump.set(row.jumpUuid, [...(jumpTypesByJump.get(row.jumpUuid) ?? []), row.name]);
+        jumpTypesByJump.set(row.jumpUuid, [
+            ...(jumpTypesByJump.get(row.jumpUuid) ?? []),
+            row.name,
+        ]);
     }
     const records = [
-        ...aircraftRows.map((row) => ({ type: "aircraft", name: row.name, previousCount: row.previousJumpCount, description: row.description })),
-        ...gearRows.map((row) => ({ type: "gear", name: row.name, previousCount: row.previousUsageCount, description: row.description })),
-        ...jumpTypeRows.map((row) => ({ type: "jumpType", name: row.name, previousCount: row.previousUsageCount, description: row.description })),
-        ...locationRows.map((row) => ({ type: "location", name: row.name, previousCount: row.previousJumpCount, description: row.description })),
+        ...aircraftRows.map((row) => ({
+            type: "aircraft",
+            name: row.name,
+            previousCount: row.previousJumpCount,
+            description: row.description,
+        })),
+        ...gearRows.map((row) => ({
+            type: "gear",
+            name: row.name,
+            previousCount: row.previousUsageCount,
+            description: row.description,
+        })),
+        ...jumpTypeRows.map((row) => ({
+            type: "jumpType",
+            name: row.name,
+            previousCount: row.previousUsageCount,
+            description: row.description,
+        })),
+        ...locationRows.map((row) => ({
+            type: "location",
+            name: row.name,
+            previousCount: row.previousJumpCount,
+            description: row.description,
+        })),
         ...jumpRows.map((row) => ({
             type: "jump",
             jumpNumber: row.jumpNumber,
@@ -351,10 +548,14 @@ async function exportLogbook(c: AppRequestContext) {
             description: row.description,
         })),
     ];
-    return c.body(records.map((record) => JSON.stringify(record)).join("\n") + "\n", 200, {
-        "Content-Disposition": 'attachment; filename="jump-logbook.jsonl"',
-        "Content-Type": "application/x-ndjson; charset=utf-8",
-    });
+    return c.body(
+        records.map((record) => JSON.stringify(record)).join("\n") + "\n",
+        200,
+        {
+            "Content-Disposition": 'attachment; filename="jump-logbook.jsonl"',
+            "Content-Type": "application/x-ndjson; charset=utf-8",
+        },
+    );
 }
 
 app.get(routes.logbookTransfer.route, renderTransfer);

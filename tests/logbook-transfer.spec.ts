@@ -35,7 +35,9 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await expect(page.getByRole("link", { name: /Jump #302/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /Jump #\d+/ })).toHaveCount(2);
     await page.getByRole("link", { name: /Jump #301/ }).click();
-    await page.locator('textarea[name="description"]').fill("Edited after import");
+    await page
+        .locator('textarea[name="description"]')
+        .fill("Edited after import");
     await page.getByRole("button", { name: "Save jump" }).click();
     await expect(page.getByText("Edited after import")).toBeVisible();
 
@@ -49,7 +51,9 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Imported training jump",
     );
-    await page.locator('textarea[name="description"]').fill("Edited after import");
+    await page
+        .locator('textarea[name="description"]')
+        .fill("Edited after import");
     await page.getByRole("button", { name: "Save jump" }).click();
 
     await page.getByRole("link", { name: "Import or export" }).click();

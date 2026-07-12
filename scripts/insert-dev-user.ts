@@ -65,7 +65,12 @@ async function main(): Promise<void> {
         } else {
             await db
                 .insert(users)
-                .values({ username, displayName, password: passwordHash, email })
+                .values({
+                    username,
+                    displayName,
+                    password: passwordHash,
+                    email,
+                })
                 .run();
         }
 

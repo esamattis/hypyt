@@ -150,28 +150,29 @@ function JumpForm(props: {
 async function getJumpFormResources(c: AppRequestContext) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
-    const [locationRows, aircraftRows, gearRows, jumpTypeRows] = await Promise.all([
-        db
-            .select({ uuid: locations.uuid, name: locations.name })
-            .from(locations)
-            .where(eq(locations.userUuid, userUuid))
-            .orderBy(locations.name),
-        db
-            .select({ uuid: aircrafts.uuid, name: aircrafts.name })
-            .from(aircrafts)
-            .where(eq(aircrafts.userUuid, userUuid))
-            .orderBy(aircrafts.name),
-        db
-            .select({ uuid: gear.uuid, name: gear.name })
-            .from(gear)
-            .where(eq(gear.userUuid, userUuid))
-            .orderBy(gear.name),
-        db
-            .select({ uuid: jumpTypes.uuid, name: jumpTypes.name })
-            .from(jumpTypes)
-            .where(eq(jumpTypes.userUuid, userUuid))
-            .orderBy(jumpTypes.name),
-    ]);
+    const [locationRows, aircraftRows, gearRows, jumpTypeRows] =
+        await Promise.all([
+            db
+                .select({ uuid: locations.uuid, name: locations.name })
+                .from(locations)
+                .where(eq(locations.userUuid, userUuid))
+                .orderBy(locations.name),
+            db
+                .select({ uuid: aircrafts.uuid, name: aircrafts.name })
+                .from(aircrafts)
+                .where(eq(aircrafts.userUuid, userUuid))
+                .orderBy(aircrafts.name),
+            db
+                .select({ uuid: gear.uuid, name: gear.name })
+                .from(gear)
+                .where(eq(gear.userUuid, userUuid))
+                .orderBy(gear.name),
+            db
+                .select({ uuid: jumpTypes.uuid, name: jumpTypes.name })
+                .from(jumpTypes)
+                .where(eq(jumpTypes.userUuid, userUuid))
+                .orderBy(jumpTypes.name),
+        ]);
 
     return {
         locations: locationRows,
@@ -459,14 +460,14 @@ async function handleEditJump(c: AppRequestContext) {
             })
             .where(eq(jumps.uuid, uuid)),
         db.delete(jumpsToGear).where(eq(jumpsToGear.jumpUuid, uuid)),
-        db
-            .delete(jumpsToJumpTypes)
-            .where(eq(jumpsToJumpTypes.jumpUuid, uuid)),
+        db.delete(jumpsToJumpTypes).where(eq(jumpsToJumpTypes.jumpUuid, uuid)),
         ...result.data.gearUuids.map((gearUuid) =>
             db.insert(jumpsToGear).values({ jumpUuid: uuid, gearUuid }),
         ),
         ...result.data.jumpTypeUuids.map((jumpTypeUuid) =>
-            db.insert(jumpsToJumpTypes).values({ jumpUuid: uuid, jumpTypeUuid }),
+            db
+                .insert(jumpsToJumpTypes)
+                .values({ jumpUuid: uuid, jumpTypeUuid }),
         ),
     ]);
     return c.redirect(routes.logbook({}));

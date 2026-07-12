@@ -9,7 +9,9 @@ async function main(): Promise<void> {
     });
 
     try {
-        await migrate(drizzle(platform.env.DB), { migrationsFolder: "drizzle" });
+        await migrate(drizzle(platform.env.DB), {
+            migrationsFolder: "drizzle",
+        });
         console.log("Local database Drizzle migrations have been run.");
     } finally {
         await platform.dispose();

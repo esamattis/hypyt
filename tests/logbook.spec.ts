@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("a skydiver can register and record their first jump", async ({ page }) => {
+test("a skydiver can register and record their first jump", async ({
+    page,
+}) => {
     await page.goto("/register");
     await page.locator('input[name="username"]').fill("skydiver");
     await page.locator('input[name="displayName"]').fill("Test Skydiver");
@@ -66,15 +68,15 @@ test("a skydiver can register and record their first jump", async ({ page }) => 
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?from=/);
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("2");
-    await expect(page.locator('select[name="locationUuid"]')).toHaveValue(
-        /.+/,
-    );
-    await expect(page.locator('select[name="aircraftUuid"]')).toHaveValue(
-        /.+/,
-    );
-    await expect(page.getByRole("checkbox", { name: "Main canopy" })).toBeChecked();
+    await expect(page.locator('select[name="locationUuid"]')).toHaveValue(/.+/);
+    await expect(page.locator('select[name="aircraftUuid"]')).toHaveValue(/.+/);
+    await expect(
+        page.getByRole("checkbox", { name: "Main canopy" }),
+    ).toBeChecked();
     await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Tracking" })).toBeChecked();
+    await expect(
+        page.getByRole("checkbox", { name: "Tracking" }),
+    ).toBeChecked();
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "First test jump",
     );
@@ -89,15 +91,15 @@ test("a skydiver can register and record their first jump", async ({ page }) => 
 
     await expect(page).toHaveURL("/logbook/jumps/new");
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("3");
-    await expect(page.locator('select[name="locationUuid"]')).toHaveValue(
-        /.+/,
-    );
-    await expect(page.locator('select[name="aircraftUuid"]')).toHaveValue(
-        /.+/,
-    );
-    await expect(page.getByRole("checkbox", { name: "Main canopy" })).toBeChecked();
+    await expect(page.locator('select[name="locationUuid"]')).toHaveValue(/.+/);
+    await expect(page.locator('select[name="aircraftUuid"]')).toHaveValue(/.+/);
+    await expect(
+        page.getByRole("checkbox", { name: "Main canopy" }),
+    ).toBeChecked();
     await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Tracking" })).toBeChecked();
+    await expect(
+        page.getByRole("checkbox", { name: "Tracking" }),
+    ).toBeChecked();
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "First test jump",
     );
