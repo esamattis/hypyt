@@ -118,6 +118,119 @@ function LogbookManagementMenu() {
     );
 }
 
+function jumpFreefallDistance(jump: {
+    exitAltitude: number;
+    openingAltitude: number;
+}): number {
+    return Math.max(0, jump.exitAltitude - jump.openingAltitude);
+}
+
+function jumpAvgSpeed(jump: {
+    exitAltitude: number;
+    openingAltitude: number;
+    freefallTime: number;
+}): number | null {
+    if (jump.freefallTime <= 0) {
+        return null;
+    }
+    return jumpFreefallDistance(jump) / jump.freefallTime;
+}
+
+function formatSpeed(metersPerSecond: number): string {
+    const kmh = Math.round(metersPerSecond * 3.6 * 10) / 10;
+    return `${kmh} km/h`;
+}
+
+function LogbookStats(props: { totalJumps: number; avgSpeed: number | null }) {
+    return (
+        <section
+            aria-label="Logbook summary"
+            className="grid grid-cols-2 gap-3 rounded-lg bg-white p-5 shadow-sm sm:grid-cols-2"
+        >
+            <div>
+                <p className="text-sm font-medium text-gray-500">Total jumps</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900">
+                    {props.totalJumps}
+                </p>
+            </div>
+            <div>
+                <p className="text-sm font-medium text-gray-500">
+                    Avg skydiving speed
+                </p>
+                <p className="mt-1 text-2xl font-bold text-gray-900">
+                    {props.avgSpeed === null
+                        ? "—"
+                        : formatSpeed(props.avgSpeed)}
+                </p>
+            </div>
+        </section>
+    );
+}
+
+function JumpStat(props: { label: string; value: string }) {
+    return (
+        <div>
+            <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                {props.label}
+            </dt>
+            <dd className="mt-0.5 text-sm font-medium text-gray-900">
+                {props.value}
+            </dd>
+        </div>
+    );
+}
+
+function JumpCard(props: {
+    uuid: string;
+    jumpNumber: number;
+    locationName: string;
+    aircraftName: string;
+    exitAltitude: number;
+    openingAltitude: number;
+    freefallTime: number;
+    description: string | null;
+}) {
+    const avgSpeed = jumpAvgSpeed(props);
+
+    return (
+        <li>
+            <a
+                href={routes.jumpEdit({ uuid: props.uuid })}
+                className="block px-5 py-4 hover:bg-gray-50"
+            >
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <span className="font-semibold text-blue-700">
+                        Jump #{props.jumpNumber}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                        {props.locationName} / {props.aircraftName}
+                    </span>
+                </div>
+                <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <JumpStat label="Exit" value={`${props.exitAltitude} m`} />
+                    <JumpStat
+                        label="Opening"
+                        value={`${props.openingAltitude} m`}
+                    />
+                    <JumpStat
+                        label="Freefall"
+                        value={`${props.freefallTime} s`}
+                    />
+                    <JumpStat
+                        label="Avg speed"
+                        value={avgSpeed === null ? "—" : formatSpeed(avgSpeed)}
+                    />
+                </dl>
+                {props.description && (
+                    <p className="mt-2 text-sm text-gray-600">
+                        {props.description}
+                    </p>
+                )}
+            </a>
+        </li>
+    );
+}
+
 async function renderLogbook(c: AppRequestContext) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
@@ -138,6 +251,19 @@ async function renderLogbook(c: AppRequestContext) {
         .where(eq(jumps.userUuid, userUuid))
         .orderBy(desc(jumps.jumpNumber));
 
+    let totalFreefallDistance = 0;
+    let totalFreefallTime = 0;
+    for (const jump of jumpRows) {
+        if (jump.freefallTime > 0) {
+            totalFreefallDistance += jumpFreefallDistance(jump);
+            totalFreefallTime += jump.freefallTime;
+        }
+    }
+    const overallAvgSpeed =
+        totalFreefallTime > 0
+            ? totalFreefallDistance / totalFreefallTime
+            : null;
+
     return c.render(
         <LogbookPage title="Jump Logbook">
             <nav className="flex flex-wrap gap-3">
@@ -149,6 +275,12 @@ async function renderLogbook(c: AppRequestContext) {
                 </a>
                 <LogbookManagementMenu />
             </nav>
+            {jumpRows.length > 0 && (
+                <LogbookStats
+                    totalJumps={jumpRows.length}
+                    avgSpeed={overallAvgSpeed}
+                />
+            )}
             <section className="overflow-hidden rounded-lg bg-white shadow-sm">
                 <h2 className="border-b border-gray-200 px-5 py-4 text-lg font-semibold">
                     Jumps
@@ -158,30 +290,16 @@ async function renderLogbook(c: AppRequestContext) {
                 ) : (
                     <ul className="divide-y divide-gray-200">
                         {jumpRows.map((jump) => (
-                            <li>
-                                <a
-                                    href={routes.jumpEdit({ uuid: jump.uuid })}
-                                    className="block px-5 py-4 hover:bg-gray-50"
-                                >
-                                    <span className="font-semibold text-blue-700">
-                                        Jump #{jump.jumpNumber}
-                                    </span>
-                                    <span className="ml-3 text-sm text-gray-600">
-                                        {jump.locationName} /{" "}
-                                        {jump.aircraftName}
-                                    </span>
-                                    <span className="mt-1 block text-sm text-gray-600">
-                                        Exit {jump.exitAltitude} m / Opening{" "}
-                                        {jump.openingAltitude} m / Freefall{" "}
-                                        {jump.freefallTime} s
-                                    </span>
-                                    {jump.description && (
-                                        <span className="mt-1 block text-sm text-gray-600">
-                                            {jump.description}
-                                        </span>
-                                    )}
-                                </a>
-                            </li>
+                            <JumpCard
+                                uuid={jump.uuid}
+                                jumpNumber={jump.jumpNumber}
+                                locationName={jump.locationName}
+                                aircraftName={jump.aircraftName}
+                                exitAltitude={jump.exitAltitude}
+                                openingAltitude={jump.openingAltitude}
+                                freefallTime={jump.freefallTime}
+                                description={jump.description}
+                            />
                         ))}
                     </ul>
                 )}
