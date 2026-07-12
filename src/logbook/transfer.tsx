@@ -177,12 +177,12 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
 
 async function readImportRecords(
     file: File,
-): Promise<ImportRecord[] | string[]> {
+): Promise<{ errors: string[] } | { records: ImportRecord[] }> {
     const lines = (await file.text())
         .split(/\r?\n/)
         .filter((line) => line.trim());
     if (lines.length === 0) {
-        return ["The import file is empty"];
+        return { errors: ["The import file is empty"] };
     }
 
     const records: ImportRecord[] = [];
@@ -204,7 +204,7 @@ async function readImportRecords(
             );
         }
     }
-    return errors.length > 0 ? errors : records;
+    return errors.length > 0 ? { errors } : { records };
 }
 
 async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
@@ -431,10 +431,10 @@ async function handleTransfer(c: AppRequestContext) {
         );
     }
     const result = await readImportRecords(file);
-    if (result.length > 0 && typeof result[0] === "string") {
-        return c.render(<TransferPage errors={result as string[]} />);
+    if ("errors" in result) {
+        return c.render(<TransferPage errors={result.errors} />);
     }
-    const importedJumps = await importRecords(c, result as ImportRecord[]);
+    const importedJumps = await importRecords(c, result.records);
     return c.render(
         <TransferPage
             notice={`Imported ${importedJumps} ${importedJumps === 1 ? "jump" : "jumps"}`}
