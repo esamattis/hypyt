@@ -1,6 +1,8 @@
 import { route } from "./components/helpers";
 
 export const home = route("/");
+export const tailwindCss = route("/assets/tailwind.css");
+export const htmxScript = route("/assets/htmx.esm.js");
 export const register = route("/register");
 export const login = route("/login");
 export const logout = route("/logout");

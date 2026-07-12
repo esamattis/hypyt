@@ -5,7 +5,8 @@ import { drizzle } from "drizzle-orm/d1";
 import { jsxRenderer, useRequestContext } from "hono/jsx-renderer";
 import { getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
-import htmx from "htmx.org/dist/htmx.esm.js?url";
+import htmx from "htmx.org/dist/htmx.esm.js?raw";
+import tailwind from "./tailwind.css?inline";
 import { users } from "./schema";
 import * as routes from "./routes";
 import { parseUserOptions, type UserOptions } from "./options";
@@ -79,6 +80,18 @@ export function cached<T>(
 
 // The trie router remains mutable during Vite module reloads.
 export const app = new Hono<Env>({ router: new TrieRouter() });
+
+app.get(routes.tailwindCss.route, (c) => {
+    return c.body(tailwind, 200, {
+        "Content-Type": "text/css; charset=utf-8",
+    });
+});
+
+app.get(routes.htmxScript.route, (c) => {
+    return c.body(htmx, 200, {
+        "Content-Type": "text/javascript; charset=utf-8",
+    });
+});
 
 export function getAppContext(c: AppRequestContext): AppContext {
     if (!c.var.appContext) {
@@ -270,12 +283,8 @@ app.use(
                     />
 
                     <title>{title}</title>
-                    <link
-                        id="tailwind"
-                        href="/src/tailwind.css?direct"
-                        rel="stylesheet"
-                    />
-                    <script src={htmx} type="module"></script>
+                    <link href={routes.tailwindCss({})} rel="stylesheet" />
+                    <script src={routes.htmxScript({})} type="module"></script>
                 </head>
                 <body
                     style={{
