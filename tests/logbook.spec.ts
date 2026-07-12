@@ -87,6 +87,12 @@ test("a skydiver can register and record their first jump", async ({
     await expect(page.getByText("55 s", { exact: true })).toBeVisible();
     await expect(page.getByText("Avg skydiving speed")).toBeVisible();
     await expect(page.getByText(/196 km\/h/).first()).toBeVisible();
+    await expect(
+        page.getByRole("link", { name: /Jump #1/ }).getByText("Freefly"),
+    ).toBeVisible();
+    await expect(
+        page.getByRole("link", { name: /Jump #1/ }).getByText("Tracking"),
+    ).toBeVisible();
 
     await page.getByRole("link", { name: /Jump #1/ }).click();
     await page.getByRole("link", { name: "Copy to new" }).click();

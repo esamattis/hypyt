@@ -1,7 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 import { app, getAppContext, type AppRequestContext } from "./app";
 import * as routes from "./routes";
-import { aircrafts, jumps, locations } from "./schema";
+import {
+    aircrafts,
+    jumps,
+    jumpTypes,
+    jumpsToJumpTypes,
+    locations,
+} from "./schema";
 import { Script } from "./components/helpers";
 import { LogbookPage } from "./logbook/layout";
 import "./logbook/aircraft";
@@ -201,6 +207,7 @@ function JumpCard(props: {
     openingAltitude: number;
     freefallTime: number;
     description: string | null;
+    jumpTypes: string[];
 }) {
     const avgSpeed = jumpAvgSpeed(props);
 
@@ -218,6 +225,15 @@ function JumpCard(props: {
                         {props.locationName} / {props.aircraftName}
                     </span>
                 </div>
+                {props.jumpTypes.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                        {props.jumpTypes.map((name) => (
+                            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                {name}
+                            </span>
+                        ))}
+                    </div>
+                )}
                 <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <JumpStat label="Exit" value={`${props.exitAltitude} m`} />
                     <JumpStat
@@ -262,6 +278,24 @@ async function renderLogbook(c: AppRequestContext) {
         .innerJoin(aircrafts, eq(jumps.aircraftUuid, aircrafts.uuid))
         .where(eq(jumps.userUuid, userUuid))
         .orderBy(desc(jumps.jumpNumber));
+
+    const jumpTypeRows = await db
+        .select({
+            jumpUuid: jumpsToJumpTypes.jumpUuid,
+            name: jumpTypes.name,
+        })
+        .from(jumpsToJumpTypes)
+        .innerJoin(jumpTypes, eq(jumpsToJumpTypes.jumpTypeUuid, jumpTypes.uuid))
+        .innerJoin(jumps, eq(jumpsToJumpTypes.jumpUuid, jumps.uuid))
+        .where(eq(jumps.userUuid, userUuid))
+        .orderBy(jumpTypes.name);
+
+    const jumpTypesByJump = new Map<string, string[]>();
+    for (const row of jumpTypeRows) {
+        const list = jumpTypesByJump.get(row.jumpUuid) ?? [];
+        list.push(row.name);
+        jumpTypesByJump.set(row.jumpUuid, list);
+    }
 
     let totalFreefallDistance = 0;
     let totalFreefallTime = 0;
@@ -311,6 +345,7 @@ async function renderLogbook(c: AppRequestContext) {
                                 openingAltitude={jump.openingAltitude}
                                 freefallTime={jump.freefallTime}
                                 description={jump.description}
+                                jumpTypes={jumpTypesByJump.get(jump.uuid) ?? []}
                             />
                         ))}
                     </ul>
