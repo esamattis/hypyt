@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { jsxRenderer, useRequestContext } from "hono/jsx-renderer";
 import { getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
+import htmx from "htmx.org/dist/htmx.esm.js?url";
 import { users } from "./schema";
 import * as routes from "./routes";
 import { parseUserOptions, type UserOptions } from "./options";
@@ -239,7 +240,7 @@ app.use(
                         href="/src/tailwind.css?direct"
                         rel="stylesheet"
                     />
-                    <script src="/htmx.js" module></script>
+                    <script src={htmx} type="module"></script>
                 </head>
                 <body
                     style={{

@@ -4,6 +4,58 @@ async function openManageLogbook(page: Page) {
     await page.getByRole("button", { name: "Manage logbook" }).click();
 }
 
+test("the log book loads additional jumps while scrolling", async ({
+    page,
+}) => {
+    await page.goto("/register");
+    await page.locator('input[name="username"]').fill("scrolling-skydiver");
+    await page.locator('input[name="displayName"]').fill("Scrolling Skydiver");
+    await page.locator('input[name="email"]').fill("scrolling@example.test");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage locations" }).click();
+    await page.getByRole("link", { name: "Add location" }).click();
+    await page.locator('input[name="name"]').fill("Scroll Drop Zone");
+    await page.getByRole("button", { name: "Add location" }).click();
+
+    await page
+        .getByRole("link", { name: /Scrolling Skydiver's logbook/ })
+        .click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage aircraft" }).click();
+    await page.getByRole("link", { name: "Add aircraft" }).click();
+    await page.locator('input[name="name"]').fill("Scroll Plane");
+    await page.getByRole("button", { name: "Add aircraft" }).click();
+
+    await page
+        .getByRole("link", { name: /Scrolling Skydiver's logbook/ })
+        .click();
+    for (let jumpNumber = 1; jumpNumber <= 25; jumpNumber++) {
+        await page.getByRole("link", { name: "Add jump", exact: true }).click();
+        await page.locator('input[name="jumpNumber"]').fill(String(jumpNumber));
+        await page.locator('input[name="exitAltitude"]').fill("4000");
+        await page.locator('input[name="openingAltitude"]').fill("1000");
+        await page.locator('input[name="freefallTime"]').fill("55");
+        await page.locator('select[name="locationUuid"]').selectOption({
+            label: "Scroll Drop Zone",
+        });
+        await page.locator('select[name="aircraftUuid"]').selectOption({
+            label: "Scroll Plane",
+        });
+        await page.getByRole("button", { name: "Add jump" }).click();
+    }
+
+    await expect(page.getByRole("link", { name: /#\d+/ })).toHaveCount(24);
+    const loadMore = page.getByText("Loading more jumps...");
+    await loadMore.scrollIntoViewIfNeeded();
+    await expect(page.getByRole("link", { name: /#\d+/ })).toHaveCount(25);
+    await expect(page.getByRole("link", { name: /^#1 / })).toBeVisible();
+    await expect(loadMore).toHaveCount(0);
+});
+
 // eslint-disable-next-line max-lines-per-function
 test("a skydiver can register and record their first jump", async ({
     page,

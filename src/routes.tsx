@@ -6,6 +6,7 @@ export const login = route("/login");
 export const logout = route("/logout");
 export const preferences = route("/preferences");
 export const logbook = route("/logbook");
+export const logbookJumps = route("/logbook/__jumps");
 export const logbookTransfer = route("/logbook/transfer");
 export const logbookExport = route("/logbook/export");
 export const jumpNew = route("/logbook/jumps/new").query<{ from?: string }>();

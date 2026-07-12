@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { app, getAppContext, type AppRequestContext } from "./app";
 import * as routes from "./routes";
 import {
@@ -158,7 +158,7 @@ function JumpStat(props: { label: string; value: string }) {
     );
 }
 
-function JumpCard(props: {
+interface LogbookJump {
     uuid: string;
     jumpNumber: number;
     locationName: string;
@@ -169,7 +169,9 @@ function JumpCard(props: {
     description: string | null;
     jumpTypes: string[];
     options: UserOptions;
-}) {
+}
+
+function JumpCard(props: LogbookJump) {
     const avgSpeed = jumpAvgSpeed(props);
 
     return (
@@ -250,6 +252,26 @@ interface LogbookFilters {
     locationUuids: string[];
     gearUuids: string[];
     jumpTypeUuids: string[];
+}
+
+const JUMPS_PER_PAGE = 24;
+
+function getLogbookJumpsUrl(filters: LogbookFilters, before?: number): string {
+    const query = new URLSearchParams();
+    for (const uuid of filters.locationUuids) {
+        query.append("locationUuids", uuid);
+    }
+    for (const uuid of filters.gearUuids) {
+        query.append("gearUuids", uuid);
+    }
+    for (const uuid of filters.jumpTypeUuids) {
+        query.append("jumpTypeUuids", uuid);
+    }
+    if (before !== undefined) {
+        query.set("before", String(before));
+    }
+    const queryString = query.toString();
+    return `${routes.logbookJumps({})}${queryString ? `?${queryString}` : ""}`;
 }
 
 function filterResourceUuids(
@@ -451,10 +473,13 @@ function getLogbookFilters(
     };
 }
 
-async function getLogbookJumps(c: AppRequestContext, filters: LogbookFilters) {
+function getLogbookJumpConditions(
+    c: AppRequestContext,
+    filters: LogbookFilters,
+) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
-    const conditions = [
+    return [
         eq(jumps.userUuid, userUuid),
         ...(filters.locationUuids.length > 0
             ? [inArray(jumps.locationUuid, filters.locationUuids)]
@@ -489,6 +514,18 @@ async function getLogbookJumps(c: AppRequestContext, filters: LogbookFilters) {
               ]
             : []),
     ];
+}
+
+async function getLogbookJumps(
+    c: AppRequestContext,
+    filters: LogbookFilters,
+    before?: number,
+) {
+    const db = getAppContext(c).db;
+    const conditions = [
+        ...getLogbookJumpConditions(c, filters),
+        ...(before === undefined ? [] : [lt(jumps.jumpNumber, before)]),
+    ];
     return db
         .select({
             uuid: jumps.uuid,
@@ -504,12 +541,29 @@ async function getLogbookJumps(c: AppRequestContext, filters: LogbookFilters) {
         .innerJoin(locations, eq(jumps.locationUuid, locations.uuid))
         .innerJoin(aircrafts, eq(jumps.aircraftUuid, aircrafts.uuid))
         .where(and(...conditions))
-        .orderBy(desc(jumps.jumpNumber));
+        .orderBy(desc(jumps.jumpNumber))
+        .limit(JUMPS_PER_PAGE + 1);
 }
 
-async function getJumpTypesByJump(c: AppRequestContext) {
+async function getLogbookStats(c: AppRequestContext, filters: LogbookFilters) {
     const db = getAppContext(c).db;
-    const userUuid = getAppContext(c).getUser().uuid;
+    const [stats] = await db
+        .select({
+            totalJumps: sql<number>`count(*)`,
+            totalFreefallMeters: sql<number>`coalesce(sum(max(${jumps.exitAltitude} - ${jumps.openingAltitude}, 0)), 0)`,
+        })
+        .from(jumps)
+        .where(and(...getLogbookJumpConditions(c, filters)));
+
+    return stats ?? { totalJumps: 0, totalFreefallMeters: 0 };
+}
+
+async function getJumpTypesByJump(c: AppRequestContext, jumpUuids: string[]) {
+    if (jumpUuids.length === 0) {
+        return new Map<string, string[]>();
+    }
+
+    const db = getAppContext(c).db;
     const rows = await db
         .select({
             jumpUuid: jumpsToJumpTypes.jumpUuid,
@@ -517,8 +571,12 @@ async function getJumpTypesByJump(c: AppRequestContext) {
         })
         .from(jumpsToJumpTypes)
         .innerJoin(jumpTypes, eq(jumpsToJumpTypes.jumpTypeUuid, jumpTypes.uuid))
-        .innerJoin(jumps, eq(jumpsToJumpTypes.jumpUuid, jumps.uuid))
-        .where(and(eq(jumps.userUuid, userUuid), eq(jumpTypes.archived, false)))
+        .where(
+            and(
+                inArray(jumpsToJumpTypes.jumpUuid, jumpUuids),
+                eq(jumpTypes.archived, false),
+            ),
+        )
         .orderBy(jumpTypes.name);
 
     const jumpTypesByJump = new Map<string, string[]>();
@@ -530,35 +588,84 @@ async function getJumpTypesByJump(c: AppRequestContext) {
     return jumpTypesByJump;
 }
 
-function getTotalFreefallMeters(
-    jumpRows: {
-        exitAltitude: number;
-        openingAltitude: number;
-    }[],
-): number {
-    let totalFreefallMeters = 0;
-    for (const jump of jumpRows) {
-        totalFreefallMeters += jumpFreefallDistance(jump);
+function JumpList(props: { jumps: LogbookJump[]; filters: LogbookFilters }) {
+    const hasMoreJumps = props.jumps.length > JUMPS_PER_PAGE;
+    const visibleJumps = props.jumps.slice(0, JUMPS_PER_PAGE);
+    const lastVisibleJump = visibleJumps.at(-1);
+
+    return (
+        <>
+            {visibleJumps.map((jump) => (
+                <JumpCard {...jump} />
+            ))}
+            {hasMoreJumps && lastVisibleJump && (
+                <li
+                    hx-get={getLogbookJumpsUrl(
+                        props.filters,
+                        lastVisibleJump.jumpNumber,
+                    )}
+                    hx-trigger="intersect once"
+                    hx-swap="outerHTML"
+                    className="col-span-full py-4 text-center text-sm text-slate-400"
+                >
+                    Loading more jumps...
+                </li>
+            )}
+        </>
+    );
+}
+
+function getFragmentBefore(c: AppRequestContext): number | undefined {
+    const value = new URL(c.req.url).searchParams.get("before");
+    if (value === null || !/^\d+$/.test(value)) {
+        return undefined;
     }
-    return totalFreefallMeters;
+    const before = Number(value);
+    return Number.isSafeInteger(before) && before > 0 ? before : undefined;
+}
+
+async function renderLogbookJumps(c: AppRequestContext) {
+    const options = getAppContext(c).getUser().options;
+    const resources = await getLogbookFilterResources(c);
+    const filters = getLogbookFilters(c, resources);
+    const jumpRows = await getLogbookJumps(c, filters, getFragmentBefore(c));
+    const jumpTypesByJump = await getJumpTypesByJump(
+        c,
+        jumpRows.map((jump) => jump.uuid),
+    );
+    const jumpCards = jumpRows.map((jump) => ({
+        ...jump,
+        jumpTypes: jumpTypesByJump.get(jump.uuid) ?? [],
+        options,
+    }));
+
+    return c.render(<JumpList jumps={jumpCards} filters={filters} />);
 }
 
 async function renderLogbook(c: AppRequestContext) {
     const options = getAppContext(c).getUser().options;
     const resources = await getLogbookFilterResources(c);
     const filters = getLogbookFilters(c, resources);
-    const [jumpRows, jumpTypesByJump] = await Promise.all([
+    const [stats, jumpRows] = await Promise.all([
+        getLogbookStats(c, filters),
         getLogbookJumps(c, filters),
-        getJumpTypesByJump(c),
     ]);
-    const totalFreefallMeters = getTotalFreefallMeters(jumpRows);
+    const jumpTypesByJump = await getJumpTypesByJump(
+        c,
+        jumpRows.map((jump) => jump.uuid),
+    );
+    const jumpCards = jumpRows.map((jump) => ({
+        ...jump,
+        jumpTypes: jumpTypesByJump.get(jump.uuid) ?? [],
+        options,
+    }));
 
     return c.render(
         <LogbookPage title="Jump Logbook">
-            {jumpRows.length > 0 && (
+            {stats.totalJumps > 0 && (
                 <LogbookStats
-                    totalJumps={jumpRows.length}
-                    totalFreefallMeters={totalFreefallMeters}
+                    totalJumps={stats.totalJumps}
+                    totalFreefallMeters={stats.totalFreefallMeters}
                     options={options}
                 />
             )}
@@ -573,13 +680,13 @@ async function renderLogbook(c: AppRequestContext) {
                     <h2 className="text-lg font-semibold text-slate-900">
                         Jumps
                     </h2>
-                    {jumpRows.length > 0 && (
+                    {stats.totalJumps > 0 && (
                         <span className="text-sm text-slate-400">
-                            {jumpRows.length} total
+                            {stats.totalJumps} total
                         </span>
                     )}
                 </div>
-                {jumpRows.length === 0 ? (
+                {stats.totalJumps === 0 ? (
                     <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
                         <p className="text-sm text-slate-500">
                             {filters.locationUuids.length > 0 ||
@@ -591,20 +698,7 @@ async function renderLogbook(c: AppRequestContext) {
                     </div>
                 ) : (
                     <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        {jumpRows.map((jump) => (
-                            <JumpCard
-                                uuid={jump.uuid}
-                                jumpNumber={jump.jumpNumber}
-                                locationName={jump.locationName}
-                                aircraftName={jump.aircraftName}
-                                exitAltitude={jump.exitAltitude}
-                                openingAltitude={jump.openingAltitude}
-                                freefallTime={jump.freefallTime}
-                                description={jump.description}
-                                jumpTypes={jumpTypesByJump.get(jump.uuid) ?? []}
-                                options={options}
-                            />
-                        ))}
+                        <JumpList jumps={jumpCards} filters={filters} />
                     </ul>
                 )}
             </section>
@@ -613,3 +707,4 @@ async function renderLogbook(c: AppRequestContext) {
 }
 
 app.get(routes.logbook.route, renderLogbook);
+app.get(routes.logbookJumps.route, renderLogbookJumps);
