@@ -1,40 +1,20 @@
-import { execFile as execFileCallback } from "node:child_process";
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import { promisify } from "node:util";
-
-const execFile = promisify(execFileCallback);
-const migrationsFolder = "drizzle";
-
-async function getMigrationFiles(): Promise<string[]> {
-    const entries = await readdir(migrationsFolder, { withFileTypes: true });
-    const migrationFiles = entries
-        .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
-        .map((entry) => entry.name)
-        .sort();
-
-    if (migrationFiles.length === 0) {
-        throw new Error(`No migration files found in ${migrationsFolder}.`);
-    }
-
-    return migrationFiles;
-}
+import { drizzle } from "drizzle-orm/d1";
+import { migrate } from "drizzle-orm/d1/migrator";
+import { getPlatformProxy } from "wrangler";
 
 async function main(): Promise<void> {
-    const migrationFiles = await getMigrationFiles();
+    const platform = await getPlatformProxy<CloudflareBindings>({
+        configPath: "wrangler.jsonc",
+        remoteBindings: true,
+    });
 
-    for (const migrationFile of migrationFiles) {
-        console.log(`Running remote migration: ${migrationFile}`);
-        const { stdout, stderr } = await execFile("wrangler", [
-            "d1",
-            "execute",
-            "DB",
-            "--remote",
-            "--file",
-            join(migrationsFolder, migrationFile),
-        ]);
-        process.stdout.write(stdout);
-        process.stderr.write(stderr);
+    try {
+        await migrate(drizzle(platform.env.DB), {
+            migrationsFolder: "drizzle",
+        });
+        console.log("Remote database Drizzle migrations have been run.");
+    } finally {
+        await platform.dispose();
     }
 }
 
