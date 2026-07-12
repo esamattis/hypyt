@@ -23,11 +23,11 @@ function JumpTypeForm(props: {
     return (
         <form
             method="post"
-            className="max-w-xl space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+            className="max-w-xl space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
             <ErrorList
                 errors={props.errors ?? []}
-                className="border-red-300 bg-red-50 text-red-800"
+                className="border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
             />
             <Input
                 name="name"
@@ -125,7 +125,7 @@ async function renderJumpTypeList(c: AppRequestContext) {
             <div className="flex flex-wrap items-center gap-3">
                 <a
                     href={routes.jumpTypeNew({})}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
                 >
                     <svg
                         aria-hidden="true"
@@ -145,39 +145,41 @@ async function renderJumpTypeList(c: AppRequestContext) {
                 </a>
             </div>
             {rows.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-                    <p className="text-sm text-slate-500">No jump types yet.</p>
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        No jump types yet.
+                    </p>
                 </div>
             ) : (
                 <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {rows.map((item) => (
-                        <li className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+                        <li className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-black/30">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                    <p className="font-semibold text-slate-900">
+                                    <p className="font-semibold text-slate-900 dark:text-slate-100">
                                         {item.name}
                                         {item.archived && (
-                                            <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-500">
+                                            <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                                                 Archived
                                             </span>
                                         )}
                                     </p>
-                                    <p className="mt-1 text-sm text-slate-500">
+                                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                         Previous uses: {item.previousUsageCount}
                                     </p>
                                     {item.description && (
-                                        <p className="mt-2 text-sm text-slate-600">
+                                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                                             {item.description}
                                         </p>
                                     )}
                                 </div>
                             </div>
-                            <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+                            <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
                                 <a
                                     href={routes.jumpTypeEdit({
                                         uuid: item.uuid,
                                     })}
-                                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
                                 >
                                     Edit
                                 </a>
@@ -199,7 +201,7 @@ async function renderJumpTypeList(c: AppRequestContext) {
                                     />
                                     <button
                                         type="submit"
-                                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
                                     >
                                         {item.archived
                                             ? "Unarchive"

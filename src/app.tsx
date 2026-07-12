@@ -107,22 +107,22 @@ export function useAppContext(): AppContext {
 
 function errorHandler(err: Error, c: AppRequestContext) {
     return c.render(
-        <div className="mx-auto mt-16 max-w-xl rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm ring-1 ring-red-100">
+        <div className="mx-auto mt-16 max-w-xl rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm ring-1 ring-red-100 dark:border-red-900/50 dark:bg-red-950/40 dark:ring-red-900/40">
             <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-red-100 text-xl">
+                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-red-100 text-xl dark:bg-red-900/50">
                     ⚠
                 </div>
                 <div className="min-w-0">
-                    <h1 className="text-lg font-bold text-red-700">
+                    <h1 className="text-lg font-bold text-red-700 dark:text-red-400">
                         An error occurred
                     </h1>
-                    <p className="mt-1 break-words text-sm text-red-900">
+                    <p className="mt-1 break-words text-sm text-red-900 dark:text-red-300">
                         <strong>Message:</strong> {err.message}
                     </p>
-                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-red-500">
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-red-500 dark:text-red-400">
                         Stack
                     </p>
-                    <pre className="mt-1 overflow-x-auto rounded-lg bg-white/80 p-3 text-xs text-red-900 ring-1 ring-red-200">
+                    <pre className="mt-1 overflow-x-auto rounded-lg bg-white/80 p-3 text-xs text-red-900 ring-1 ring-red-200 dark:bg-slate-900/80 dark:text-red-300 dark:ring-red-900/60">
                         {err.stack}
                     </pre>
                 </div>
@@ -290,7 +290,7 @@ app.use(
                     style={{
                         ["--animation-duration"]: "5000ms",
                     }}
-                    className="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased"
+                    className="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200"
                 >
                     <div className="min-h-screen">{props.children}</div>
                 </body>

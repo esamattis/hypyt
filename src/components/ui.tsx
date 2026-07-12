@@ -20,7 +20,7 @@ export function Details(props: {
             >
                 <svg
                     aria-hidden="true"
-                    className="h-4 w-4 flex-none text-slate-400 transition-transform group-open:rotate-90"
+                    className="h-4 w-4 flex-none text-slate-400 transition-transform group-open:rotate-90 dark:text-slate-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

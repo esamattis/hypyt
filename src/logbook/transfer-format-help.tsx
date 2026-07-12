@@ -17,8 +17,8 @@ export function ExportCurlHelp() {
     return (
         <Details
             summary="Download with curl"
-            className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700"
-            summaryClassName="font-medium text-slate-900"
+            className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300"
+            summaryClassName="font-medium text-slate-900 dark:text-slate-100"
         >
             <div className="mt-3 space-y-3">
                 <p>
@@ -32,7 +32,7 @@ export function ExportCurlHelp() {
                 >
                     {`curl -OJ -u USERNAME:password ${exportPath}`}
                 </Code>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                     The <code>-OJ</code> flags save the file using the name from
                     the response <code>Content-Disposition</code> header (
                     <code>jump-logbook.jsonl</code>). Replace{" "}
@@ -61,8 +61,8 @@ export function TransferFormatHelp() {
     return (
         <Details
             summary="Export file format"
-            className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700"
-            summaryClassName="font-medium text-slate-900"
+            className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300"
+            summaryClassName="font-medium text-slate-900 dark:text-slate-100"
         >
             <div className="mt-3 space-y-3">
                 <p>

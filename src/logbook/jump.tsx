@@ -102,11 +102,11 @@ function JumpForm(props: {
     return (
         <form
             method="post"
-            className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+            className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
             <ErrorList
                 errors={props.errors ?? []}
-                className="border-red-300 bg-red-50 text-red-800"
+                className="border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
             />
             <div className="grid gap-5 sm:grid-cols-2">
                 <Input
@@ -172,7 +172,7 @@ function JumpForm(props: {
                 </Select>
             </div>
             <fieldset>
-                <legend className="text-sm font-semibold text-slate-700">
+                <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     Gear used
                 </legend>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -187,7 +187,7 @@ function JumpForm(props: {
                 </div>
             </fieldset>
             <fieldset>
-                <legend className="text-sm font-semibold text-slate-700">
+                <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     Jump types
                 </legend>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -287,7 +287,7 @@ function JumpFormPage(props: {
             {props.copyHref && (
                 <a
                     href={props.copyHref}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
                 >
                     <svg
                         aria-hidden="true"

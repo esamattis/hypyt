@@ -8,7 +8,7 @@ function ChevronDownIcon() {
     return (
         <svg
             aria-hidden="true"
-            className="h-4 w-4 shrink-0 text-slate-400 transition-transform"
+            className="h-4 w-4 shrink-0 text-slate-400 transition-transform dark:text-slate-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -35,7 +35,7 @@ function ManageLogbookMenu() {
                 type="button"
                 aria-controls={menuId}
                 aria-expanded="false"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
             >
                 Manage logbook
                 <ChevronDownIcon />
@@ -43,43 +43,43 @@ function ManageLogbookMenu() {
             <div
                 id={menuId}
                 hidden
-                className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5"
+                className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-100/10"
             >
                 <a
                     href={routes.aircraftList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                     Manage aircraft
                 </a>
                 <a
                     href={routes.gearList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                     Manage gear
                 </a>
                 <a
                     href={routes.jumpTypeList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                     Manage jump types
                 </a>
                 <a
                     href={routes.locationList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                     Manage locations
                 </a>
-                <div className="my-1 h-px bg-slate-100"></div>
+                <div className="my-1 h-px bg-slate-100 dark:bg-slate-800"></div>
                 <a
                     href={routes.logbookStatistics({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                     Statistics
                 </a>
-                <div className="my-1 h-px bg-slate-100"></div>
+                <div className="my-1 h-px bg-slate-100 dark:bg-slate-800"></div>
                 <a
                     href={routes.logbookTransfer({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                     Import or export
                 </a>
@@ -150,7 +150,7 @@ function LogbookActions() {
         <nav className="flex flex-wrap items-center gap-2">
             <a
                 href={routes.jumpNew({}, {})}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
             >
                 <svg
                     aria-hidden="true"
@@ -185,12 +185,12 @@ export function LogbookPage(props: { title: string; children: any }) {
                     summary::-webkit-details-marker { display: none; }
                 `}
             </Style>
-            <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur-md">
+            <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/85">
                 <div className="mx-auto max-w-3xl px-4 py-2.5 sm:py-3">
                     <div className="flex items-center gap-3">
                         <a
                             href={routes.logbook({})}
-                            className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-lg"
+                            className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-lg dark:text-slate-100"
                         >
                             <span
                                 aria-hidden="true"
@@ -216,7 +216,7 @@ export function LogbookPage(props: { title: string; children: any }) {
                         </a>
                         <a
                             href={routes.logbook({})}
-                            className="min-w-0 flex-1 truncate text-sm text-slate-500 transition hover:text-indigo-600 hover:underline"
+                            className="min-w-0 flex-1 truncate text-sm text-slate-500 transition hover:text-indigo-600 hover:underline dark:text-slate-400 dark:hover:text-indigo-400"
                         >
                             {user.getDisplayName()}'s logbook
                         </a>
@@ -224,7 +224,7 @@ export function LogbookPage(props: { title: string; children: any }) {
                             <a
                                 href={routes.preferences({})}
                                 aria-label="Preferences"
-                                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
                             >
                                 <svg
                                     aria-hidden="true"
@@ -247,7 +247,7 @@ export function LogbookPage(props: { title: string; children: any }) {
                             <form method="post" action={routes.logout({})}>
                                 <button
                                     type="submit"
-                                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
                                     title="Log out"
                                 >
                                     <svg
@@ -271,13 +271,13 @@ export function LogbookPage(props: { title: string; children: any }) {
                             </form>
                         </div>
                     </div>
-                    <div className="mt-2 border-t border-slate-100 pt-2">
+                    <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800">
                         <LogbookActions />
                     </div>
                 </div>
             </header>
             <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:py-8">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
                     {props.title}
                 </h1>
                 {props.children}

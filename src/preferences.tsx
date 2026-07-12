@@ -63,18 +63,18 @@ function PreferencesForm(props: {
     return (
         <form
             method="post"
-            className="space-y-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+            className="space-y-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
             <ErrorList
                 errors={props.errors ?? []}
-                className="border-red-300 bg-red-50 text-red-800"
+                className="border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
             />
             <section className="space-y-5">
                 <div>
-                    <h2 className="text-lg font-semibold text-slate-900">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Profile
                     </h2>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         Update the details associated with your account.
                     </p>
                 </div>
@@ -93,12 +93,12 @@ function PreferencesForm(props: {
                     />
                 </div>
             </section>
-            <section className="space-y-5 border-t border-slate-200 pt-8">
+            <section className="space-y-5 border-t border-slate-200 pt-8 dark:border-slate-800">
                 <div>
-                    <h2 className="text-lg font-semibold text-slate-900">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Units
                     </h2>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         Choose how altitude and speed are displayed in your
                         logbook.
                     </p>
@@ -144,12 +144,12 @@ function PreferencesForm(props: {
                     </Select>
                 </div>
             </section>
-            <section className="space-y-5 border-t border-slate-200 pt-8">
+            <section className="space-y-5 border-t border-slate-200 pt-8 dark:border-slate-800">
                 <div>
-                    <h2 className="text-lg font-semibold text-slate-900">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Password
                     </h2>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         Leave these fields empty to keep your current password.
                     </p>
                 </div>

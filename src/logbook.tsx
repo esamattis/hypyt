@@ -85,11 +85,11 @@ function LogbookStats(props: {
             aria-label="Logbook summary"
             className="grid grid-cols-2 gap-4"
         >
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-black/30">
                 <div className="flex items-center gap-2">
                     <span
                         aria-hidden="true"
-                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400"
                     >
                         <svg
                             className="h-5 w-5"
@@ -105,19 +105,19 @@ function LogbookStats(props: {
                             />
                         </svg>
                     </span>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Total jumps
                     </p>
                 </div>
-                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                     {props.totalJumps}
                 </p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-black/30">
                 <div className="flex items-center gap-2">
                     <span
                         aria-hidden="true"
-                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400"
                     >
                         <svg
                             className="h-5 w-5"
@@ -133,11 +133,11 @@ function LogbookStats(props: {
                             />
                         </svg>
                     </span>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         Total freefall
                     </p>
                 </div>
-                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                     {formatDistance(
                         props.totalFreefallMeters,
                         props.options.altitudeUnits,
@@ -151,10 +151,10 @@ function LogbookStats(props: {
 function JumpStat(props: { label: string; value: string }) {
     return (
         <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 {props.label}
             </dt>
-            <dd className="mt-0.5 text-sm font-semibold text-slate-700">
+            <dd className="mt-0.5 text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {props.value}
             </dd>
         </div>
@@ -182,20 +182,20 @@ function JumpCard(props: LogbookJump) {
         <li>
             <a
                 href={routes.jumpEdit({ uuid: props.uuid })}
-                className="block rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-indigo-300 hover:bg-slate-50/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+                className="block rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-indigo-300 hover:bg-slate-50/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700 dark:hover:bg-slate-800/40 dark:hover:shadow-black/30 dark:focus-visible:ring-indigo-400/50"
             >
                 <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                     <div className="flex items-center gap-3">
-                        <span className="flex min-w-9 items-center justify-center rounded-xl bg-indigo-100 px-2 py-1.5 text-sm font-bold text-indigo-700 tabular-nums">
+                        <span className="flex min-w-9 items-center justify-center rounded-xl bg-indigo-100 px-2 py-1.5 text-sm font-bold text-indigo-700 tabular-nums dark:bg-indigo-900/40 dark:text-indigo-300">
                             #{props.jumpNumber}
                         </span>
                         <time
                             dateTime={props.jumpDate}
-                            className="text-sm text-slate-500 tabular-nums"
+                            className="text-sm text-slate-500 tabular-nums dark:text-slate-400"
                         >
                             {props.jumpDate}
                         </time>
-                        <span className="text-base font-semibold text-slate-900">
+                        <span className="text-base font-semibold text-slate-900 dark:text-slate-100">
                             {props.locationName} / {props.aircraftName}
                         </span>
                     </div>
@@ -204,7 +204,7 @@ function JumpCard(props: LogbookJump) {
                             {props.jumpTypes.map((name) => (
                                 <span
                                     key={name}
-                                    className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200/60"
+                                    className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200/60 dark:bg-indigo-900/30 dark:text-indigo-300 dark:ring-indigo-700/50"
                                 >
                                     {name}
                                 </span>
@@ -244,7 +244,7 @@ function JumpCard(props: LogbookJump) {
                     />
                 </dl>
                 {props.description && (
-                    <p className="mt-3 line-clamp-2 text-sm text-slate-500">
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                         {props.description}
                     </p>
                 )}
@@ -302,7 +302,7 @@ function JumpFiltersSummary(props: { hasFilters: boolean }) {
             {props.hasFilters && (
                 <a
                     href={routes.logbook({})}
-                    className="ml-auto text-sm font-normal text-indigo-600 hover:underline"
+                    className="ml-auto text-sm font-normal text-indigo-600 hover:underline dark:text-indigo-400"
                 >
                     Clear filters
                 </a>
@@ -328,9 +328,9 @@ function JumpFilters(props: {
     return (
         <Details
             open={hasFilters}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
             summary={<JumpFiltersSummary hasFilters={hasFilters} />}
-            summaryClassName="font-semibold text-slate-900"
+            summaryClassName="font-semibold text-slate-900 dark:text-slate-100"
         >
             <form
                 action={routes.logbook({})}
@@ -338,14 +338,14 @@ function JumpFilters(props: {
                 className="mt-5 space-y-5"
             >
                 <fieldset>
-                    <legend className="text-sm font-semibold text-slate-700">
+                    <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Locations
                     </legend>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {props.locations.map((location) => (
                             <label
                                 key={location.uuid}
-                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900"
+                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/60 dark:has-[:checked]:border-indigo-500 dark:has-[:checked]:bg-indigo-900/40 dark:has-[:checked]:text-indigo-200"
                             >
                                 <input
                                     name="locationUuids"
@@ -354,7 +354,7 @@ function JumpFilters(props: {
                                     checked={selectedLocations.has(
                                         location.uuid,
                                     )}
-                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40"
+                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40"
                                 />
                                 {location.name}
                             </label>
@@ -362,21 +362,21 @@ function JumpFilters(props: {
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend className="text-sm font-semibold text-slate-700">
+                    <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Gear
                     </legend>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {props.gear.map((item) => (
                             <label
                                 key={item.uuid}
-                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900"
+                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/60 dark:has-[:checked]:border-indigo-500 dark:has-[:checked]:bg-indigo-900/40 dark:has-[:checked]:text-indigo-200"
                             >
                                 <input
                                     name="gearUuids"
                                     type="checkbox"
                                     value={item.uuid}
                                     checked={selectedGear.has(item.uuid)}
-                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40"
+                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40"
                                 />
                                 {item.name}
                             </label>
@@ -384,21 +384,21 @@ function JumpFilters(props: {
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend className="text-sm font-semibold text-slate-700">
+                    <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Jump types
                     </legend>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {props.jumpTypes.map((item) => (
                             <label
                                 key={item.uuid}
-                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900"
+                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/60 dark:has-[:checked]:border-indigo-500 dark:has-[:checked]:bg-indigo-900/40 dark:has-[:checked]:text-indigo-200"
                             >
                                 <input
                                     name="jumpTypeUuids"
                                     type="checkbox"
                                     value={item.uuid}
                                     checked={selectedJumpTypes.has(item.uuid)}
-                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40"
+                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40"
                                 />
                                 {item.name}
                             </label>
@@ -408,7 +408,7 @@ function JumpFilters(props: {
                 <div className="flex flex-wrap gap-3 pt-2">
                     <button
                         type="submit"
-                        className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
                     >
                         Apply filters
                     </button>
@@ -610,7 +610,7 @@ function JumpList(props: { jumps: LogbookJump[]; filters: LogbookFilters }) {
                     )}
                     hx-trigger="intersect once"
                     hx-swap="outerHTML"
-                    className="col-span-full py-4 text-center text-sm text-slate-400"
+                    className="col-span-full py-4 text-center text-sm text-slate-400 dark:text-slate-500"
                 >
                     Loading more jumps...
                 </li>
@@ -671,7 +671,7 @@ async function renderLogbook(c: AppRequestContext) {
                     <div className="flex justify-end">
                         <a
                             href={routes.logbookStatistics({})}
-                            className="inline-flex items-center gap-1 text-sm text-slate-500 transition hover:text-indigo-600"
+                            className="inline-flex items-center gap-1 text-sm text-slate-500 transition hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
                         >
                             View statistics
                             <svg
@@ -705,18 +705,18 @@ async function renderLogbook(c: AppRequestContext) {
             />
             <section className="space-y-3">
                 <div className="flex items-baseline justify-between">
-                    <h2 className="text-lg font-semibold text-slate-900">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Jumps
                     </h2>
                     {stats.totalJumps > 0 && (
-                        <span className="text-sm text-slate-400">
+                        <span className="text-sm text-slate-400 dark:text-slate-500">
                             {stats.totalJumps} total
                         </span>
                     )}
                 </div>
                 {stats.totalJumps === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-                        <p className="text-sm text-slate-500">
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             {filters.locationUuids.length > 0 ||
                             filters.gearUuids.length > 0 ||
                             filters.jumpTypeUuids.length > 0

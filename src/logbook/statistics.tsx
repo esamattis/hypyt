@@ -49,11 +49,11 @@ function formatDuration(totalSeconds: number): string {
 
 function SummaryCard(props: { label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {props.label}
             </dt>
-            <dd className="mt-2 text-3xl font-bold tracking-tight text-slate-900 tabular-nums">
+            <dd className="mt-2 text-3xl font-bold tracking-tight text-slate-900 tabular-nums dark:text-slate-100">
                 {props.value}
             </dd>
         </div>
@@ -111,7 +111,7 @@ async function renderStatistics(c: AppRequestContext) {
             </dl>
             <a
                 href={routes.logbookDetailedStatistics({}, {})}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
             >
                 View detailed statistics
             </a>
