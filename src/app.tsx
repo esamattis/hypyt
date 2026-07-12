@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { jsxRenderer, useRequestContext } from "hono/jsx-renderer";
 import { getCookie } from "hono/cookie";
+import { ViteClient } from "vite-ssr-components/hono";
 import { users } from "./schema";
 import * as routes from "./routes";
 
@@ -213,6 +214,7 @@ app.use(
                         name="viewport"
                         content="width=device-width, initial-scale=1.0"
                     />
+                    <ViteClient />
                     <link rel="icon" href="/icon.png" />
                     <link
                         rel="apple-touch-icon"
