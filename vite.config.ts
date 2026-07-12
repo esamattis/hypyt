@@ -4,6 +4,10 @@ import ssrPlugin from "vite-ssr-components/plugin";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+    build: {
+        emptyOutDir: false,
+        ssr: "src/index.tsx",
+    },
     plugins: [
         cloudflare({
             persistState: {
