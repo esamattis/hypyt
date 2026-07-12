@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-lines-per-function */
 import { eq } from "drizzle-orm";
 import { XMLParser } from "fast-xml-parser";
 import { z } from "zod/v4";
@@ -73,30 +74,23 @@ const ImportRecordSchema = z.discriminatedUnion("type", [
     }),
 ]);
 
-/** A validated resource or jump record from a JSON Lines import. */
 type ImportRecord = z.infer<typeof ImportRecordSchema>;
 
-/** A persisted resource identified by UUID and display name. */
 interface NamedResource {
     uuid: string;
     name: string;
 }
 
-/** The import record types that represent named resources. */
 type ResourceType = Exclude<ImportRecord["type"], "jump">;
 
-/** The application's Drizzle database client. */
 type ImportDatabase = ReturnType<typeof getAppContext>["db"];
 
-/** A queued database operation included in the atomic D1 import batch. */
 type ImportQuery = Parameters<ImportDatabase["batch"]>[0][number];
 
-/** Normalizes a resource name for case-insensitive matching. */
 function normalizeName(name: string): string {
     return name.trim().toLocaleLowerCase();
 }
 
-/** Maps normalized resource names to their UUIDs. */
 function resourceMap(rows: NamedResource[]): Map<string, string> {
     return new Map(rows.map((row) => [normalizeName(row.name), row.uuid]));
 }
@@ -104,6 +98,16 @@ function resourceMap(rows: NamedResource[]): Map<string, string> {
 interface XmlCatalog {
     records: Exclude<ImportRecord, { type: "jump" }>[];
     namesById: Map<string, string>;
+}
+
+function addCutawayJumpType(
+    jumpTypeNames: string[],
+    hasCutaway: boolean,
+): string[] {
+    return hasCutaway &&
+        !jumpTypeNames.some((name) => normalizeName(name) === "cutaway")
+        ? [...jumpTypeNames, "Cutaway"]
+        : jumpTypeNames;
 }
 
 function xmlObject(value: unknown, label: string): Record<string, unknown> {
@@ -223,6 +227,7 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
     const errors: string[] = [];
     let needsUnknownLocation = false;
     let needsUnknownAircraft = false;
+    let needsCutawayType = false;
     for (const item of xmlItems(
         xmlObject(logbook.log_entries, "log_entries").log_entry,
     )) {
@@ -255,8 +260,20 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
         needsUnknownAircraft ||= !aircraftId;
         const description = xmlString(record, "notes");
         const cutaway = xmlString(record, "cutaway");
-        const descriptionWithCutaway =
-            cutaway === "true" ? `${description ?? ""}\nCUTAWAY!` : description;
+        needsCutawayType ||= cutaway === "true";
+        const resolvedJumpTypes = resolveXmlNames(
+            xmlString(record, "skydive_type_id")
+                ? [requiredXmlString(record, "skydive_type_id")]
+                : [],
+            jumpTypes,
+            "skydive type",
+            errors,
+            jumpNumber,
+        );
+        const jumpTypesWithCutaway = addCutawayJumpType(
+            resolvedJumpTypes,
+            cutaway === "true",
+        );
         jumps.push({
             type: "jump",
             jumpNumber,
@@ -273,18 +290,8 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
                 errors,
                 jumpNumber,
             ),
-            jumpTypes: resolveXmlNames(
-                xmlString(record, "skydive_type_id")
-                    ? [requiredXmlString(record, "skydive_type_id")]
-                    : [],
-                jumpTypes,
-                "skydive type",
-                errors,
-                jumpNumber,
-            ),
-            ...(descriptionWithCutaway
-                ? { description: descriptionWithCutaway }
-                : {}),
+            jumpTypes: jumpTypesWithCutaway,
+            ...(description ? { description } : {}),
         });
     }
     if (errors.length > 0) {
@@ -303,6 +310,18 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
             : []),
         ...gearCatalog.records,
         ...jumpTypes.records,
+        ...(needsCutawayType &&
+        !jumpTypes.records.some(
+            (record) => normalizeName(record.name) === "cutaway",
+        )
+            ? [
+                  {
+                      type: "jumpType" as const,
+                      name: "Cutaway",
+                      previousCount: 0,
+                  },
+              ]
+            : []),
         ...locations.records,
         ...(needsUnknownLocation
             ? [

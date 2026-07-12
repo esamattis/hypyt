@@ -7,6 +7,14 @@ const xmlFixturePath = path.join(
     import.meta.dirname,
     "fixtures/skydiving-logbook.xml",
 );
+const xmlCutawayTypeFixturePath = path.join(
+    import.meta.dirname,
+    "fixtures/skydiving-logbook-cutaway-type.xml",
+);
+const xmlCutawayNoTypeFixturePath = path.join(
+    import.meta.dirname,
+    "fixtures/skydiving-logbook-cutaway-no-type.xml",
+);
 
 function basicAuthHeader(username: string, password: string): string {
     return "Basic " + Buffer.from(`${username}:${password}`).toString("base64");
@@ -253,6 +261,52 @@ test("a Skydiving Logbook XML file can be imported", async ({ page }) => {
     );
     await expect(page.getByRole("checkbox", { name: "XML Rig" })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
+});
+
+test("a cutaway jump adds the Cutaway type when the type exists in XML", async ({
+    page,
+}) => {
+    await registerUser(page, "cutaway-type-skydiver");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Import or export" }).click();
+    await page
+        .locator('input[name="file"]')
+        .setInputFiles(xmlCutawayTypeFixturePath);
+    await page.getByRole("button", { name: "Import logbook" }).click();
+    await expect(page.getByText("Imported 1 jump")).toBeVisible();
+
+    await page
+        .getByRole("link", { name: /cutaway-type-skydiver's logbook/ })
+        .click();
+    await page.getByRole("link", { name: /#401/ }).click();
+    await expect(page.locator('textarea[name="description"]')).toHaveValue(
+        "Imported from XML",
+    );
+    await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "Cutaway" })).toBeChecked();
+});
+
+test("a cutaway jump creates and assigns the Cutaway type when XML is missing it", async ({
+    page,
+}) => {
+    await registerUser(page, "cutaway-no-type-skydiver");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Import or export" }).click();
+    await page
+        .locator('input[name="file"]')
+        .setInputFiles(xmlCutawayNoTypeFixturePath);
+    await page.getByRole("button", { name: "Import logbook" }).click();
+    await expect(page.getByText("Imported 1 jump")).toBeVisible();
+
+    await page
+        .getByRole("link", { name: /cutaway-no-type-skydiver's logbook/ })
+        .click();
+    await page.getByRole("link", { name: /#401/ }).click();
+    await expect(page.locator('textarea[name="description"]')).toHaveValue(
+        "Imported from XML",
+    );
+    await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "Cutaway" })).toBeChecked();
 });
 
 test("an import deduplicates repeated gear and jump type references", async ({
