@@ -73,10 +73,17 @@ function LogbookManagementMenu() {
                     $assertElement(button, HTMLButtonElement);
                     const menu = document.getElementById(menuId);
                     $assertElement(menu, HTMLDivElement);
-                    const buttonElement = button as HTMLButtonElement;
-                    const menuElement = menu as HTMLDivElement;
-
-                    function setMenuOpen(isOpen: boolean) {
+                    if (
+                        !(button instanceof HTMLButtonElement) ||
+                        !(menu instanceof HTMLDivElement)
+                    ) {
+                        return;
+                    }
+                    function setMenuOpen(
+                        menuElement: HTMLDivElement,
+                        buttonElement: HTMLButtonElement,
+                        isOpen: boolean,
+                    ) {
                         menuElement.hidden = !isOpen;
                         buttonElement.setAttribute(
                             "aria-expanded",
@@ -84,25 +91,25 @@ function LogbookManagementMenu() {
                         );
                     }
 
-                    buttonElement.addEventListener("click", () => {
-                        setMenuOpen(Boolean(menuElement.hidden));
+                    button.addEventListener("click", () => {
+                        setMenuOpen(menu, button, Boolean(menu.hidden));
                     });
 
                     document.addEventListener("click", (event) => {
                         if (
-                            !menuElement.hidden &&
+                            !menu.hidden &&
                             event.target instanceof Node &&
-                            !menuElement.contains(event.target) &&
-                            !buttonElement.contains(event.target)
+                            !menu.contains(event.target) &&
+                            !button.contains(event.target)
                         ) {
-                            setMenuOpen(false);
+                            setMenuOpen(menu, button, false);
                         }
                     });
 
                     document.addEventListener("keydown", (event) => {
-                        if (event.key === "Escape" && !menuElement.hidden) {
-                            setMenuOpen(false);
-                            buttonElement.focus();
+                        if (event.key === "Escape" && !menu.hidden) {
+                            setMenuOpen(menu, button, false);
+                            button.focus();
                         }
                     });
                 }}
