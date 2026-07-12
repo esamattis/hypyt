@@ -4,6 +4,56 @@ const JSONL_EXAMPLE = `{"type":"aircraft","name":"Twin Otter","previousCount":12
 {"type":"location","name":"Skydive Example","previousCount":300,"description":"Home drop zone"}
 {"type":"jump","jumpNumber":301,"exitAltitude":4000,"openingAltitude":1000,"freefallTime":55,"location":"Skydive Example","aircraft":"Twin Otter","gear":["Navigator 260"],"jumpTypes":["Formation skydiving"],"description":"Training jump"}`;
 
+import { useId } from "hono/jsx";
+import { Script } from "../components/helpers";
+import * as routes from "../routes";
+import { $assertElement } from "../utils";
+
+/** Inline documentation for downloading the logbook export with curl over Basic auth. */
+export function ExportCurlHelp() {
+    const id = useId();
+    const exportPath = routes.logbookExport({});
+    return (
+        <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+            <summary className="list-none marker:hidden cursor-pointer font-medium text-slate-900">
+                Download with curl
+            </summary>
+            <div className="mt-3 space-y-3">
+                <p>
+                    The export endpoint also accepts HTTP Basic authentication,
+                    so you can download your logbook from the command line with
+                    curl. Use your username (or email) and account password:
+                </p>
+                <pre className="overflow-x-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100">
+                    <code id={id} data-export-path={exportPath}>
+                        {`curl -OJ -u USERNAME:password ${exportPath}`}
+                    </code>
+                </pre>
+                <p className="text-xs text-slate-500">
+                    The <code>-OJ</code> flags save the file using the name from
+                    the response <code>Content-Disposition</code> header (
+                    <code>jump-logbook.jsonl</code>). Replace{" "}
+                    <code>USERNAME</code> and <code>password</code> with your
+                    credentials. Without valid credentials the endpoint responds
+                    with HTTP 401.
+                </p>
+                <Script
+                    $deps={[$assertElement]}
+                    $args={[id]}
+                    $exec={(id) => {
+                        const code = document.getElementById(id);
+                        $assertElement(code, HTMLElement);
+                        const exportPath =
+                            code.getAttribute("data-export-path") ?? "";
+                        const origin = window.location.origin;
+                        code.textContent = `curl -OJ -u USERNAME:password ${origin}${exportPath}`;
+                    }}
+                />
+            </div>
+        </details>
+    );
+}
+
 export function TransferFormatHelp() {
     return (
         <details className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">

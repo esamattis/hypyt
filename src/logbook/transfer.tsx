@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { XMLParser } from "fast-xml-parser";
 import { z } from "zod/v4";
 import { app, getAppContext, type AppRequestContext } from "../app";
+import { basicAuthChallenge, requireExportUser } from "../login";
 import * as routes from "../routes";
 import {
     aircrafts,
@@ -13,7 +14,7 @@ import {
     locations,
 } from "../schema";
 import { LogbookPage } from "./layout";
-import { TransferFormatHelp } from "./transfer-format-help";
+import { ExportCurlHelp, TransferFormatHelp } from "./transfer-format-help";
 
 const NamedResourceSchema = z.object({
     name: z.string().trim().min(1, "Name is required"),
@@ -343,6 +344,7 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
                     >
                         Export logbook
                     </a>
+                    <ExportCurlHelp />
                 </div>
                 <div className="border-t border-slate-200 pt-6">
                     <div className="flex items-center gap-3">
@@ -708,8 +710,13 @@ async function handleTransfer(c: AppRequestContext) {
 
 /** Exports the current user's logbook as a JSON Lines download. */
 async function exportLogbook(c: AppRequestContext) {
-    const db = getAppContext(c).db;
-    const userUuid = getAppContext(c).getUser().uuid;
+    const ctx = getAppContext(c);
+    const authenticated = await requireExportUser(c);
+    if (!authenticated) {
+        return basicAuthChallenge(c, "Authorization required");
+    }
+    const db = ctx.db;
+    const userUuid = ctx.getUser().uuid;
     const [aircraftRows, gearRows, jumpTypeRows, locationRows, jumpRows] =
         await Promise.all([
             db

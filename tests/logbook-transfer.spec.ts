@@ -8,6 +8,10 @@ const xmlFixturePath = path.join(
     "fixtures/skydiving-logbook.xml",
 );
 
+function basicAuthHeader(username: string, password: string): string {
+    return "Basic " + Buffer.from(`${username}:${password}`).toString("base64");
+}
+
 async function registerUser(page: Page, username: string) {
     await page.goto("/register");
     await page.locator('input[name="username"]').fill(username);
@@ -138,4 +142,60 @@ test("a Skydiving Logbook XML file can be imported", async ({ page }) => {
     );
     await expect(page.getByRole("checkbox", { name: "XML Rig" })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
+});
+
+test("the logbook can be exported with curl and HTTP Basic auth", async ({
+    page,
+    request,
+}) => {
+    await registerUser(page, "curl-skydiver");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Import or export" }).click();
+    await page.locator('input[name="file"]').setInputFiles(fixturePath);
+    await page.getByRole("button", { name: "Import logbook" }).click();
+    await expect(page.getByText("Imported 2 jumps")).toBeVisible();
+
+    await page.getByRole("button", { name: "Manage logbook" }).click();
+    await page.getByRole("link", { name: "Import or export" }).click();
+    await page.getByText("Download with curl").click();
+    const curlCommand = page.locator("code", { hasText: "curl -OJ" });
+    await expect(curlCommand).toContainText(
+        `curl -OJ -u USERNAME:password http://127.0.0.1:8788/logbook/export`,
+    );
+
+    const response = await request.get("/logbook/export", {
+        headers: {
+            Authorization: basicAuthHeader("curl-skydiver", "parachute"),
+        },
+    });
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain(
+        "application/x-ndjson",
+    );
+    expect(response.headers()["content-disposition"]).toContain(
+        'filename="jump-logbook.jsonl"',
+    );
+    const body = await response.text();
+    expect(body).toContain('"jumpNumber":301');
+    expect(body).toContain('"jumpNumber":302');
+    expect(body).toContain('"gear":["Navigator 260"]');
+    expect(body).not.toMatch(/uuid/i);
+});
+
+test("the export endpoint rejects missing Basic auth credentials with HTTP 401", async ({
+    request,
+}) => {
+    const response = await request.get("/logbook/export");
+    expect(response.status()).toBe(401);
+    expect(response.headers()["www-authenticate"]).toContain('Basic realm="');
+});
+
+test("the export endpoint rejects invalid Basic auth credentials with HTTP 401", async ({
+    request,
+}) => {
+    const response = await request.get("/logbook/export", {
+        headers: { Authorization: basicAuthHeader("curl-skydiver", "wrong") },
+    });
+    expect(response.status()).toBe(401);
+    expect(response.headers()["www-authenticate"]).toContain('Basic realm="');
 });

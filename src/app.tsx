@@ -145,7 +145,11 @@ async function setAppContextMiddleware(
 
 app.use("*", setAppContextMiddleware);
 
-const PUBLIC_PATHS = [routes.login.route, routes.register.route];
+const PUBLIC_PATHS = [
+    routes.login.route,
+    routes.register.route,
+    routes.logbookExport.route,
+];
 const STATIC_PATH_PATTERN = /\.(css|js|png|ico|json|webmanifest|svg|woff2?)$/;
 
 async function authenticateMiddleware(
