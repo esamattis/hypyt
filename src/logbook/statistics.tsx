@@ -60,22 +60,77 @@ function SummaryCard(props: { label: string; value: string }) {
     );
 }
 
+function YearlyJumpsHistogram(props: {
+    data: Array<{ year: number; count: number }>;
+}) {
+    if (props.data.length === 0) {
+        return null;
+    }
+    const maxCount = Math.max(...props.data.map((entry) => entry.count), 1);
+    const maxBarHeight = 160;
+    return (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Jumps per year
+            </h2>
+            <div className="mt-4 flex items-end gap-2">
+                {props.data.map((entry) => {
+                    const barHeight = Math.max(
+                        2,
+                        Math.round((entry.count / maxCount) * maxBarHeight),
+                    );
+                    return (
+                        <div
+                            key={entry.year}
+                            className="flex flex-1 flex-col items-center"
+                        >
+                            <span className="mb-1 text-xs font-medium tabular-nums text-slate-600 dark:text-slate-300">
+                                {entry.count}
+                            </span>
+                            <div
+                                className="w-full rounded-t-md bg-indigo-500 dark:bg-indigo-400"
+                                style={{ height: `${barHeight}px` }}
+                                title={`${entry.count} jumps in ${entry.year}`}
+                                aria-label={`${entry.count} jumps in ${entry.year}`}
+                            />
+                            <span className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                {entry.year}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </section>
+    );
+}
+
 async function renderStatistics(c: AppRequestContext) {
     const userUuid = getAppContext(c).getUser().uuid;
     const startOfCurrentYear = getStartOfCurrentYear();
     const startOfCurrentMonth = getStartOfCurrentMonth();
     const startOfPreviousMonth = getStartOfPreviousMonth();
     const twelveMonthsAgo = getTwelveMonthsAgo();
-    const [stats] = await getAppContext(c)
-        .db.select({
-            totalJumps: sql<number>`count(*)`,
-            currentYearJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfCurrentYear} then 1 else 0 end), 0)`,
-            lastTwelveMonthsJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${twelveMonthsAgo} then 1 else 0 end), 0)`,
-            lastMonthJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfPreviousMonth} and ${jumps.jumpDate} < ${startOfCurrentMonth} then 1 else 0 end), 0)`,
-            totalFreefallTime: sql<number>`coalesce(sum(${jumps.freefallTime}), 0)`,
-        })
-        .from(jumps)
-        .where(eq(jumps.userUuid, userUuid));
+    const [[stats], yearlyRows] = await Promise.all([
+        getAppContext(c)
+            .db.select({
+                totalJumps: sql<number>`count(*)`,
+                currentYearJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfCurrentYear} then 1 else 0 end), 0)`,
+                lastTwelveMonthsJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${twelveMonthsAgo} then 1 else 0 end), 0)`,
+                lastMonthJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfPreviousMonth} and ${jumps.jumpDate} < ${startOfCurrentMonth} then 1 else 0 end), 0)`,
+                totalFreefallTime: sql<number>`coalesce(sum(${jumps.freefallTime}), 0)`,
+            })
+            .from(jumps)
+            .where(eq(jumps.userUuid, userUuid)),
+        getAppContext(c)
+            .db.select({
+                year: sql<string>`substr(${jumps.jumpDate}, 1, 4)`,
+                count: sql<number>`count(*)`,
+            })
+            .from(jumps)
+            .where(eq(jumps.userUuid, userUuid))
+            .groupBy(sql`substr(${jumps.jumpDate}, 1, 4)`)
+            .orderBy(sql`substr(${jumps.jumpDate}, 1, 4)`),
+    ]);
 
     const values = stats ?? {
         totalJumps: 0,
@@ -84,6 +139,13 @@ async function renderStatistics(c: AppRequestContext) {
         lastMonthJumps: 0,
         totalFreefallTime: 0,
     };
+
+    const yearlyData = yearlyRows
+        .map((row) => ({
+            year: Number(row.year),
+            count: Number(row.count),
+        }))
+        .filter((entry) => Number.isInteger(entry.year) && entry.year > 0);
 
     return c.render(
         <LogbookPage title="Statistics">
@@ -109,6 +171,7 @@ async function renderStatistics(c: AppRequestContext) {
                     value={formatDuration(values.totalFreefallTime)}
                 />
             </dl>
+            <YearlyJumpsHistogram data={yearlyData} />
             <a
                 href={routes.logbookDetailedStatistics({}, {})}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
