@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/migrate-local.ts",
     "db:dev-user": "node scripts/insert-dev-user.ts",
-    "db:list-users": "node scripts/list-users.ts"
+    "db:list-users": "node scripts/list-users.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",

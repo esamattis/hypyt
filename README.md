@@ -7,6 +7,17 @@ pnpm install
 pnpm dev
 ```
 
+## End-to-end tests
+
+Run the Playwright end-to-end test suite:
+
+```sh
+pnpm test:e2e
+```
+
+Tests start the application on `127.0.0.1:8788` and reset the isolated local D1
+database in `.playwright/state/` before each run.
+
 ## Local database
 
 The local D1 database is stored by Wrangler in `.wrangler/state/v3/d1/`.
