@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { app, getAppContext, type AppRequestContext } from "./app";
 import * as routes from "./routes";
 import {
@@ -12,6 +12,7 @@ import {
 } from "./schema";
 import { Details } from "./components/ui";
 import { LogbookPage } from "./logbook/layout";
+import { JumpSearch } from "./logbook/search";
 import { formatAltitude, type UserOptions } from "./options";
 import "./logbook/aircraft";
 import "./logbook/detailed-statistics";
@@ -258,10 +259,11 @@ interface LogbookResource {
     name: string;
 }
 
-interface LogbookFilters {
+export interface LogbookFilters {
     locationUuids: string[];
     gearUuids: string[];
     jumpTypeUuids: string[];
+    search: string;
 }
 
 const JUMPS_PER_PAGE = 24;
@@ -276,6 +278,9 @@ function getLogbookJumpsUrl(filters: LogbookFilters, before?: number): string {
     }
     for (const uuid of filters.jumpTypeUuids) {
         query.append("jumpTypeUuids", uuid);
+    }
+    if (filters.search) {
+        query.set("search", filters.search);
     }
     if (before !== undefined) {
         query.set("before", String(before));
@@ -337,6 +342,13 @@ function JumpFilters(props: {
                 method="get"
                 className="mt-5 space-y-5"
             >
+                {props.filters.search !== "" && (
+                    <input
+                        type="hidden"
+                        name="search"
+                        value={props.filters.search}
+                    />
+                )}
                 <fieldset>
                     <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Locations
@@ -461,6 +473,7 @@ function getLogbookFilters(
     resources: Awaited<ReturnType<typeof getLogbookFilterResources>>,
 ): LogbookFilters {
     const query = new URL(c.req.url).searchParams;
+    const search = (query.get("search") ?? "").trim().slice(0, 200);
     return {
         locationUuids: filterResourceUuids(
             query,
@@ -473,6 +486,7 @@ function getLogbookFilters(
             "jumpTypeUuids",
             resources.jumpTypes,
         ),
+        search,
     };
 }
 
@@ -482,6 +496,9 @@ function getLogbookJumpConditions(
 ) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
+    const searchPattern = filters.search
+        ? `%${filters.search.replace(/[%_\\]/g, "\\$&")}%`
+        : null;
     return [
         eq(jumps.userUuid, userUuid),
         ...(filters.locationUuids.length > 0
@@ -514,6 +531,18 @@ function getLogbookJumpConditions(
                               ),
                           ),
                   ),
+              ]
+            : []),
+        ...(searchPattern
+            ? [
+                  or(
+                      sql`CAST(${jumps.jumpNumber} AS TEXT) LIKE ${searchPattern} ESCAPE '\\'`,
+                      sql`${jumps.jumpDate} LIKE ${searchPattern} ESCAPE '\\'`,
+                      sql`CAST(${jumps.exitAltitude} AS TEXT) LIKE ${searchPattern} ESCAPE '\\'`,
+                      sql`CAST(${jumps.openingAltitude} AS TEXT) LIKE ${searchPattern} ESCAPE '\\'`,
+                      sql`CAST(${jumps.freefallTime} AS TEXT) LIKE ${searchPattern} ESCAPE '\\'`,
+                      sql`${jumps.description} LIKE ${searchPattern} ESCAPE '\\'`,
+                  )!,
               ]
             : []),
     ];
@@ -714,13 +743,17 @@ async function renderLogbook(c: AppRequestContext) {
                         </span>
                     )}
                 </div>
+                {(stats.totalJumps > 0 || filters.search !== "") && (
+                    <JumpSearch filters={filters} />
+                )}
                 {stats.totalJumps === 0 ? (
                     <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             {filters.locationUuids.length > 0 ||
                             filters.gearUuids.length > 0 ||
-                            filters.jumpTypeUuids.length > 0
-                                ? "No jumps match the selected filters."
+                            filters.jumpTypeUuids.length > 0 ||
+                            filters.search !== ""
+                                ? "No jumps match the selected filters or search."
                                 : "No jumps yet. Add your first jump to start your logbook."}
                         </p>
                     </div>
