@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { app, getAppContext, type AppRequestContext } from "./app";
 import * as routes from "./routes";
 import { aircrafts, jumps, locations } from "./schema";
+import { Script } from "./components/helpers";
 import { LogbookPage } from "./logbook/layout";
 import "./logbook/aircraft";
 import "./logbook/gear";
@@ -9,6 +10,106 @@ import "./logbook/jump";
 import "./logbook/jump-type";
 import "./logbook/location";
 import "./logbook/transfer";
+import { useId } from "hono/jsx";
+import { $assertElement } from "./utils";
+
+function LogbookManagementMenu() {
+    const id = useId();
+    const menuId = `logbook-management-menu-${id}`;
+    const buttonId = `logbook-management-button-${id}`;
+
+    return (
+        <div className="relative">
+            <button
+                id={buttonId}
+                type="button"
+                aria-controls={menuId}
+                aria-expanded="false"
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+            >
+                Manage logbook
+            </button>
+            <div
+                id={menuId}
+                hidden
+                className="absolute left-0 z-10 mt-2 w-52 rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+            >
+                <a
+                    href={routes.aircraftList({})}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Manage aircraft
+                </a>
+                <a
+                    href={routes.gearList({})}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Manage gear
+                </a>
+                <a
+                    href={routes.jumpTypeList({})}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Manage jump types
+                </a>
+                <a
+                    href={routes.locationList({})}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Manage locations
+                </a>
+                <a
+                    href={routes.logbookTransfer({})}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                    Import or export
+                </a>
+            </div>
+            <Script
+                $deps={[$assertElement]}
+                $args={[buttonId, menuId]}
+                $exec={(buttonId, menuId) => {
+                    const button = document.getElementById(buttonId);
+                    $assertElement(button, HTMLButtonElement);
+                    const menu = document.getElementById(menuId);
+                    $assertElement(menu, HTMLDivElement);
+                    const buttonElement = button as HTMLButtonElement;
+                    const menuElement = menu as HTMLDivElement;
+
+                    function setMenuOpen(isOpen: boolean) {
+                        menuElement.hidden = !isOpen;
+                        buttonElement.setAttribute(
+                            "aria-expanded",
+                            String(isOpen),
+                        );
+                    }
+
+                    buttonElement.addEventListener("click", () => {
+                        setMenuOpen(Boolean(menuElement.hidden));
+                    });
+
+                    document.addEventListener("click", (event) => {
+                        if (
+                            !menuElement.hidden &&
+                            event.target instanceof Node &&
+                            !menuElement.contains(event.target) &&
+                            !buttonElement.contains(event.target)
+                        ) {
+                            setMenuOpen(false);
+                        }
+                    });
+
+                    document.addEventListener("keydown", (event) => {
+                        if (event.key === "Escape" && !menuElement.hidden) {
+                            setMenuOpen(false);
+                            buttonElement.focus();
+                        }
+                    });
+                }}
+            />
+        </div>
+    );
+}
 
 async function renderLogbook(c: AppRequestContext) {
     const db = getAppContext(c).db;
@@ -39,36 +140,7 @@ async function renderLogbook(c: AppRequestContext) {
                 >
                     Add jump
                 </a>
-                <a
-                    href={routes.aircraftList({})}
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-                >
-                    Manage aircraft
-                </a>
-                <a
-                    href={routes.gearList({})}
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-                >
-                    Manage gear
-                </a>
-                <a
-                    href={routes.jumpTypeList({})}
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-                >
-                    Manage jump types
-                </a>
-                <a
-                    href={routes.locationList({})}
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-                >
-                    Manage locations
-                </a>
-                <a
-                    href={routes.logbookTransfer({})}
-                    className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
-                >
-                    Import or export
-                </a>
+                <LogbookManagementMenu />
             </nav>
             <section className="overflow-hidden rounded-lg bg-white shadow-sm">
                 <h2 className="border-b border-gray-200 px-5 py-4 text-lg font-semibold">

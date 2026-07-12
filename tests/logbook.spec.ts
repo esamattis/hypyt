@@ -1,4 +1,8 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function openManageLogbook(page: Page) {
+    await page.getByRole("button", { name: "Manage logbook" }).click();
+}
 
 test("a skydiver can register and record their first jump", async ({
     page,
@@ -13,6 +17,7 @@ test("a skydiver can register and record their first jump", async ({
 
     await expect(page).toHaveURL("/logbook");
 
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Main canopy");
@@ -21,6 +26,7 @@ test("a skydiver can register and record their first jump", async ({
     await expect(page).toHaveURL("/logbook/gear");
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage jump types" }).click();
     await page.getByRole("link", { name: "Add jump type" }).click();
     await page.locator('input[name="name"]').fill("Freefly");
@@ -35,6 +41,7 @@ test("a skydiver can register and record their first jump", async ({
     await expect(page).toHaveURL("/logbook/jump-types");
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();
     await page.getByRole("link", { name: "Add location" }).click();
     await page.locator('input[name="name"]').fill("Skydive Test Center");
@@ -43,6 +50,7 @@ test("a skydiver can register and record their first jump", async ({
     await expect(page).toHaveURL("/logbook/locations");
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage aircraft" }).click();
     await page.getByRole("link", { name: "Add aircraft" }).click();
     await page.locator('input[name="name"]').fill("Cessna 182");
@@ -133,6 +141,7 @@ test("a skydiver can register and record their first jump", async ({
     );
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
     await page.getByRole("link", { name: "Edit" }).click();
     await page.locator('input[name="name"]').fill("Main canopy updated");
@@ -149,6 +158,7 @@ test("a skydiver can register and record their first jump", async ({
     );
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage jump types" }).click();
     await page
         .getByRole("listitem")
@@ -175,6 +185,7 @@ test("a skydiver can register and record their first jump", async ({
     );
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage jump types" }).click();
     await page
         .getByRole("listitem")
@@ -201,6 +212,7 @@ test("a skydiver can register and record their first jump", async ({
     );
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();
     await page.getByRole("link", { name: "Edit" }).click();
     await page.locator('input[name="name"]').fill("Skydive Updated Center");
@@ -217,6 +229,7 @@ test("a skydiver can register and record their first jump", async ({
     );
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage aircraft" }).click();
     await page.getByRole("link", { name: "Edit" }).click();
     await page.locator('input[name="name"]').fill("Cessna 206");

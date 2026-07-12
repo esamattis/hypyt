@@ -15,11 +15,16 @@ async function registerUser(page: Page, username: string) {
     await expect(page).toHaveURL("/logbook");
 }
 
+async function openManageLogbook(page: Page) {
+    await page.getByRole("button", { name: "Manage logbook" }).click();
+}
+
 test("a logbook can be imported, edited, exported, and imported by another user", async ({
     page,
 }) => {
     await registerUser(page, "first-skydiver");
 
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Navigator 260");
@@ -27,6 +32,7 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await page.getByRole("button", { name: "Add gear" }).click();
 
     await page.getByRole("link", { name: /first-skydiver's logbook/ }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Import or export" }).click();
     await page.locator('input[name="file"]').setInputFiles(fixturePath);
     await page.getByRole("button", { name: "Import logbook" }).click();
@@ -43,6 +49,7 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await page.getByRole("button", { name: "Save jump" }).click();
     await expect(page.getByText("Edited after import")).toBeVisible();
 
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Import or export" }).click();
     await page.locator('input[name="file"]').setInputFiles(fixturePath);
     await page.getByRole("button", { name: "Import logbook" }).click();
@@ -58,6 +65,7 @@ test("a logbook can be imported, edited, exported, and imported by another user"
         .fill("Edited after import");
     await page.getByRole("button", { name: "Save jump" }).click();
 
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Import or export" }).click();
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("link", { name: "Export logbook" }).click();
@@ -75,6 +83,7 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     await page.getByRole("button", { name: "Log out" }).click();
     await registerUser(page, "second-skydiver");
 
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Import or export" }).click();
     await page.locator('input[name="file"]').setInputFiles(exportPath);
     await page.getByRole("button", { name: "Import logbook" }).click();
