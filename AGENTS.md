@@ -63,6 +63,10 @@ Always after every change run
 pn test
 ```
 
+## Lints
+
+Skip lint comments are only allowed in test files. Production code should be clean of lints.
+
 ## Route Helpers
 
 Use the route helper functions from routes.tsx for type-safe routing. Follow these patterns:
