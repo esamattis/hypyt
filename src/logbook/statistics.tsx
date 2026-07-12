@@ -1,7 +1,11 @@
 import { eq, sql } from "drizzle-orm";
+import clsx from "clsx";
+import { useId } from "hono/jsx";
 import { app, getAppContext, type AppRequestContext } from "../app";
+import { Script } from "../components/helpers";
 import * as routes from "../routes";
 import { jumps } from "../schema";
+import { $assertElement } from "../utils";
 import { LogbookPage } from "./layout";
 
 function formatDate(date: Date): string {
@@ -66,15 +70,48 @@ function YearlyJumpsHistogram(props: {
     if (props.data.length === 0) {
         return null;
     }
-    const maxCount = Math.max(...props.data.map((entry) => entry.count), 1);
+    const yearMap = new Map<number, number>();
+    for (const entry of props.data) {
+        yearMap.set(entry.year, entry.count);
+    }
+    const sortedYears = [...props.data].sort((a, b) => a.year - b.year);
+    const minYear = sortedYears[0]!.year;
+    const maxYear = sortedYears[sortedYears.length - 1]!.year;
+    const fullData: Array<{
+        year: number;
+        count: number;
+        gap: boolean;
+    }> = [];
+    for (let year = minYear; year <= maxYear; year++) {
+        const recorded = yearMap.has(year);
+        fullData.push({
+            year,
+            count: yearMap.get(year) ?? 0,
+            gap: !recorded,
+        });
+    }
+    const maxCount = Math.max(...fullData.map((entry) => entry.count), 1);
     const maxBarHeight = 160;
+    const toggleId = useId();
+    const containerId = useId();
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Jumps per year
-            </h2>
-            <div className="mt-4 flex items-end gap-2">
-                {props.data.map((entry) => {
+            <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    Jumps per year
+                </h2>
+                <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                    <input
+                        id={toggleId}
+                        type="checkbox"
+                        checked
+                        className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800"
+                    />
+                    Show gap years
+                </label>
+            </div>
+            <div id={containerId} className="mt-4 flex items-end gap-2">
+                {fullData.map((entry) => {
                     const barHeight = Math.max(
                         2,
                         Math.round((entry.count / maxCount) * maxBarHeight),
@@ -82,13 +119,21 @@ function YearlyJumpsHistogram(props: {
                     return (
                         <div
                             key={entry.year}
-                            className="flex flex-1 flex-col items-center"
+                            className={clsx(
+                                "flex flex-1 flex-col items-center",
+                                entry.gap && "histogram-gap-year",
+                            )}
                         >
                             <span className="mb-1 text-xs font-medium tabular-nums text-slate-600 dark:text-slate-300">
                                 {entry.count}
                             </span>
                             <div
-                                className="w-full rounded-t-md bg-indigo-500 dark:bg-indigo-400"
+                                className={clsx(
+                                    "w-full rounded-t-md",
+                                    entry.gap
+                                        ? "bg-slate-300 dark:bg-slate-600"
+                                        : "bg-indigo-500 dark:bg-indigo-400",
+                                )}
                                 style={{ height: `${barHeight}px` }}
                                 title={`${entry.count} jumps in ${entry.year}`}
                                 aria-label={`${entry.count} jumps in ${entry.year}`}
@@ -100,6 +145,37 @@ function YearlyJumpsHistogram(props: {
                     );
                 })}
             </div>
+            <Script
+                $args={[toggleId, containerId]}
+                $exec={(toggleId, containerId) => {
+                    const toggle = document.getElementById(toggleId);
+                    $assertElement(toggle, HTMLInputElement);
+                    const container = document.getElementById(containerId);
+                    $assertElement(container, HTMLDivElement);
+                    if (
+                        !(toggle instanceof HTMLInputElement) ||
+                        !(container instanceof HTMLDivElement)
+                    ) {
+                        return;
+                    }
+                    function applyGapVisibility(
+                        checkbox: HTMLInputElement,
+                        containerEl: HTMLDivElement,
+                    ) {
+                        const gaps = containerEl.querySelectorAll<HTMLElement>(
+                            ".histogram-gap-year",
+                        );
+                        const visible = checkbox.checked;
+                        for (const gap of gaps) {
+                            gap.style.display = visible ? "" : "none";
+                        }
+                    }
+                    applyGapVisibility(toggle, container);
+                    toggle.addEventListener("change", () =>
+                        applyGapVisibility(toggle, container),
+                    );
+                }}
+            />
         </section>
     );
 }
