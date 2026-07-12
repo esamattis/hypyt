@@ -51,12 +51,21 @@ export function Script<T extends readonly unknown[] = []>(props: {
     if (!jsDupCache.has(props.$exec)) {
         jsDupCache.add(props.$exec);
 
+        let execSource = props.$exec.toString();
         for (const dep of props.$deps ?? []) {
             const globalName = getGlobalName(dep);
+            const escapedDepName = dep.name.replace(
+                /[.*+?^${}()|[\]\\]/g,
+                "\\$&",
+            );
             depsCode += `const ${dep.name} = ${globalName};\n`;
+            execSource = execSource.replace(
+                new RegExp(`\\(0,[\\w$]+\\.${escapedDepName}\\)`, "g"),
+                dep.name,
+            );
         }
 
-        depsCode += `${getGlobalName(props.$exec)} = ${props.$exec.toString()};\n`;
+        depsCode += `${getGlobalName(props.$exec)} = ${execSource};\n`;
     }
 
     if (depsCode !== "") {
