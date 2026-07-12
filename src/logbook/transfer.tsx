@@ -12,8 +12,7 @@ import {
     jumpTypes,
     locations,
 } from "../schema";
-import { LogbookPage } from "./layout";
-import { ExportCurlHelp, TransferFormatHelp } from "./transfer-format-help";
+import { TransferPage } from "./transfer-page";
 
 const NamedResourceSchema = z.object({
     name: z.string().trim().min(1, "Name is required"),
@@ -71,7 +70,10 @@ type ResourceType = Exclude<ImportRecord["type"], "jump">;
 type ImportDatabase = ReturnType<typeof getAppContext>["db"];
 
 /** A queued database operation that can be executed. */
-type ImportQuery = { run(): Promise<unknown> };
+type ImportQuery = {
+    description: string;
+    run(): Promise<unknown>;
+};
 
 /** Mutable state accumulated while preparing an import. */
 interface ImportState {
@@ -302,121 +304,6 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
     ];
 }
 
-/** Renders the logbook import and export page. */
-function TransferPage(props: { errors?: string[]; notice?: string }) {
-    return (
-        <LogbookPage title="Import or export logbook">
-            <section className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <span
-                            aria-hidden="true"
-                            className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-indigo-100 text-indigo-600"
-                        >
-                            <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"
-                                />
-                            </svg>
-                        </span>
-                        <div>
-                            <h2 className="text-lg font-semibold text-slate-900">
-                                Export
-                            </h2>
-                            <p className="mt-1 text-sm text-slate-500">
-                                Download your logbook as a JSON Lines file. It
-                                uses names instead of internal IDs.
-                            </p>
-                        </div>
-                    </div>
-                    <a
-                        href={routes.logbookExport({})}
-                        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    >
-                        Export logbook
-                    </a>
-                    <ExportCurlHelp />
-                </div>
-                <div className="border-t border-slate-200 pt-6">
-                    <div className="flex items-center gap-3">
-                        <span
-                            aria-hidden="true"
-                            className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-emerald-100 text-emerald-600"
-                        >
-                            <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 14l-5 5m0 0l-5-5m5 5V7"
-                                />
-                            </svg>
-                        </span>
-                        <div>
-                            <h2 className="text-lg font-semibold text-slate-900">
-                                Import
-                            </h2>
-                            <p className="mt-1 text-sm text-slate-500">
-                                Import a JSON Lines or Skydiving Logbook XML
-                                file. Existing gear, locations, aircraft, and
-                                jump types are matched by name.
-                            </p>
-                        </div>
-                    </div>
-                    {props.notice && (
-                        <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                            {props.notice}
-                        </p>
-                    )}
-                    {props.errors && props.errors.length > 0 && (
-                        <ul className="mt-4 space-y-1 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                            {props.errors.map((error) => (
-                                <li key={error}>{error}</li>
-                            ))}
-                        </ul>
-                    )}
-                    <form
-                        method="post"
-                        encType="multipart/form-data"
-                        className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end"
-                    >
-                        <label className="block flex-1 text-sm font-medium text-slate-700">
-                            Logbook file
-                            <input
-                                type="file"
-                                name="file"
-                                accept=".jsonl,.xml,application/x-ndjson,application/json,application/xml,text/xml"
-                                required
-                                className="mt-1.5 block w-full cursor-pointer rounded-lg border border-slate-300 bg-white text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-l-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-indigo-700"
-                            />
-                        </label>
-                        <button
-                            type="submit"
-                            className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                        >
-                            Import logbook
-                        </button>
-                    </form>
-                    <TransferFormatHelp />
-                </div>
-            </section>
-        </LogbookPage>
-    );
-}
-
 /** Reads and validates JSON Lines or Skydiving Logbook XML import records. */
 async function readImportRecords(
     file: File,
@@ -521,6 +408,15 @@ async function createImportState(
     };
 }
 
+/** Adds a database query with a user-facing description if it fails. */
+function queueQuery(
+    state: ImportState,
+    description: string,
+    query: { run(): Promise<unknown> },
+) {
+    state.queries.push({ description, run: () => query.run() });
+}
+
 /** Queues insertion of a resource and records its UUID for later references. */
 function queueResource(
     state: ImportState,
@@ -532,7 +428,9 @@ function queueResource(
     const uuid = crypto.randomUUID();
     state.resources[type].set(normalizeName(name), uuid);
     if (type === "aircraft") {
-        state.queries.push(
+        queueQuery(
+            state,
+            `creating aircraft ${JSON.stringify(name)}`,
             state.db.insert(aircrafts).values({
                 uuid,
                 userUuid: state.userUuid,
@@ -542,7 +440,9 @@ function queueResource(
             }),
         );
     } else if (type === "gear") {
-        state.queries.push(
+        queueQuery(
+            state,
+            `creating gear ${JSON.stringify(name)}`,
             state.db.insert(gear).values({
                 uuid,
                 userUuid: state.userUuid,
@@ -552,7 +452,9 @@ function queueResource(
             }),
         );
     } else if (type === "jumpType") {
-        state.queries.push(
+        queueQuery(
+            state,
+            `creating jump type ${JSON.stringify(name)}`,
             state.db.insert(jumpTypes).values({
                 uuid,
                 userUuid: state.userUuid,
@@ -562,7 +464,9 @@ function queueResource(
             }),
         );
     } else {
-        state.queries.push(
+        queueQuery(
+            state,
+            `creating location ${JSON.stringify(name)}`,
             state.db.insert(locations).values({
                 uuid,
                 userUuid: state.userUuid,
@@ -608,16 +512,20 @@ function queueJump(
     const aircraftUuid =
         state.resources.aircraft.get(normalizeName(record.aircraft)) ??
         queueResource(state, "aircraft", record.aircraft, 0, null);
-    const gearUuids = record.gear.map(
-        (name) =>
+    const gearByUuid = new Map<string, string>();
+    for (const name of record.gear) {
+        const gearUuid =
             state.resources.gear.get(normalizeName(name)) ??
-            queueResource(state, "gear", name, 0, null),
-    );
-    const jumpTypeUuids = record.jumpTypes.map(
-        (name) =>
+            queueResource(state, "gear", name, 0, null);
+        gearByUuid.set(gearUuid, name);
+    }
+    const jumpTypeByUuid = new Map<string, string>();
+    for (const name of record.jumpTypes) {
+        const jumpTypeUuid =
             state.resources.jumpType.get(normalizeName(name)) ??
-            queueResource(state, "jumpType", name, 0, null),
-    );
+            queueResource(state, "jumpType", name, 0, null);
+        jumpTypeByUuid.set(jumpTypeUuid, name);
+    }
     const jumpValues = {
         locationUuid,
         aircraftUuid,
@@ -627,20 +535,32 @@ function queueJump(
         description: record.description || null,
     };
     if (existingJumpUuid) {
-        state.queries.push(
+        queueQuery(
+            state,
+            `updating jump #${record.jumpNumber}`,
             state.db
                 .update(jumps)
                 .set(jumpValues)
                 .where(eq(jumps.uuid, jumpUuid)),
+        );
+        queueQuery(
+            state,
+            `replacing gear on jump #${record.jumpNumber}`,
             state.db
                 .delete(jumpsToGear)
                 .where(eq(jumpsToGear.jumpUuid, jumpUuid)),
+        );
+        queueQuery(
+            state,
+            `replacing jump types on jump #${record.jumpNumber}`,
             state.db
                 .delete(jumpsToJumpTypes)
                 .where(eq(jumpsToJumpTypes.jumpUuid, jumpUuid)),
         );
     } else {
-        state.queries.push(
+        queueQuery(
+            state,
+            `creating jump #${record.jumpNumber}`,
             state.db.insert(jumps).values({
                 uuid: jumpUuid,
                 userUuid: state.userUuid,
@@ -649,16 +569,22 @@ function queueJump(
             }),
         );
     }
-    state.queries.push(
-        ...gearUuids.map((gearUuid) =>
+    for (const [gearUuid, gearName] of gearByUuid) {
+        queueQuery(
+            state,
+            `linking gear ${JSON.stringify(gearName)} to jump #${record.jumpNumber}`,
             state.db.insert(jumpsToGear).values({ jumpUuid, gearUuid }),
-        ),
-        ...jumpTypeUuids.map((jumpTypeUuid) =>
+        );
+    }
+    for (const [jumpTypeUuid, jumpTypeName] of jumpTypeByUuid) {
+        queueQuery(
+            state,
+            `linking jump type ${JSON.stringify(jumpTypeName)} to jump #${record.jumpNumber}`,
             state.db
                 .insert(jumpsToJumpTypes)
                 .values({ jumpUuid, jumpTypeUuid }),
-        ),
-    );
+        );
+    }
 }
 
 /** Queues all jump records and returns their count. */
@@ -681,7 +607,17 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
     queueListedResources(records, state);
     const importedJumps = queueJumps(records, state);
     for (const query of state.queries) {
-        await query.run();
+        try {
+            await query.run();
+        } catch (error) {
+            console.error(
+                `Logbook import failed while ${query.description}`,
+                error,
+            );
+            throw new Error(
+                `Could not complete the import while ${query.description}. The import may be partially complete.`,
+            );
+        }
     }
     return importedJumps;
 }
@@ -699,12 +635,24 @@ async function handleTransfer(c: AppRequestContext) {
     if ("errors" in result) {
         return c.render(<TransferPage errors={result.errors} />);
     }
-    const importedJumps = await importRecords(c, result.records);
-    return c.render(
-        <TransferPage
-            notice={`Imported ${importedJumps} ${importedJumps === 1 ? "jump" : "jumps"}`}
-        />,
-    );
+    try {
+        const importedJumps = await importRecords(c, result.records);
+        return c.render(
+            <TransferPage
+                notice={`Imported ${importedJumps} ${importedJumps === 1 ? "jump" : "jumps"}`}
+            />,
+        );
+    } catch (error) {
+        return c.render(
+            <TransferPage
+                errors={[
+                    error instanceof Error
+                        ? error.message
+                        : "Could not complete the import. The import may be partially complete.",
+                ]}
+            />,
+        );
+    }
 }
 
 /** Exports the current user's logbook as a JSON Lines download. */

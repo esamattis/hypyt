@@ -144,6 +144,44 @@ test("a Skydiving Logbook XML file can be imported", async ({ page }) => {
     await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
 });
 
+test("an import deduplicates repeated gear and jump type references", async ({
+    page,
+}) => {
+    await registerUser(page, "deduplicated-import-skydiver");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Import or export" }).click();
+    await page.locator('input[name="file"]').setInputFiles({
+        name: "duplicated-references.jsonl",
+        mimeType: "application/x-ndjson",
+        buffer: Buffer.from(
+            JSON.stringify({
+                type: "jump",
+                jumpNumber: 1,
+                exitAltitude: 4000,
+                openingAltitude: 1000,
+                freefallTime: 60,
+                location: "Test location",
+                aircraft: "Test aircraft",
+                gear: ["Test rig", "test rig"],
+                jumpTypes: ["Test type", "test type"],
+            }),
+        ),
+    });
+    await page.getByRole("button", { name: "Import logbook" }).click();
+    await expect(page.getByText("Imported 1 jump")).toBeVisible();
+
+    await page
+        .getByRole("link", { name: /deduplicated-import-skydiver's logbook/ })
+        .click();
+    await page.getByRole("link", { name: /#1/ }).click();
+    await expect(
+        page.getByRole("checkbox", { name: "Test rig" }),
+    ).toBeChecked();
+    await expect(
+        page.getByRole("checkbox", { name: "Test type" }),
+    ).toBeChecked();
+});
+
 test("the logbook can be exported with curl and HTTP Basic auth", async ({
     page,
     request,
