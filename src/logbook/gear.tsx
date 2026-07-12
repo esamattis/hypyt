@@ -3,7 +3,7 @@ import { getAppContext, app, type AppRequestContext } from "../app";
 import { FormActions, Input, NumberInput, Textarea } from "../components/form";
 import { ErrorList } from "../components/feedback";
 import * as routes from "../routes";
-import { gear } from "../schema";
+import { gear, jumpsToGear, jumpsToJumpTypes, jumpTypes } from "../schema";
 import { LogbookPage } from "./layout";
 import { ResourceSchema } from "./resource";
 
@@ -170,6 +170,24 @@ async function renderGearList(c: AppRequestContext) {
                                     <input
                                         type="hidden"
                                         name="action"
+                                        value="convertToJumpType"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Convert to jump type
+                                    </button>
+                                </form>
+                                <form
+                                    method="post"
+                                    action={routes.gearEdit({
+                                        uuid: item.uuid,
+                                    })}
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="action"
                                         value="toggleArchive"
                                     />
                                     <input
@@ -239,6 +257,38 @@ async function handleEditGear(c: AppRequestContext) {
             .returning({ uuid: gear.uuid })
             .get();
         return update ? c.redirect(routes.gearList({})) : c.notFound();
+    }
+    if (formData.get("action") === "convertToJumpType") {
+        const item = await db
+            .select()
+            .from(gear)
+            .where(and(eq(gear.uuid, uuid), eq(gear.userUuid, userUuid)))
+            .get();
+        if (!item) {
+            return c.notFound();
+        }
+        const jumpRows = await db
+            .select({ jumpUuid: jumpsToGear.jumpUuid })
+            .from(jumpsToGear)
+            .where(eq(jumpsToGear.gearUuid, item.uuid));
+        const jumpTypeUuid = crypto.randomUUID();
+        await db.batch([
+            db.insert(jumpTypes).values({
+                uuid: jumpTypeUuid,
+                userUuid: item.userUuid,
+                name: item.name,
+                previousUsageCount: item.previousUsageCount,
+                description: item.description,
+                archived: item.archived,
+            }),
+            ...jumpRows.map((row) =>
+                db
+                    .insert(jumpsToJumpTypes)
+                    .values({ jumpUuid: row.jumpUuid, jumpTypeUuid }),
+            ),
+            db.delete(gear).where(eq(gear.uuid, item.uuid)),
+        ]);
+        return c.redirect(routes.jumpTypeEdit({ uuid: jumpTypeUuid }));
     }
     const values = getGearFormValues(formData);
     const result = ResourceSchema.safeParse(values);

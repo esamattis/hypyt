@@ -343,3 +343,85 @@ test("a skydiver can register and record their first jump", async ({
         page.getByRole("checkbox", { name: "Main canopy updated" }),
     ).toBeVisible();
 });
+
+test("gear can be converted to a jump type with its jump references", async ({
+    page,
+}) => {
+    await page.goto("/register");
+    await page.locator('input[name="username"]').fill("conversion-skydiver");
+    await page.locator('input[name="displayName"]').fill("Conversion Skydiver");
+    await page.locator('input[name="email"]').fill("conversion@example.test");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
+    await page.getByRole("link", { name: "Add gear" }).click();
+    await page.locator('input[name="name"]').fill("Convertible gear");
+    await page.locator('input[name="previousCount"]').fill("12");
+    await page
+        .locator('textarea[name="description"]')
+        .fill("Convertible description");
+    await page.getByRole("button", { name: "Add gear" }).click();
+
+    await page
+        .getByRole("link", { name: /Conversion Skydiver's logbook/ })
+        .click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage locations" }).click();
+    await page.getByRole("link", { name: "Add location" }).click();
+    await page.locator('input[name="name"]').fill("Conversion location");
+    await page.getByRole("button", { name: "Add location" }).click();
+
+    await page
+        .getByRole("link", { name: /Conversion Skydiver's logbook/ })
+        .click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage aircraft" }).click();
+    await page.getByRole("link", { name: "Add aircraft" }).click();
+    await page.locator('input[name="name"]').fill("Conversion aircraft");
+    await page.getByRole("button", { name: "Add aircraft" }).click();
+
+    await page
+        .getByRole("link", { name: /Conversion Skydiver's logbook/ })
+        .click();
+    await page.getByRole("link", { name: "Add jump", exact: true }).click();
+    await page.locator('input[name="jumpNumber"]').fill("1");
+    await page.locator('input[name="exitAltitude"]').fill("4000");
+    await page.locator('input[name="openingAltitude"]').fill("1000");
+    await page.locator('input[name="freefallTime"]').fill("55");
+    await page.locator('select[name="locationUuid"]').selectOption({
+        label: "Conversion location",
+    });
+    await page.locator('select[name="aircraftUuid"]').selectOption({
+        label: "Conversion aircraft",
+    });
+    await page.getByRole("checkbox", { name: "Convertible gear" }).check();
+    await page.getByRole("button", { name: "Add jump" }).click();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
+    await page.getByRole("button", { name: "Convert to jump type" }).click();
+    await expect(page).toHaveURL(/\/logbook\/jump-types\/.+/);
+    await expect(page.locator('input[name="name"]')).toHaveValue(
+        "Convertible gear",
+    );
+    await expect(page.locator('input[name="previousCount"]')).toHaveValue("12");
+    await expect(page.locator('textarea[name="description"]')).toHaveValue(
+        "Convertible description",
+    );
+
+    await page
+        .getByRole("link", { name: /Conversion Skydiver's logbook/ })
+        .click();
+    await expect(
+        page
+            .getByRole("link", { name: /Jump #1/ })
+            .getByText("Convertible gear"),
+    ).toBeVisible();
+    await page.getByRole("link", { name: /Jump #1/ }).click();
+    await expect(
+        page.getByRole("checkbox", { name: "Convertible gear" }),
+    ).toBeChecked();
+});
