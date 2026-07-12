@@ -9,6 +9,11 @@ import htmx from "htmx.org/dist/htmx.esm.js?url";
 import { users } from "./schema";
 import * as routes from "./routes";
 import { parseUserOptions, type UserOptions } from "./options";
+import {
+    findUserForAuth,
+    parseBasicAuth,
+    type AuthenticatedUser,
+} from "./auth";
 
 export type AppType = Hono<Env>;
 
@@ -145,12 +150,28 @@ async function setAppContextMiddleware(
 
 app.use("*", setAppContextMiddleware);
 
-const PUBLIC_PATHS = [
-    routes.login.route,
-    routes.register.route,
-    routes.logbookExport.route,
-];
+const PUBLIC_PATHS = [routes.login.route, routes.register.route];
 const STATIC_PATH_PATTERN = /\.(css|js|png|ico|json|webmanifest|svg|woff2?)$/;
+
+function setAuthenticatedUser(ctx: AppContext, user: AuthenticatedUser) {
+    ctx.user = {
+        uuid: user.uuid,
+        username: user.username,
+        displayName: user.displayName,
+        email: user.email,
+        options: parseUserOptions(user.options),
+        getDisplayName() {
+            return user.displayName || user.username;
+        },
+    };
+}
+
+function basicAuthChallenge(c: AppRequestContext) {
+    return c.body("Invalid username or password", 401, {
+        "WWW-Authenticate": 'Basic realm="Jump Logbook"',
+        "Content-Type": "text/plain; charset=utf-8",
+    });
+}
 
 async function authenticateMiddleware(
     c: AppRequestContext,
@@ -180,22 +201,32 @@ async function authenticateMiddleware(
             .get();
 
         if (userRow) {
-            ctx.user = {
-                uuid: userRow.uuid,
-                username: userRow.username,
-                displayName: userRow.displayName || null,
-                email: userRow.email,
-                options: parseUserOptions(userRow.options),
-                getDisplayName() {
-                    return userRow.displayName || userRow.username;
-                },
-            };
+            setAuthenticatedUser(ctx, userRow);
         }
     }
 
     const isPublicPath = PUBLIC_PATHS.some((publicPath) => publicPath === path);
     if (!ctx.user && !isPublicPath) {
-        return c.redirect(routes.login({}, { back: path }));
+        const authorization = c.req.header("Authorization");
+        const credentials = parseBasicAuth(authorization);
+        if (credentials) {
+            const [usernameOrEmail, password] = credentials;
+            const user = await findUserForAuth(
+                ctx.db,
+                usernameOrEmail,
+                password,
+            );
+            if (user) {
+                setAuthenticatedUser(ctx, user);
+            }
+        }
+
+        if (!ctx.user) {
+            if (authorization) {
+                return basicAuthChallenge(c);
+            }
+            return c.redirect(routes.login({}, { back: path }));
+        }
     }
 
     await next();

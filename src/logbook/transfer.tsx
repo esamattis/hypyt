@@ -2,7 +2,6 @@ import { eq } from "drizzle-orm";
 import { XMLParser } from "fast-xml-parser";
 import { z } from "zod/v4";
 import { app, getAppContext, type AppRequestContext } from "../app";
-import { basicAuthChallenge, requireExportUser } from "../login";
 import * as routes from "../routes";
 import {
     aircrafts,
@@ -711,10 +710,6 @@ async function handleTransfer(c: AppRequestContext) {
 /** Exports the current user's logbook as a JSON Lines download. */
 async function exportLogbook(c: AppRequestContext) {
     const ctx = getAppContext(c);
-    const authenticated = await requireExportUser(c);
-    if (!authenticated) {
-        return basicAuthChallenge(c, "Authorization required");
-    }
     const db = ctx.db;
     const userUuid = ctx.getUser().uuid;
     const [aircraftRows, gearRows, jumpTypeRows, locationRows, jumpRows] =

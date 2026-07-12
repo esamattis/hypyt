@@ -182,19 +182,37 @@ test("the logbook can be exported with curl and HTTP Basic auth", async ({
     expect(body).not.toMatch(/uuid/i);
 });
 
-test("the export endpoint rejects missing Basic auth credentials with HTTP 401", async ({
-    request,
-}) => {
-    const response = await request.get("/logbook/export");
-    expect(response.status()).toBe(401);
-    expect(response.headers()["www-authenticate"]).toContain('Basic realm="');
+test("Basic auth works for protected routes", async ({ page, request }) => {
+    await registerUser(page, "basic-skydiver");
+
+    const response = await request.get("/logbook", {
+        headers: {
+            Authorization: basicAuthHeader("basic-skydiver", "parachute"),
+        },
+    });
+
+    expect(response.status()).toBe(200);
+    expect(await response.text()).toContain("basic-skydiver – Jump Logbook");
 });
 
-test("the export endpoint rejects invalid Basic auth credentials with HTTP 401", async ({
+test("protected routes redirect to login without a session or Basic auth", async ({
     request,
 }) => {
     const response = await request.get("/logbook/export", {
-        headers: { Authorization: basicAuthHeader("curl-skydiver", "wrong") },
+        maxRedirects: 0,
+    });
+
+    expect(response.status()).toBe(302);
+    expect(response.headers()["location"]).toBe(
+        "/login?back=%2Flogbook%2Fexport",
+    );
+});
+
+test("protected routes reject invalid Basic auth credentials", async ({
+    request,
+}) => {
+    const response = await request.get("/logbook", {
+        headers: { Authorization: basicAuthHeader("missing-user", "wrong") },
     });
     expect(response.status()).toBe(401);
     expect(response.headers()["www-authenticate"]).toContain('Basic realm="');

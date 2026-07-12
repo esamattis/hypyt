@@ -1,0 +1,149 @@
+import { eq, or } from "drizzle-orm";
+import type { AppContext } from "./app";
+import { users } from "./schema";
+
+const PBKDF2_ITERATIONS = 100_000;
+const PBKDF2_KEYLEN_BITS = 256;
+
+export interface AuthenticatedUser {
+    uuid: string;
+    username: string;
+    displayName: string | null;
+    email: string;
+    options: string;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+    let binary = "";
+    for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+    }
+    return btoa(binary);
+}
+
+function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(new ArrayBuffer(binary.length));
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+}
+
+async function derivePasswordHash(
+    password: string,
+    salt: Uint8Array<ArrayBuffer>,
+    iterations: number,
+): Promise<string> {
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveBits"],
+    );
+    const derived = await crypto.subtle.deriveBits(
+        {
+            name: "PBKDF2",
+            salt,
+            iterations,
+            hash: "SHA-256",
+        },
+        keyMaterial,
+        PBKDF2_KEYLEN_BITS,
+    );
+    return bytesToBase64(new Uint8Array(derived));
+}
+
+export async function hashPassword(password: string): Promise<string> {
+    const salt = crypto.getRandomValues(new Uint8Array(new ArrayBuffer(16)));
+    const hash = await derivePasswordHash(password, salt, PBKDF2_ITERATIONS);
+    return `${PBKDF2_ITERATIONS}:${bytesToBase64(salt)}:${hash}`;
+}
+
+async function verifyPassword(
+    password: string,
+    storedHash: string,
+): Promise<boolean> {
+    const parts = storedHash.split(":");
+    if (parts.length !== 3) {
+        return false;
+    }
+    const [iterationsStr, saltBase64, hash] = parts;
+    if (!iterationsStr || !saltBase64 || !hash) {
+        return false;
+    }
+    const iterations = parseInt(iterationsStr, 10);
+    if (Number.isNaN(iterations)) {
+        return false;
+    }
+    const salt = base64ToBytes(saltBase64);
+    const computedHash = await derivePasswordHash(password, salt, iterations);
+    return computedHash === hash;
+}
+
+/** Parses an HTTP Basic Authorization header into username and password. */
+export function parseBasicAuth(
+    header: string | undefined,
+): [string, string] | null {
+    if (!header) {
+        return null;
+    }
+    const match = /^Basic\s+(.+)$/i.exec(header);
+    if (!match) {
+        return null;
+    }
+    const encoded = match[1] ?? "";
+    let decoded: string;
+    try {
+        decoded = atob(encoded);
+    } catch {
+        return null;
+    }
+    const separator = decoded.indexOf(":");
+    if (separator === -1) {
+        return null;
+    }
+    return [decoded.slice(0, separator), decoded.slice(separator + 1)];
+}
+
+/**
+ * Looks up a user by username or email and verifies the password.
+ * Returns the user record (without the password hash) when valid, otherwise null.
+ */
+export async function findUserForAuth(
+    db: AppContext["db"],
+    usernameOrEmail: string,
+    password: string,
+): Promise<AuthenticatedUser | null> {
+    const userRow = await db
+        .select({
+            uuid: users.uuid,
+            username: users.username,
+            displayName: users.displayName,
+            email: users.email,
+            options: users.options,
+            password: users.password,
+        })
+        .from(users)
+        .where(
+            or(
+                eq(users.username, usernameOrEmail),
+                eq(users.email, usernameOrEmail),
+            ),
+        )
+        .limit(1)
+        .get();
+
+    if (!userRow || !(await verifyPassword(password, userRow.password))) {
+        return null;
+    }
+    return {
+        uuid: userRow.uuid,
+        username: userRow.username,
+        displayName: userRow.displayName,
+        email: userRow.email,
+        options: userRow.options,
+    };
+}

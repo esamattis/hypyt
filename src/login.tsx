@@ -1,12 +1,6 @@
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
-import {
-    app,
-    getAppContext,
-    type AppContext,
-    type AppRequestContext,
-} from "./app";
-import { parseUserOptions } from "./options";
+import { app, getAppContext, type AppRequestContext } from "./app";
 import { users } from "./schema";
 import { z } from "zod/v4";
 import clsx from "clsx";
@@ -14,83 +8,13 @@ import { AuthFormShell } from "./components/auth";
 import { Script } from "./components/helpers";
 import { useId } from "hono/jsx";
 import { $assertElement } from "./utils";
+import { findUserForAuth, hashPassword } from "./auth";
 import * as routes from "./routes";
+
+export { hashPassword } from "./auth";
 
 const SESSION_COOKIE_NAME = "session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
-
-const PBKDF2_ITERATIONS = 100_000;
-const PBKDF2_KEYLEN_BITS = 256;
-
-function bytesToBase64(bytes: Uint8Array): string {
-    let binary = "";
-    for (const byte of bytes) {
-        binary += String.fromCharCode(byte);
-    }
-    return btoa(binary);
-}
-
-function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(new ArrayBuffer(binary.length));
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-}
-
-async function derivePasswordHash(
-    password: string,
-    salt: Uint8Array<ArrayBuffer>,
-    iterations: number,
-): Promise<string> {
-    const encoder = new TextEncoder();
-    const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        encoder.encode(password),
-        "PBKDF2",
-        false,
-        ["deriveBits"],
-    );
-    const derived = await crypto.subtle.deriveBits(
-        {
-            name: "PBKDF2",
-            salt,
-            iterations,
-            hash: "SHA-256",
-        },
-        keyMaterial,
-        PBKDF2_KEYLEN_BITS,
-    );
-    return bytesToBase64(new Uint8Array(derived));
-}
-
-export async function hashPassword(password: string): Promise<string> {
-    const salt = crypto.getRandomValues(new Uint8Array(new ArrayBuffer(16)));
-    const hash = await derivePasswordHash(password, salt, PBKDF2_ITERATIONS);
-    return `${PBKDF2_ITERATIONS}:${bytesToBase64(salt)}:${hash}`;
-}
-
-async function verifyPassword(
-    password: string,
-    storedHash: string,
-): Promise<boolean> {
-    const parts = storedHash.split(":");
-    if (parts.length !== 3) {
-        return false;
-    }
-    const [iterationsStr, saltBase64, hash] = parts;
-    if (!iterationsStr || !saltBase64 || !hash) {
-        return false;
-    }
-    const iterations = parseInt(iterationsStr, 10);
-    if (Number.isNaN(iterations)) {
-        return false;
-    }
-    const salt = base64ToBytes(saltBase64);
-    const computedHash = await derivePasswordHash(password, salt, iterations);
-    return computedHash === hash;
-}
 
 export function Password(props: {
     name: string;
@@ -327,121 +251,6 @@ function formDataToStrings(formData: FormData): Record<string, string> {
         }
     }
     return values;
-}
-
-/** A user record without the password hash, used for authenticated sessions. */
-export interface AuthenticatedUser {
-    uuid: string;
-    username: string;
-    displayName: string | null;
-    email: string;
-    options: string;
-}
-
-/**
- * Looks up a user by username or email and verifies the password.
- * Returns the user record (without the password hash) when valid, otherwise null.
- * Used by both session login and HTTP Basic authentication for exports.
- */
-export async function findUserForAuth(
-    db: AppContext["db"],
-    usernameOrEmail: string,
-    password: string,
-): Promise<AuthenticatedUser | null> {
-    const userRow = await db
-        .select({
-            uuid: users.uuid,
-            username: users.username,
-            displayName: users.displayName,
-            email: users.email,
-            options: users.options,
-            password: users.password,
-        })
-        .from(users)
-        .where(
-            or(
-                eq(users.username, usernameOrEmail),
-                eq(users.email, usernameOrEmail),
-            ),
-        )
-        .limit(1)
-        .get();
-
-    if (!userRow || !(await verifyPassword(password, userRow.password))) {
-        return null;
-    }
-    return {
-        uuid: userRow.uuid,
-        username: userRow.username,
-        displayName: userRow.displayName,
-        email: userRow.email,
-        options: userRow.options,
-    };
-}
-
-/** Parses an HTTP Basic Authorization header into username and password. */
-function parseBasicAuth(header: string | undefined): [string, string] | null {
-    if (!header) {
-        return null;
-    }
-    const match = /^Basic\s+(.+)$/i.exec(header);
-    if (!match) {
-        return null;
-    }
-    const encoded = match[1] ?? "";
-    let decoded: string;
-    try {
-        decoded = atob(encoded);
-    } catch {
-        return null;
-    }
-    const separator = decoded.indexOf(":");
-    if (separator === -1) {
-        return null;
-    }
-    return [decoded.slice(0, separator), decoded.slice(separator + 1)];
-}
-
-/** Builds a 401 Unauthorized response that challenges the client for Basic auth. */
-export function basicAuthChallenge(c: AppRequestContext, message: string) {
-    return c.body(message, 401, {
-        "WWW-Authenticate": 'Basic realm="Logbook export"',
-        "Content-Type": "text/plain; charset=utf-8",
-    });
-}
-
-/**
- * Ensures a user is authenticated for the export endpoint.
- * Falls back to HTTP Basic auth when no session cookie is present so the
- * logbook can be downloaded with curl.
- */
-export async function requireExportUser(
-    c: AppRequestContext,
-): Promise<boolean> {
-    const ctx = getAppContext(c);
-    if (ctx.user) {
-        return true;
-    }
-    const credentials = parseBasicAuth(c.req.header("Authorization"));
-    if (!credentials) {
-        return false;
-    }
-    const [usernameOrEmail, password] = credentials;
-    const authUser = await findUserForAuth(ctx.db, usernameOrEmail, password);
-    if (!authUser) {
-        return false;
-    }
-    ctx.user = {
-        uuid: authUser.uuid,
-        username: authUser.username,
-        displayName: authUser.displayName,
-        email: authUser.email,
-        options: parseUserOptions(authUser.options),
-        getDisplayName() {
-            return authUser.displayName || authUser.username;
-        },
-    };
-    return true;
 }
 
 async function handleLogin(c: AppRequestContext) {
