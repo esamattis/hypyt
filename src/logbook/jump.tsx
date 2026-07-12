@@ -147,30 +147,30 @@ function JumpForm(props: {
                     required
                     value={values.freefallTime ?? ""}
                 />
-                <Select
-                    name="locationUuid"
-                    label="Location"
-                    required
-                    defaultValue={values.locationUuid ?? ""}
-                >
-                    <option value="" disabled>
+                <Select name="locationUuid" label="Location" required>
+                    <option value="" disabled selected={!values.locationUuid}>
                         Select a location
                     </option>
                     {props.locations.map((location) => (
-                        <option value={location.uuid}>{location.name}</option>
+                        <option
+                            value={location.uuid}
+                            selected={location.uuid === values.locationUuid}
+                        >
+                            {location.name}
+                        </option>
                     ))}
                 </Select>
-                <Select
-                    name="aircraftUuid"
-                    label="Aircraft"
-                    required
-                    defaultValue={values.aircraftUuid ?? ""}
-                >
-                    <option value="" disabled>
+                <Select name="aircraftUuid" label="Aircraft" required>
+                    <option value="" disabled selected={!values.aircraftUuid}>
                         Select an aircraft
                     </option>
                     {props.aircrafts.map((aircraft) => (
-                        <option value={aircraft.uuid}>{aircraft.name}</option>
+                        <option
+                            value={aircraft.uuid}
+                            selected={aircraft.uuid === values.aircraftUuid}
+                        >
+                            {aircraft.name}
+                        </option>
                     ))}
                 </Select>
             </div>

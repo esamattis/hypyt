@@ -169,6 +169,12 @@ test("a skydiver can register and record their first jump", async ({
     await expect(page.getByRole("link", { name: /#2/ })).toHaveCount(0);
 
     await page.getByRole("link", { name: /#1/ }).click();
+    await expect(
+        page.locator('select[name="locationUuid"] option:checked'),
+    ).toHaveText("Skydive Test Center");
+    await expect(
+        page.locator('select[name="aircraftUuid"] option:checked'),
+    ).toHaveText("Cessna 182");
     await page.getByRole("link", { name: "Copy to new" }).click();
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?from=/);
