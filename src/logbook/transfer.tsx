@@ -53,21 +53,44 @@ const ImportRecordSchema = z.discriminatedUnion("type", [
     }),
 ]);
 
+/** A validated resource or jump record from a JSON Lines import. */
 type ImportRecord = z.infer<typeof ImportRecordSchema>;
 
+/** A persisted resource identified by UUID and display name. */
 interface NamedResource {
     uuid: string;
     name: string;
 }
 
+/** The import record types that represent named resources. */
+type ResourceType = Exclude<ImportRecord["type"], "jump">;
+
+/** The application's Drizzle database client. */
+type ImportDatabase = ReturnType<typeof getAppContext>["db"];
+
+/** A queued database operation that can be executed. */
+type ImportQuery = { run(): Promise<unknown> };
+
+/** Mutable state accumulated while preparing an import. */
+interface ImportState {
+    db: ImportDatabase;
+    userUuid: string;
+    resources: Record<ResourceType, Map<string, string>>;
+    jumpUuids: Map<number, string>;
+    queries: ImportQuery[];
+}
+
+/** Normalizes a resource name for case-insensitive matching. */
 function normalizeName(name: string): string {
     return name.trim().toLocaleLowerCase();
 }
 
+/** Maps normalized resource names to their UUIDs. */
 function resourceMap(rows: NamedResource[]): Map<string, string> {
     return new Map(rows.map((row) => [normalizeName(row.name), row.uuid]));
 }
 
+/** Renders the logbook import and export page. */
 function TransferPage(props: { errors?: string[]; notice?: string }) {
     return (
         <LogbookPage title="Import or export logbook">
@@ -175,6 +198,7 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
     );
 }
 
+/** Reads and validates JSON Lines import records from an uploaded file. */
 async function readImportRecords(
     file: File,
 ): Promise<{ errors: string[] } | { records: ImportRecord[] }> {
@@ -207,9 +231,11 @@ async function readImportRecords(
     return errors.length > 0 ? { errors } : { records };
 }
 
-async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
-    const db = getAppContext(c).db;
-    const userUuid = getAppContext(c).getUser().uuid;
+/** Loads existing user resources and initializes the import query queue. */
+async function createImportState(
+    db: ImportDatabase,
+    userUuid: string,
+): Promise<ImportState> {
     const [aircraftRows, gearRows, jumpRows, jumpTypeRows, locationRows] =
         await Promise.all([
             db
@@ -233,195 +259,188 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
                 .from(locations)
                 .where(eq(locations.userUuid, userUuid)),
         ]);
-    const resources = {
-        aircraft: resourceMap(aircraftRows),
-        gear: resourceMap(gearRows),
-        jumpType: resourceMap(jumpTypeRows),
-        location: resourceMap(locationRows),
+    return {
+        db,
+        userUuid,
+        resources: {
+            aircraft: resourceMap(aircraftRows),
+            gear: resourceMap(gearRows),
+            jumpType: resourceMap(jumpTypeRows),
+            location: resourceMap(locationRows),
+        },
+        jumpUuids: new Map(
+            jumpRows.map((jump) => [jump.jumpNumber, jump.uuid]),
+        ),
+        queries: [],
     };
-    const jumpUuids = new Map(
-        jumpRows.map((jump) => [jump.jumpNumber, jump.uuid]),
-    );
-    const queries = [];
+}
 
+/** Queues insertion of a resource and records its UUID for later references. */
+function queueResource(
+    state: ImportState,
+    type: ResourceType,
+    name: string,
+    previousCount: number,
+    description: string | null | undefined,
+): string {
+    const uuid = crypto.randomUUID();
+    state.resources[type].set(normalizeName(name), uuid);
+    if (type === "aircraft") {
+        state.queries.push(
+            state.db.insert(aircrafts).values({
+                uuid,
+                userUuid: state.userUuid,
+                name,
+                previousJumpCount: previousCount,
+                description: description || null,
+            }),
+        );
+    } else if (type === "gear") {
+        state.queries.push(
+            state.db.insert(gear).values({
+                uuid,
+                userUuid: state.userUuid,
+                name,
+                previousUsageCount: previousCount,
+                description: description || null,
+            }),
+        );
+    } else if (type === "jumpType") {
+        state.queries.push(
+            state.db.insert(jumpTypes).values({
+                uuid,
+                userUuid: state.userUuid,
+                name,
+                previousUsageCount: previousCount,
+                description: description || null,
+            }),
+        );
+    } else {
+        state.queries.push(
+            state.db.insert(locations).values({
+                uuid,
+                userUuid: state.userUuid,
+                name,
+                previousJumpCount: previousCount,
+                description: description || null,
+            }),
+        );
+    }
+    return uuid;
+}
+
+/** Queues explicitly listed resources that are not already present. */
+function queueListedResources(records: ImportRecord[], state: ImportState) {
     for (const record of records) {
         if (record.type === "jump") {
             continue;
         }
-        const key = normalizeName(record.name);
-        if (resources[record.type].has(key)) {
+        if (state.resources[record.type].has(normalizeName(record.name))) {
             continue;
         }
-        const uuid = crypto.randomUUID();
-        resources[record.type].set(key, uuid);
-        const description = record.description || null;
-        if (record.type === "aircraft") {
-            queries.push(
-                db.insert(aircrafts).values({
-                    uuid,
-                    userUuid,
-                    name: record.name,
-                    previousJumpCount: record.previousCount,
-                    description,
-                }),
-            );
-        } else if (record.type === "gear") {
-            queries.push(
-                db.insert(gear).values({
-                    uuid,
-                    userUuid,
-                    name: record.name,
-                    previousUsageCount: record.previousCount,
-                    description,
-                }),
-            );
-        } else if (record.type === "jumpType") {
-            queries.push(
-                db.insert(jumpTypes).values({
-                    uuid,
-                    userUuid,
-                    name: record.name,
-                    previousUsageCount: record.previousCount,
-                    description,
-                }),
-            );
-        } else {
-            queries.push(
-                db.insert(locations).values({
-                    uuid,
-                    userUuid,
-                    name: record.name,
-                    previousJumpCount: record.previousCount,
-                    description,
-                }),
-            );
-        }
+        queueResource(
+            state,
+            record.type,
+            record.name,
+            record.previousCount,
+            record.description,
+        );
     }
+}
 
-    function resolveResource(
-        type: "aircraft" | "gear" | "jumpType" | "location",
-        name: string,
-    ): string {
-        const key = normalizeName(name);
-        const existing = resources[type].get(key);
-        if (existing) {
-            return existing;
-        }
-        const uuid = crypto.randomUUID();
-        resources[type].set(key, uuid);
-        if (type === "aircraft") {
-            queries.push(
-                db.insert(aircrafts).values({
-                    uuid,
-                    userUuid,
-                    name,
-                    previousJumpCount: 0,
-                    description: null,
-                }),
-            );
-        } else if (type === "gear") {
-            queries.push(
-                db.insert(gear).values({
-                    uuid,
-                    userUuid,
-                    name,
-                    previousUsageCount: 0,
-                    description: null,
-                }),
-            );
-        } else if (type === "jumpType") {
-            queries.push(
-                db.insert(jumpTypes).values({
-                    uuid,
-                    userUuid,
-                    name,
-                    previousUsageCount: 0,
-                    description: null,
-                }),
-            );
-        } else {
-            queries.push(
-                db.insert(locations).values({
-                    uuid,
-                    userUuid,
-                    name,
-                    previousJumpCount: 0,
-                    description: null,
-                }),
-            );
-        }
-        return uuid;
+/** Queues a jump upsert along with its resource and relation changes. */
+function queueJump(
+    record: Extract<ImportRecord, { type: "jump" }>,
+    state: ImportState,
+) {
+    const existingJumpUuid = state.jumpUuids.get(record.jumpNumber);
+    const jumpUuid = existingJumpUuid ?? crypto.randomUUID();
+    state.jumpUuids.set(record.jumpNumber, jumpUuid);
+    const locationUuid =
+        state.resources.location.get(normalizeName(record.location)) ??
+        queueResource(state, "location", record.location, 0, null);
+    const aircraftUuid =
+        state.resources.aircraft.get(normalizeName(record.aircraft)) ??
+        queueResource(state, "aircraft", record.aircraft, 0, null);
+    const gearUuids = record.gear.map(
+        (name) =>
+            state.resources.gear.get(normalizeName(name)) ??
+            queueResource(state, "gear", name, 0, null),
+    );
+    const jumpTypeUuids = record.jumpTypes.map(
+        (name) =>
+            state.resources.jumpType.get(normalizeName(name)) ??
+            queueResource(state, "jumpType", name, 0, null),
+    );
+    const jumpValues = {
+        locationUuid,
+        aircraftUuid,
+        exitAltitude: record.exitAltitude,
+        openingAltitude: record.openingAltitude,
+        freefallTime: record.freefallTime,
+        description: record.description || null,
+    };
+    if (existingJumpUuid) {
+        state.queries.push(
+            state.db
+                .update(jumps)
+                .set(jumpValues)
+                .where(eq(jumps.uuid, jumpUuid)),
+            state.db
+                .delete(jumpsToGear)
+                .where(eq(jumpsToGear.jumpUuid, jumpUuid)),
+            state.db
+                .delete(jumpsToJumpTypes)
+                .where(eq(jumpsToJumpTypes.jumpUuid, jumpUuid)),
+        );
+    } else {
+        state.queries.push(
+            state.db.insert(jumps).values({
+                uuid: jumpUuid,
+                userUuid: state.userUuid,
+                jumpNumber: record.jumpNumber,
+                ...jumpValues,
+            }),
+        );
     }
+    state.queries.push(
+        ...gearUuids.map((gearUuid) =>
+            state.db.insert(jumpsToGear).values({ jumpUuid, gearUuid }),
+        ),
+        ...jumpTypeUuids.map((jumpTypeUuid) =>
+            state.db
+                .insert(jumpsToJumpTypes)
+                .values({ jumpUuid, jumpTypeUuid }),
+        ),
+    );
+}
 
+/** Queues all jump records and returns their count. */
+function queueJumps(records: ImportRecord[], state: ImportState): number {
     let importedJumps = 0;
     for (const record of records) {
         if (record.type !== "jump") {
             continue;
         }
-        const existingJumpUuid = jumpUuids.get(record.jumpNumber);
-        const jumpUuid = existingJumpUuid ?? crypto.randomUUID();
-        jumpUuids.set(record.jumpNumber, jumpUuid);
-        const locationUuid = resolveResource("location", record.location);
-        const aircraftUuid = resolveResource("aircraft", record.aircraft);
-        const gearUuids = record.gear.map((name) =>
-            resolveResource("gear", name),
-        );
-        const jumpTypeUuids = record.jumpTypes.map((name) =>
-            resolveResource("jumpType", name),
-        );
-        const jumpValues = {
-            locationUuid,
-            aircraftUuid,
-            exitAltitude: record.exitAltitude,
-            openingAltitude: record.openingAltitude,
-            freefallTime: record.freefallTime,
-            description: record.description || null,
-        };
-        if (existingJumpUuid) {
-            queries.push(
-                db
-                    .update(jumps)
-                    .set(jumpValues)
-                    .where(eq(jumps.uuid, jumpUuid)),
-                db
-                    .delete(jumpsToGear)
-                    .where(eq(jumpsToGear.jumpUuid, jumpUuid)),
-                db
-                    .delete(jumpsToJumpTypes)
-                    .where(eq(jumpsToJumpTypes.jumpUuid, jumpUuid)),
-            );
-        } else {
-            queries.push(
-                db.insert(jumps).values({
-                    uuid: jumpUuid,
-                    userUuid,
-                    jumpNumber: record.jumpNumber,
-                    ...jumpValues,
-                }),
-            );
-        }
-        queries.push(
-            ...gearUuids.map((gearUuid) =>
-                db.insert(jumpsToGear).values({ jumpUuid, gearUuid }),
-            ),
-            ...jumpTypeUuids.map((jumpTypeUuid) =>
-                db.insert(jumpsToJumpTypes).values({ jumpUuid, jumpTypeUuid }),
-            ),
-        );
+        queueJump(record, state);
         importedJumps++;
-    }
-    if (queries.length > 0) {
-        for (const query of queries) {
-            await query.run();
-        }
     }
     return importedJumps;
 }
 
-async function renderTransfer(c: AppRequestContext) {
-    return c.render(<TransferPage />);
+/** Imports validated records for the current user. */
+async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
+    const context = getAppContext(c);
+    const state = await createImportState(context.db, context.getUser().uuid);
+    queueListedResources(records, state);
+    const importedJumps = queueJumps(records, state);
+    for (const query of state.queries) {
+        await query.run();
+    }
+    return importedJumps;
 }
 
+/** Handles an uploaded logbook import file. */
 async function handleTransfer(c: AppRequestContext) {
     const formData = await c.req.formData();
     const file = formData.get("file");
@@ -442,6 +461,7 @@ async function handleTransfer(c: AppRequestContext) {
     );
 }
 
+/** Exports the current user's logbook as a JSON Lines download. */
 async function exportLogbook(c: AppRequestContext) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
@@ -566,6 +586,6 @@ async function exportLogbook(c: AppRequestContext) {
     );
 }
 
-app.get(routes.logbookTransfer.route, renderTransfer);
+app.get(routes.logbookTransfer.route, (c) => c.render(<TransferPage />));
 app.post(routes.logbookTransfer.route, handleTransfer);
 app.get(routes.logbookExport.route, exportLogbook);

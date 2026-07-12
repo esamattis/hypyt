@@ -4,6 +4,7 @@ async function openManageLogbook(page: Page) {
     await page.getByRole("button", { name: "Manage logbook" }).click();
 }
 
+// eslint-disable-next-line max-lines-per-function
 test("a skydiver can register and record their first jump", async ({
     page,
 }) => {

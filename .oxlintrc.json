@@ -5,6 +5,14 @@
         "correctness": "error"
     },
     "rules": {
+        "max-lines-per-function": [
+            "error",
+            {
+                "max": 130,
+                "skipComments": true,
+                "skipBlankLines": true
+            }
+        ],
         "typescript/consistent-type-assertions": [
             "error",
             {
