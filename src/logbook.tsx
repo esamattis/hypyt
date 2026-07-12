@@ -102,7 +102,7 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
                                 name="file"
                                 accept=".jsonl,application/x-ndjson,application/json"
                                 required
-                                className="mt-1 block w-full text-sm text-gray-700"
+                                className="mt-1 block w-full cursor-pointer rounded-md border border-gray-300 bg-white text-sm text-gray-700 file:mr-3 file:cursor-pointer file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-blue-700"
                             />
                         </label>
                         <button
@@ -112,6 +112,20 @@ function TransferPage(props: { errors?: string[]; notice?: string }) {
                             Import logbook
                         </button>
                     </form>
+                    <details className="mt-5 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+                        <summary className="cursor-pointer font-medium text-gray-900">Export file format</summary>
+                        <div className="mt-3 space-y-3">
+                            <p>Export files use JSON Lines: one JSON object per line. Resources appear before jumps, which refer to them by name.</p>
+                            <p>For example, this file imports an aircraft, gear, jump type, location, and one jump:</p>
+                            <pre className="overflow-x-auto rounded bg-gray-900 p-3 text-xs text-gray-100"><code>{`{"type":"aircraft","name":"Twin Otter","previousCount":120,"description":"Fast turbine aircraft"}
+{"type":"gear","name":"Navigator 260","previousCount":42,"description":"Main canopy"}
+{"type":"jumpType","name":"Formation skydiving","previousCount":18,"description":"Four-way training"}
+{"type":"location","name":"Skydive Example","previousCount":300,"description":"Home drop zone"}
+{"type":"jump","jumpNumber":301,"location":"Skydive Example","aircraft":"Twin Otter","gear":["Navigator 260"],"jumpTypes":["Formation skydiving"],"description":"Training jump"}`}</code></pre>
+                            <p>Resource records require <code>type</code>, <code>name</code>, and <code>previousCount</code>. Jump records require <code>type</code>, <code>jumpNumber</code>, <code>location</code>, and <code>aircraft</code>. Descriptions may be omitted or <code>null</code>, and <code>gear</code> and <code>jumpTypes</code> may be omitted or empty.</p>
+                            <p>Re-importing a jump with the same jump number updates it.</p>
+                        </div>
+                    </details>
                 </div>
             </section>
         </LogbookPage>
