@@ -242,51 +242,43 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         const description = record.description || null;
         if (record.type === "aircraft") {
             queries.push(
-                db
-                    .insert(aircrafts)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name: record.name,
-                        previousJumpCount: record.previousCount,
-                        description,
-                    }),
+                db.insert(aircrafts).values({
+                    uuid,
+                    userUuid,
+                    name: record.name,
+                    previousJumpCount: record.previousCount,
+                    description,
+                }),
             );
         } else if (record.type === "gear") {
             queries.push(
-                db
-                    .insert(gear)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name: record.name,
-                        previousUsageCount: record.previousCount,
-                        description,
-                    }),
+                db.insert(gear).values({
+                    uuid,
+                    userUuid,
+                    name: record.name,
+                    previousUsageCount: record.previousCount,
+                    description,
+                }),
             );
         } else if (record.type === "jumpType") {
             queries.push(
-                db
-                    .insert(jumpTypes)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name: record.name,
-                        previousUsageCount: record.previousCount,
-                        description,
-                    }),
+                db.insert(jumpTypes).values({
+                    uuid,
+                    userUuid,
+                    name: record.name,
+                    previousUsageCount: record.previousCount,
+                    description,
+                }),
             );
         } else {
             queries.push(
-                db
-                    .insert(locations)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name: record.name,
-                        previousJumpCount: record.previousCount,
-                        description,
-                    }),
+                db.insert(locations).values({
+                    uuid,
+                    userUuid,
+                    name: record.name,
+                    previousJumpCount: record.previousCount,
+                    description,
+                }),
             );
         }
     }
@@ -304,51 +296,43 @@ async function importRecords(c: AppRequestContext, records: ImportRecord[]) {
         resources[type].set(key, uuid);
         if (type === "aircraft") {
             queries.push(
-                db
-                    .insert(aircrafts)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name,
-                        previousJumpCount: 0,
-                        description: null,
-                    }),
+                db.insert(aircrafts).values({
+                    uuid,
+                    userUuid,
+                    name,
+                    previousJumpCount: 0,
+                    description: null,
+                }),
             );
         } else if (type === "gear") {
             queries.push(
-                db
-                    .insert(gear)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name,
-                        previousUsageCount: 0,
-                        description: null,
-                    }),
+                db.insert(gear).values({
+                    uuid,
+                    userUuid,
+                    name,
+                    previousUsageCount: 0,
+                    description: null,
+                }),
             );
         } else if (type === "jumpType") {
             queries.push(
-                db
-                    .insert(jumpTypes)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name,
-                        previousUsageCount: 0,
-                        description: null,
-                    }),
+                db.insert(jumpTypes).values({
+                    uuid,
+                    userUuid,
+                    name,
+                    previousUsageCount: 0,
+                    description: null,
+                }),
             );
         } else {
             queries.push(
-                db
-                    .insert(locations)
-                    .values({
-                        uuid,
-                        userUuid,
-                        name,
-                        previousJumpCount: 0,
-                        description: null,
-                    }),
+                db.insert(locations).values({
+                    uuid,
+                    userUuid,
+                    name,
+                    previousJumpCount: 0,
+                    description: null,
+                }),
             );
         }
         return uuid;

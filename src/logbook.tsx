@@ -37,28 +37,28 @@ async function renderLogbook(c: AppRequestContext) {
                     Add jump
                 </a>
                 <a
-                    href={routes.aircraftNew({})}
+                    href={routes.aircraftList({})}
                     className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
                 >
-                    Add aircraft
+                    Manage aircraft
                 </a>
                 <a
-                    href={routes.gearNew({})}
+                    href={routes.gearList({})}
                     className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
                 >
-                    Add gear
+                    Manage gear
                 </a>
                 <a
-                    href={routes.jumpTypeNew({})}
+                    href={routes.jumpTypeList({})}
                     className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
                 >
-                    Add jump type
+                    Manage jump types
                 </a>
                 <a
-                    href={routes.locationNew({})}
+                    href={routes.locationList({})}
                     className="rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
                 >
-                    Add location
+                    Manage locations
                 </a>
                 <a
                     href={routes.logbookTransfer({})}

@@ -20,11 +20,13 @@ test("a logbook can be imported, edited, exported, and imported by another user"
 }) => {
     await registerUser(page, "first-skydiver");
 
+    await page.getByRole("link", { name: "Manage gear" }).click();
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Navigator 260");
     await page.locator('input[name="previousCount"]').fill("1");
     await page.getByRole("button", { name: "Add gear" }).click();
 
+    await page.getByRole("link", { name: /first-skydiver's logbook/ }).click();
     await page.getByRole("link", { name: "Import or export" }).click();
     await page.locator('input[name="file"]').setInputFiles(fixturePath);
     await page.getByRole("button", { name: "Import logbook" }).click();
