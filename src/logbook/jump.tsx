@@ -93,11 +93,8 @@ const JumpSchema = z.object({
     jumpTypeUuids: z.array(z.string()).default([]),
 });
 
-function AvgSpeed(props: {
-    altitudeUnits: "meters" | "feet";
-    speedUnits: "kilometers-per-hour" | "meters-per-second";
-    values: JumpFormValues;
-}) {
+function AvgSpeed(props: { values: JumpFormValues }) {
+    const options = useAppContext().getUser().options;
     const exitAltitudeId = useId();
     const openingAltitudeId = useId();
     const freefallTimeId = useId();
@@ -108,7 +105,7 @@ function AvgSpeed(props: {
             <NumberInput
                 id={exitAltitudeId}
                 name="exitAltitude"
-                label={`Exit altitude (${altitudeUnitLabel(props.altitudeUnits)})`}
+                label={`Exit altitude (${altitudeUnitLabel(options.altitudeUnits)})`}
                 min="1"
                 required
                 value={props.values.exitAltitude ?? ""}
@@ -116,7 +113,7 @@ function AvgSpeed(props: {
             <NumberInput
                 id={openingAltitudeId}
                 name="openingAltitude"
-                label={`Opening altitude (${altitudeUnitLabel(props.altitudeUnits)})`}
+                label={`Opening altitude (${altitudeUnitLabel(options.altitudeUnits)})`}
                 min="0"
                 required
                 value={props.values.openingAltitude ?? ""}
@@ -143,8 +140,8 @@ function AvgSpeed(props: {
                     openingAltitudeId,
                     freefallTimeId,
                     avgSpeedId,
-                    props.altitudeUnits,
-                    props.speedUnits,
+                    options.altitudeUnits,
+                    options.speedUnits,
                 ]}
                 $exec={(
                     exitAltitudeId,
@@ -219,7 +216,6 @@ function JumpForm(props: {
     submitLabel: string;
 }) {
     const values = props.values ?? {};
-    const options = useAppContext().getUser().options;
     const selectedGear = new Set(values.gearUuids ?? []);
     const selectedJumpTypes = new Set(values.jumpTypeUuids ?? []);
 
@@ -247,11 +243,7 @@ function JumpForm(props: {
                     required
                     value={values.jumpNumber ?? ""}
                 />
-                <AvgSpeed
-                    altitudeUnits={options.altitudeUnits}
-                    speedUnits={options.speedUnits}
-                    values={values}
-                />
+                <AvgSpeed values={values} />
                 <Select name="locationUuid" label="Location" required>
                     <option value="" disabled selected={!values.locationUuid}>
                         Select a location
