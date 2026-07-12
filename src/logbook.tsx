@@ -30,7 +30,7 @@ async function renderLogbook(c: AppRequestContext) {
         <LogbookPage title="Jump Logbook">
             <nav className="flex flex-wrap gap-3">
                 <a
-                    href={routes.jumpNew({})}
+                    href={routes.jumpNew({}, {})}
                     className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
                 >
                     Add jump

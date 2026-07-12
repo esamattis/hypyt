@@ -187,6 +187,7 @@ function JumpFormPage(props: {
     values?: JumpFormValues;
     errors?: string[];
     resources: Awaited<ReturnType<typeof getJumpFormResources>>;
+    copyHref?: string;
 }) {
     return (
         <LogbookPage title={props.title}>
@@ -196,6 +197,14 @@ function JumpFormPage(props: {
                 submitLabel={props.submitLabel}
                 {...props.resources}
             />
+            {props.copyHref && (
+                <a
+                    href={props.copyHref}
+                    className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                >
+                    Copy to new
+                </a>
+            )}
         </LogbookPage>
     );
 }
@@ -223,6 +232,7 @@ function getJumpFormValues(formData: FormData): JumpFormValues {
 async function renderNewJump(c: AppRequestContext) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
+    const { from } = routes.jumpNew.query(c);
     const latestJump = await db
         .select({ jumpNumber: jumps.jumpNumber })
         .from(jumps)
@@ -231,11 +241,42 @@ async function renderNewJump(c: AppRequestContext) {
         .limit(1)
         .get();
 
+    let values: JumpFormValues = {
+        jumpNumber: String((latestJump?.jumpNumber ?? 0) + 1),
+    };
+    if (from) {
+        const jump = await db
+            .select()
+            .from(jumps)
+            .where(and(eq(jumps.uuid, from), eq(jumps.userUuid, userUuid)))
+            .get();
+        if (jump) {
+            const [gearRows, jumpTypeRows] = await Promise.all([
+                db
+                    .select({ gearUuid: jumpsToGear.gearUuid })
+                    .from(jumpsToGear)
+                    .where(eq(jumpsToGear.jumpUuid, jump.uuid)),
+                db
+                    .select({ jumpTypeUuid: jumpsToJumpTypes.jumpTypeUuid })
+                    .from(jumpsToJumpTypes)
+                    .where(eq(jumpsToJumpTypes.jumpUuid, jump.uuid)),
+            ]);
+            values = {
+                ...values,
+                locationUuid: jump.locationUuid,
+                aircraftUuid: jump.aircraftUuid,
+                description: jump.description ?? undefined,
+                gearUuids: gearRows.map((item) => item.gearUuid),
+                jumpTypeUuids: jumpTypeRows.map((item) => item.jumpTypeUuid),
+            };
+        }
+    }
+
     return c.render(
         <JumpFormPage
             title="Add jump"
             submitLabel="Add jump"
-            values={{ jumpNumber: String((latestJump?.jumpNumber ?? 0) + 1) }}
+            values={values}
             resources={await getJumpFormResources(c)}
         />,
     );
@@ -341,6 +382,7 @@ async function renderEditJump(c: AppRequestContext) {
                 jumpTypeUuids: jumpTypeRows.map((item) => item.jumpTypeUuid),
             }}
             resources={await getJumpFormResources(c)}
+            copyHref={routes.jumpNew({}, { from: jump.uuid })}
         />,
     );
 }

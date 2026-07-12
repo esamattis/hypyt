@@ -99,9 +99,10 @@ export function Textarea(props: {
             <textarea
                 name={props.name}
                 rows={props.rows ?? 4}
-                defaultValue={props.defaultValue}
                 className={clsx(controlClassName, props.textareaClassName)}
-            />
+            >
+                {props.defaultValue}
+            </textarea>
         </label>
     );
 }
