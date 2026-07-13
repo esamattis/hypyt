@@ -111,10 +111,12 @@ function $restoreFormScrollPosition() {
     const storedPosition = sessionStorage.getItem(storageKey);
 
     if (storedPosition) {
-        const [x, y] = storedPosition.split(",").map(Number);
+        const parts = storedPosition.split(",");
+        const pathname = parts[0];
+        const x = Number(parts[1]);
+        const y = Number(parts[2]);
         if (
-            x !== undefined &&
-            y !== undefined &&
+            pathname === window.location.pathname &&
             Number.isFinite(x) &&
             Number.isFinite(y)
         ) {
@@ -126,7 +128,7 @@ function $restoreFormScrollPosition() {
     document.addEventListener("submit", () => {
         sessionStorage.setItem(
             storageKey,
-            `${window.scrollX},${window.scrollY}`,
+            `${window.location.pathname},${window.scrollX},${window.scrollY}`,
         );
     });
 }
