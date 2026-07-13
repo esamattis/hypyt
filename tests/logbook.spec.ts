@@ -749,3 +749,42 @@ test("freefall time can be estimated from freefall type", async ({ page }) => {
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("135");
     await expect(page.getByText("Avg speed: 80 km/h")).toBeVisible();
 });
+
+test("freefall time estimate respects feet altitude units", async ({
+    page,
+}) => {
+    await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
+    await page.locator('input[name="username"]').fill("estimate-freefall-ft");
+    await page
+        .locator('input[name="displayName"]')
+        .fill("Feet Estimate Jumper");
+    await page
+        .locator('input[name="email"]')
+        .fill("estimate-freefall-ft@example.test");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+
+    await page.getByRole("link", { name: "Preferences", exact: true }).click();
+    await page.locator('select[name="altitudeUnits"]').selectOption("feet");
+    await page.getByRole("button", { name: "Save preferences" }).click();
+    await expect(page).toHaveURL("/logbook");
+
+    await page.getByRole("link", { name: "Add jump", exact: true }).click();
+    await expect(page.getByText("Exit altitude (ft)")).toBeVisible();
+    // 13123 ft ≈ 4000 m, 3281 ft ≈ 1000 m → ~3000 m freefall
+    await page.locator('input[name="exitAltitude"]').fill("13123");
+    await page.locator('input[name="openingAltitude"]').fill("3281");
+
+    await page.getByRole("button", { name: "Estimate" }).click();
+    await page.getByRole("button", { name: "Belly · 180 km/h" }).click();
+    // 3000 m at 50 m/s = 60 s (without feet conversion this would be ~197 s)
+    await expect(page.locator('input[name="freefallTime"]')).toHaveValue("60");
+    await expect(page.getByText("Avg speed: 180 km/h")).toBeVisible();
+
+    await page.getByRole("button", { name: "Estimate" }).click();
+    await page.getByRole("button", { name: "Freefly · 240 km/h" }).click();
+    await expect(page.locator('input[name="freefallTime"]')).toHaveValue("45");
+    await expect(page.getByText("Avg speed: 240 km/h")).toBeVisible();
+});
