@@ -4,11 +4,12 @@ export const DEFAULT_JUMP_IMAGE_PROMPT = `Extract skydiving jump data from this 
 
 Return only values that are clearly visible or confidently readable.
 - jumpDate as YYYY-MM-DD when a date is present
-- altitudes as whole numbers in the unit specified in the user message
+- exitAltitude and openingAltitude as whole numbers in the unit specified in the user message
+- if openingAltitude is not found or unclear, use 900
 - freefallTime in whole seconds
 - location, aircraft, gear, and jump types as short names when present
 - description for any other useful notes (weather, formation, instructors, etc.)
-If a field is missing or unclear, omit it.`;
+If a field is missing or unclear, omit it (except openingAltitude, which defaults to 900).`;
 
 export const DEFAULT_USER_OPTIONS = {
     altitudeUnits: "meters",
