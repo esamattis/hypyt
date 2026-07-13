@@ -7,6 +7,7 @@ import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 import { getPlatformProxy } from "wrangler";
 import { invitations } from "../src/schema.ts";
+import { wranglerBin } from "./wrangler-bin.ts";
 
 const execFile = promisify(execFileCallback);
 const DB_BINDING = "DB";
@@ -118,7 +119,8 @@ type WranglerEnvelope<T> = {
 };
 
 async function listRemoteInvitations(): Promise<void> {
-    const { stdout } = await execFile("wrangler", [
+    const { stdout } = await execFile(process.execPath, [
+        wranglerBin(),
         "d1",
         "execute",
         DB_BINDING,
@@ -137,7 +139,8 @@ async function listRemoteInvitations(): Promise<void> {
 
 async function createRemote(code: string, count: number): Promise<void> {
     const command = `INSERT INTO invitations (code, count) VALUES (${sqlString(code)}, ${count}) ON CONFLICT(code) DO UPDATE SET count = excluded.count`;
-    const { stdout, stderr } = await execFile("wrangler", [
+    const { stdout, stderr } = await execFile(process.execPath, [
+        wranglerBin(),
         "d1",
         "execute",
         DB_BINDING,

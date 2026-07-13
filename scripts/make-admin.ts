@@ -7,6 +7,7 @@ import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 import { getPlatformProxy } from "wrangler";
 import { users } from "../src/schema.ts";
+import { wranglerBin } from "./wrangler-bin.ts";
 
 const execFile = promisify(execFileCallback);
 const DB_BINDING = "DB";
@@ -127,7 +128,8 @@ type WranglerEnvelope<T> = {
 };
 
 async function listRemoteUsers(): Promise<UserRow[]> {
-    const { stdout } = await execFile("wrangler", [
+    const { stdout } = await execFile(process.execPath, [
+        wranglerBin(),
         "d1",
         "execute",
         DB_BINDING,
@@ -147,7 +149,8 @@ async function listRemoteUsers(): Promise<UserRow[]> {
 
 async function makeRemoteAdmin(username: string): Promise<void> {
     const command = `UPDATE users SET admin = 1 WHERE username = ${sqlString(username)}`;
-    const { stdout, stderr } = await execFile("wrangler", [
+    const { stdout, stderr } = await execFile(process.execPath, [
+        wranglerBin(),
         "d1",
         "execute",
         DB_BINDING,

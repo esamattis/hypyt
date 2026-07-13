@@ -11,6 +11,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { promisify } from "node:util";
+import { wranglerBin } from "./wrangler-bin.ts";
 
 const execFile = promisify(execFileCallback);
 
@@ -32,7 +33,8 @@ type WranglerEnvelope<T> = {
 async function wranglerQuery<T = unknown>(
     command: string,
 ): Promise<WranglerEnvelope<T>> {
-    const { stdout } = await execFile("wrangler", [
+    const { stdout } = await execFile(process.execPath, [
+        wranglerBin(),
         "d1",
         "execute",
         DB_BINDING,
@@ -54,7 +56,8 @@ async function wranglerApplyFile(filePath: string): Promise<void> {
     // Use `--file` (no `--json`) because the file upload path mixes progress spinner text into
     // stdout, making the output non-parseable. We rely on the non-zero exit code on failure
     // instead of parsing the result envelope.
-    await execFile("wrangler", [
+    await execFile(process.execPath, [
+        wranglerBin(),
         "d1",
         "execute",
         DB_BINDING,

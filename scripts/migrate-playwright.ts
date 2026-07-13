@@ -1,6 +1,7 @@
 import { execFile as execFileCallback } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
+import { wranglerBin } from "./wrangler-bin.ts";
 
 const execFile = promisify(execFileCallback);
 
@@ -14,7 +15,8 @@ async function main(): Promise<void> {
     );
 
     for (const { tag } of journal.entries) {
-        const { stdout, stderr } = await execFile("wrangler", [
+        const { stdout, stderr } = await execFile(process.execPath, [
+            wranglerBin(),
             "d1",
             "execute",
             "DB",
@@ -28,7 +30,8 @@ async function main(): Promise<void> {
         process.stderr.write(stderr);
     }
 
-    const seed = await execFile("wrangler", [
+    const seed = await execFile(process.execPath, [
+        wranglerBin(),
         "d1",
         "execute",
         "DB",
