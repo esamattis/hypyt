@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import clsx from "clsx";
 import { useId } from "hono/jsx";
 import { app, getAppContext, type AppRequestContext } from "../app";
@@ -65,6 +65,58 @@ function SummaryCard(props: { label: string; value: string }) {
                 {props.value}
             </dd>
         </div>
+    );
+}
+
+function findJumpNumberGaps(jumpNumbers: number[]): number[] {
+    if (jumpNumbers.length < 2) {
+        return [];
+    }
+    const gaps: number[] = [];
+    for (let i = 1; i < jumpNumbers.length; i++) {
+        const previous = jumpNumbers[i - 1]!;
+        const current = jumpNumbers[i]!;
+        for (let missing = previous + 1; missing < current; missing++) {
+            gaps.push(missing);
+        }
+    }
+    return gaps;
+}
+
+function JumpNumberGaps(props: { gaps: number[] }) {
+    if (props.gaps.length === 0) {
+        return null;
+    }
+    return (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    Jump number gaps
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {props.gaps.length.toLocaleString("en-US")} missing
+                </p>
+            </div>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                Missing jump numbers between your first and last recorded jump.
+                Select a number to add that jump.
+            </p>
+            <ul className="mt-4 grid max-h-80 grid-cols-4 gap-2 overflow-y-auto sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+                {props.gaps.map((jumpNumber) => (
+                    <li key={jumpNumber}>
+                        <a
+                            href={routes.jumpNew(
+                                {},
+                                { jumpNumber: String(jumpNumber) },
+                            )}
+                            className="flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm font-medium tabular-nums text-indigo-600 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-800 dark:text-indigo-400 dark:hover:border-indigo-500 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                        >
+                            #{jumpNumber}
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </section>
     );
 }
 
@@ -195,7 +247,7 @@ async function renderStatistics(c: AppRequestContext) {
     const startOfCurrentMonth = getStartOfCurrentMonth();
     const startOfPreviousMonth = getStartOfPreviousMonth();
     const twelveMonthsAgo = getTwelveMonthsAgo();
-    const [[stats], yearlyRows] = await Promise.all([
+    const [[stats], yearlyRows, jumpNumberRows] = await Promise.all([
         getAppContext(c)
             .db.select({
                 totalJumps: sql<number>`count(*) + ${user.options.previousJumpCount}`,
@@ -215,6 +267,11 @@ async function renderStatistics(c: AppRequestContext) {
             .where(eq(jumps.userUuid, userUuid))
             .groupBy(sql`substr(${jumps.jumpDate}, 1, 4)`)
             .orderBy(sql`substr(${jumps.jumpDate}, 1, 4)`),
+        getAppContext(c)
+            .db.select({ jumpNumber: jumps.jumpNumber })
+            .from(jumps)
+            .where(eq(jumps.userUuid, userUuid))
+            .orderBy(asc(jumps.jumpNumber)),
     ]);
 
     const values = stats ?? {
@@ -231,6 +288,10 @@ async function renderStatistics(c: AppRequestContext) {
             count: Number(row.count),
         }))
         .filter((entry) => Number.isInteger(entry.year) && entry.year > 0);
+
+    const jumpNumberGaps = findJumpNumberGaps(
+        jumpNumberRows.map((row) => row.jumpNumber),
+    );
 
     return c.render(
         <LogbookPage title="Statistics">
@@ -257,6 +318,7 @@ async function renderStatistics(c: AppRequestContext) {
                 />
             </dl>
             <YearlyJumpsHistogram data={yearlyData} />
+            <JumpNumberGaps gaps={jumpNumberGaps} />
             <a
                 href={routes.logbookDetailedStatistics({}, {})}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
