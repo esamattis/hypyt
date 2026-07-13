@@ -282,15 +282,9 @@ export function LogbookPage(props: { title: string; children: any }) {
                                 aria-hidden="true"
                                 className="h-8 w-auto"
                             />
-                            <span className="hidden sm:inline">
-                                Jump Logbook
+                            <span className="inline">
+                                {user.getDisplayName()}'s logbook
                             </span>
-                        </a>
-                        <a
-                            href={routes.logbook({})}
-                            className="min-w-0 flex-1 truncate text-sm text-slate-500 transition hover:text-indigo-600 hover:underline dark:text-slate-400 dark:hover:text-indigo-400"
-                        >
-                            {user.getDisplayName()}'s logbook
                         </a>
                         <div className="ml-auto flex shrink-0 items-center gap-2">
                             <ThemeToggle />
