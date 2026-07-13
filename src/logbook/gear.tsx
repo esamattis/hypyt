@@ -1,8 +1,12 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { getAppContext, app, type AppRequestContext } from "../app";
 import { FormActions, Input, NumberInput, Textarea } from "../components/form";
 import { ErrorList } from "../components/feedback";
-import { ConfirmDeleteButton, DangerZone } from "../components/ui";
+import {
+    ConfirmDeleteButton,
+    DangerZone,
+    MergeIntoForm,
+} from "../components/ui";
 import * as routes from "../routes";
 import { gear, jumpsToGear, jumpsToJumpTypes, jumpTypes } from "../schema";
 import {
@@ -11,7 +15,7 @@ import {
     type JumpListItem,
 } from "./jump-list";
 import { LogbookPage } from "./layout";
-import { ResourceSchema } from "./resource";
+import { getFormString, ResourceSchema } from "./resource";
 
 interface GearFormValues {
     name?: string;
@@ -68,7 +72,8 @@ function GearFormPage(props: {
     values?: GearFormValues;
     errors?: string[];
     canDelete?: boolean;
-    deleteError?: string;
+    dangerError?: string;
+    mergeOptions?: { uuid: string; name: string }[];
     recentJumps?: JumpListItem[];
 }) {
     return (
@@ -80,10 +85,18 @@ function GearFormPage(props: {
             />
             {props.canDelete && (
                 <DangerZone>
-                    {props.deleteError && (
+                    {props.dangerError && (
                         <ErrorList
-                            errors={[props.deleteError]}
+                            errors={[props.dangerError]}
                             className="mb-3 border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+                        />
+                    )}
+                    {props.mergeOptions && (
+                        <MergeIntoForm
+                            options={props.mergeOptions}
+                            description="Reassign all jumps using this gear to another gear item, add previous usage counts together, and delete this gear."
+                            selectLabel="Merge into"
+                            buttonLabel="Merge gear"
                         />
                     )}
                     <ConfirmDeleteButton label="Delete gear" />
@@ -260,7 +273,7 @@ async function renderGearList(c: AppRequestContext) {
     );
 }
 
-async function renderEditGear(c: AppRequestContext, deleteError?: string) {
+async function renderEditGear(c: AppRequestContext, dangerError?: string) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
     const { uuid } = routes.gearEdit.params(c);
@@ -275,6 +288,11 @@ async function renderEditGear(c: AppRequestContext, deleteError?: string) {
     if (!item) {
         return c.notFound();
     }
+    const mergeOptions = await db
+        .select({ uuid: gear.uuid, name: gear.name })
+        .from(gear)
+        .where(and(eq(gear.userUuid, userUuid), ne(gear.uuid, item.uuid)))
+        .orderBy(gear.name);
     const recentJumps = await getRecentJumpsForItem(
         c,
         userUuid,
@@ -292,10 +310,69 @@ async function renderEditGear(c: AppRequestContext, deleteError?: string) {
                 description: item.description ?? undefined,
             }}
             canDelete
-            deleteError={deleteError}
+            dangerError={dangerError}
+            mergeOptions={mergeOptions}
             recentJumps={recentJumps}
         />,
     );
+}
+
+async function mergeGear(
+    c: AppRequestContext,
+    sourceUuid: string,
+    targetUuid: string,
+) {
+    const db = getAppContext(c).db;
+    const userUuid = getAppContext(c).getUser().uuid;
+    if (!targetUuid || targetUuid === sourceUuid) {
+        return renderEditGear(c, "Select a different gear to merge into.");
+    }
+    const source = await db
+        .select()
+        .from(gear)
+        .where(and(eq(gear.uuid, sourceUuid), eq(gear.userUuid, userUuid)))
+        .get();
+    const target = await db
+        .select()
+        .from(gear)
+        .where(and(eq(gear.uuid, targetUuid), eq(gear.userUuid, userUuid)))
+        .get();
+    if (!source || !target) {
+        return renderEditGear(c, "Select a different gear to merge into.");
+    }
+    const sourceRows = await db
+        .select({ jumpUuid: jumpsToGear.jumpUuid })
+        .from(jumpsToGear)
+        .where(eq(jumpsToGear.gearUuid, source.uuid));
+    const targetJumpUuids = new Set(
+        (
+            await db
+                .select({ jumpUuid: jumpsToGear.jumpUuid })
+                .from(jumpsToGear)
+                .where(eq(jumpsToGear.gearUuid, target.uuid))
+        ).map((row) => row.jumpUuid),
+    );
+    const inserts = sourceRows
+        .filter((row) => !targetJumpUuids.has(row.jumpUuid))
+        .map((row) =>
+            db.insert(jumpsToGear).values({
+                jumpUuid: row.jumpUuid,
+                gearUuid: target.uuid,
+            }),
+        );
+    await db.batch([
+        db
+            .update(gear)
+            .set({
+                previousUsageCount:
+                    target.previousUsageCount + source.previousUsageCount,
+            })
+            .where(eq(gear.uuid, target.uuid)),
+        ...inserts,
+        db.delete(jumpsToGear).where(eq(jumpsToGear.gearUuid, source.uuid)),
+        db.delete(gear).where(eq(gear.uuid, source.uuid)),
+    ]);
+    return c.redirect(routes.gearEdit({ uuid: target.uuid }));
 }
 
 async function handleEditGear(c: AppRequestContext) {
@@ -325,6 +402,9 @@ async function handleEditGear(c: AppRequestContext) {
             .returning({ uuid: gear.uuid })
             .get();
         return deleted ? c.redirect(routes.gearList({})) : c.notFound();
+    }
+    if (formData.get("action") === "merge") {
+        return mergeGear(c, uuid, getFormString(formData, "targetUuid"));
     }
     if (formData.get("action") === "toggleArchive") {
         const update = await db

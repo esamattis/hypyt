@@ -1,0 +1,274 @@
+import { expect, test, type Page } from "@playwright/test";
+
+async function openManageLogbook(page: Page) {
+    await page.getByRole("button", { name: "Manage logbook" }).click();
+}
+
+async function registerUser(page: Page, username: string, displayName: string) {
+    await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
+    await page.locator('input[name="username"]').fill(username);
+    await page.locator('input[name="displayName"]').fill(displayName);
+    await page.locator('input[name="email"]').fill(`${username}@example.test`);
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/logbook");
+}
+
+async function addItem(
+    page: Page,
+    manageLink: string,
+    addLabel: string,
+    name: string,
+    previousCount?: string,
+) {
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: manageLink }).click();
+    await page.getByRole("link", { name: addLabel }).click();
+    await page.locator('input[name="name"]').fill(name);
+    if (previousCount !== undefined) {
+        await page.locator('input[name="previousCount"]').fill(previousCount);
+    }
+    await page.getByRole("button", { name: addLabel }).click();
+}
+
+async function goHome(page: Page, displayName: string) {
+    await page
+        .getByRole("link", { name: new RegExp(`${displayName}'s logbook`) })
+        .click();
+}
+
+async function mergeItem(
+    page: Page,
+    manageLink: string,
+    sourceName: string,
+    targetName: string,
+    mergeButtonLabel: string,
+) {
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: manageLink }).click();
+    await page
+        .getByRole("listitem")
+        .filter({ hasText: sourceName })
+        .getByRole("link", { name: "Edit" })
+        .click();
+    await expect(page.getByText("Danger zone")).toBeVisible();
+    const mergeForm = page.locator("form").filter({
+        has: page.locator('input[name="action"][value="merge"]'),
+    });
+    await mergeForm.locator('select[name="targetUuid"]').selectOption({
+        label: targetName,
+    });
+    await mergeForm.getByRole("button", { name: mergeButtonLabel }).click();
+}
+
+test("location can be merged into another location", async ({ page }) => {
+    const displayName = "Merge Location Skydiver";
+    await registerUser(page, "merge-location-skydiver", displayName);
+    await addItem(page, "Manage locations", "Add location", "Source DZ", "3");
+    await goHome(page, displayName);
+    await addItem(page, "Manage locations", "Add location", "Target DZ", "5");
+    await goHome(page, displayName);
+    await addItem(page, "Manage aircraft", "Add aircraft", "Merge Plane");
+
+    await goHome(page, displayName);
+    await page.getByRole("link", { name: "Add jump", exact: true }).click();
+    await page.locator('input[name="jumpNumber"]').fill("1");
+    await page.locator('input[name="exitAltitude"]').fill("4000");
+    await page.locator('input[name="openingAltitude"]').fill("1000");
+    await page.locator('input[name="freefallTime"]').fill("55");
+    await page.locator('select[name="locationUuid"]').selectOption({
+        label: "Source DZ",
+    });
+    await page.locator('select[name="aircraftUuid"]').selectOption({
+        label: "Merge Plane",
+    });
+    await page.getByRole("button", { name: "Add jump" }).click();
+    await expect(page).toHaveURL("/logbook");
+
+    await mergeItem(
+        page,
+        "Manage locations",
+        "Source DZ",
+        "Target DZ",
+        "Merge location",
+    );
+
+    await expect(page).toHaveURL(/\/logbook\/locations\/[^/]+$/);
+    await expect(page.locator('input[name="name"]')).toHaveValue("Target DZ");
+    await expect(page.locator('input[name="previousCount"]')).toHaveValue("8");
+    await expect(page.getByText("Recent jumps at this location")).toBeVisible();
+    await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage locations" }).click();
+    await expect(page.getByText("Source DZ", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Target DZ", { exact: true })).toBeVisible();
+    await expect(page.getByText("Previous jumps: 8")).toBeVisible();
+});
+
+test("aircraft can be merged into another aircraft", async ({ page }) => {
+    const displayName = "Merge Aircraft Skydiver";
+    await registerUser(page, "merge-aircraft-skydiver", displayName);
+    await addItem(page, "Manage locations", "Add location", "Merge DZ");
+    await goHome(page, displayName);
+    await addItem(page, "Manage aircraft", "Add aircraft", "Source Plane", "2");
+    await goHome(page, displayName);
+    await addItem(page, "Manage aircraft", "Add aircraft", "Target Plane", "4");
+
+    await goHome(page, displayName);
+    await page.getByRole("link", { name: "Add jump", exact: true }).click();
+    await page.locator('input[name="jumpNumber"]').fill("1");
+    await page.locator('input[name="exitAltitude"]').fill("4000");
+    await page.locator('input[name="openingAltitude"]').fill("1000");
+    await page.locator('input[name="freefallTime"]').fill("55");
+    await page.locator('select[name="locationUuid"]').selectOption({
+        label: "Merge DZ",
+    });
+    await page.locator('select[name="aircraftUuid"]').selectOption({
+        label: "Source Plane",
+    });
+    await page.getByRole("button", { name: "Add jump" }).click();
+    await expect(page).toHaveURL("/logbook");
+
+    await mergeItem(
+        page,
+        "Manage aircraft",
+        "Source Plane",
+        "Target Plane",
+        "Merge aircraft",
+    );
+
+    await expect(page).toHaveURL(/\/logbook\/aircrafts\/[^/]+$/);
+    await expect(page.locator('input[name="name"]')).toHaveValue(
+        "Target Plane",
+    );
+    await expect(page.locator('input[name="previousCount"]')).toHaveValue("6");
+    await expect(
+        page.getByText("Recent jumps with this aircraft"),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage aircraft" }).click();
+    await expect(page.getByText("Source Plane", { exact: true })).toHaveCount(
+        0,
+    );
+    await expect(page.getByText("Target Plane", { exact: true })).toBeVisible();
+    await expect(page.getByText("Previous jumps: 6")).toBeVisible();
+});
+
+test("gear can be merged into another gear item", async ({ page }) => {
+    const displayName = "Merge Gear Skydiver";
+    await registerUser(page, "merge-gear-skydiver", displayName);
+    await addItem(page, "Manage locations", "Add location", "Merge DZ");
+    await goHome(page, displayName);
+    await addItem(page, "Manage aircraft", "Add aircraft", "Merge Plane");
+    await goHome(page, displayName);
+    await addItem(page, "Manage gear", "Add gear", "Source Canopy", "1");
+    await goHome(page, displayName);
+    await addItem(page, "Manage gear", "Add gear", "Target Canopy", "7");
+
+    await goHome(page, displayName);
+    await page.getByRole("link", { name: "Add jump", exact: true }).click();
+    await page.locator('input[name="jumpNumber"]').fill("1");
+    await page.locator('input[name="exitAltitude"]').fill("4000");
+    await page.locator('input[name="openingAltitude"]').fill("1000");
+    await page.locator('input[name="freefallTime"]').fill("55");
+    await page.locator('select[name="locationUuid"]').selectOption({
+        label: "Merge DZ",
+    });
+    await page.locator('select[name="aircraftUuid"]').selectOption({
+        label: "Merge Plane",
+    });
+    await page.getByLabel("Source Canopy").check();
+    await page.getByRole("button", { name: "Add jump" }).click();
+    await expect(page).toHaveURL("/logbook");
+
+    await mergeItem(
+        page,
+        "Manage gear",
+        "Source Canopy",
+        "Target Canopy",
+        "Merge gear",
+    );
+
+    await expect(page).toHaveURL(/\/logbook\/gear\/[^/]+$/);
+    await expect(page.locator('input[name="name"]')).toHaveValue(
+        "Target Canopy",
+    );
+    await expect(page.locator('input[name="previousCount"]')).toHaveValue("8");
+    await expect(page.getByText("Recent jumps with this gear")).toBeVisible();
+    await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
+    await expect(page.getByText("Source Canopy", { exact: true })).toHaveCount(
+        0,
+    );
+    await expect(
+        page.getByText("Target Canopy", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("Previous uses: 8")).toBeVisible();
+});
+
+test("jump type can be merged into another jump type", async ({ page }) => {
+    const displayName = "Merge Jump Type Skydiver";
+    await registerUser(page, "merge-jumptype-skydiver", displayName);
+    await addItem(page, "Manage locations", "Add location", "Merge DZ");
+    await goHome(page, displayName);
+    await addItem(page, "Manage aircraft", "Add aircraft", "Merge Plane");
+    await goHome(page, displayName);
+    await addItem(
+        page,
+        "Manage jump types",
+        "Add jump type",
+        "Source Type",
+        "2",
+    );
+    await goHome(page, displayName);
+    await addItem(
+        page,
+        "Manage jump types",
+        "Add jump type",
+        "Target Type",
+        "9",
+    );
+
+    await goHome(page, displayName);
+    await page.getByRole("link", { name: "Add jump", exact: true }).click();
+    await page.locator('input[name="jumpNumber"]').fill("1");
+    await page.locator('input[name="exitAltitude"]').fill("4000");
+    await page.locator('input[name="openingAltitude"]').fill("1000");
+    await page.locator('input[name="freefallTime"]').fill("55");
+    await page.locator('select[name="locationUuid"]').selectOption({
+        label: "Merge DZ",
+    });
+    await page.locator('select[name="aircraftUuid"]').selectOption({
+        label: "Merge Plane",
+    });
+    await page.getByLabel("Source Type").check();
+    await page.getByRole("button", { name: "Add jump" }).click();
+    await expect(page).toHaveURL("/logbook");
+
+    await mergeItem(
+        page,
+        "Manage jump types",
+        "Source Type",
+        "Target Type",
+        "Merge jump type",
+    );
+
+    await expect(page).toHaveURL(/\/logbook\/jump-types\/[^/]+$/);
+    await expect(page.locator('input[name="name"]')).toHaveValue("Target Type");
+    await expect(page.locator('input[name="previousCount"]')).toHaveValue("11");
+    await expect(page.getByText("Recent jumps of this type")).toBeVisible();
+    await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage jump types" }).click();
+    await expect(page.getByText("Source Type", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Target Type", { exact: true })).toBeVisible();
+    await expect(page.getByText("Previous uses: 11")).toBeVisible();
+});

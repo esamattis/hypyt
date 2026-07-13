@@ -1,8 +1,12 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { getAppContext, app, type AppRequestContext } from "../app";
 import { FormActions, Input, NumberInput, Textarea } from "../components/form";
 import { ErrorList } from "../components/feedback";
-import { ConfirmDeleteButton, DangerZone } from "../components/ui";
+import {
+    ConfirmDeleteButton,
+    DangerZone,
+    MergeIntoForm,
+} from "../components/ui";
 import * as routes from "../routes";
 import { jumpTypes, jumpsToJumpTypes } from "../schema";
 import {
@@ -11,7 +15,7 @@ import {
     type JumpListItem,
 } from "./jump-list";
 import { LogbookPage } from "./layout";
-import { ResourceSchema } from "./resource";
+import { getFormString, ResourceSchema } from "./resource";
 
 interface JumpTypeFormValues {
     name?: string;
@@ -68,7 +72,8 @@ function JumpTypeFormPage(props: {
     values?: JumpTypeFormValues;
     errors?: string[];
     canDelete?: boolean;
-    deleteError?: string;
+    dangerError?: string;
+    mergeOptions?: { uuid: string; name: string }[];
     recentJumps?: JumpListItem[];
 }) {
     return (
@@ -80,10 +85,18 @@ function JumpTypeFormPage(props: {
             />
             {props.canDelete && (
                 <DangerZone>
-                    {props.deleteError && (
+                    {props.dangerError && (
                         <ErrorList
-                            errors={[props.deleteError]}
+                            errors={[props.dangerError]}
                             className="mb-3 border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+                        />
+                    )}
+                    {props.mergeOptions && (
+                        <MergeIntoForm
+                            options={props.mergeOptions}
+                            description="Reassign all jumps using this jump type to another jump type, add previous usage counts together, and delete this jump type."
+                            selectLabel="Merge into"
+                            buttonLabel="Merge jump type"
                         />
                     )}
                     <ConfirmDeleteButton label="Delete jump type" />
@@ -244,7 +257,7 @@ async function renderJumpTypeList(c: AppRequestContext) {
     );
 }
 
-async function renderEditJumpType(c: AppRequestContext, deleteError?: string) {
+async function renderEditJumpType(c: AppRequestContext, dangerError?: string) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
     const { uuid } = routes.jumpTypeEdit.params(c);
@@ -259,6 +272,16 @@ async function renderEditJumpType(c: AppRequestContext, deleteError?: string) {
     if (!item) {
         return c.notFound();
     }
+    const mergeOptions = await db
+        .select({ uuid: jumpTypes.uuid, name: jumpTypes.name })
+        .from(jumpTypes)
+        .where(
+            and(
+                eq(jumpTypes.userUuid, userUuid),
+                ne(jumpTypes.uuid, item.uuid),
+            ),
+        )
+        .orderBy(jumpTypes.name);
     const recentJumps = await getRecentJumpsForItem(
         c,
         userUuid,
@@ -276,10 +299,87 @@ async function renderEditJumpType(c: AppRequestContext, deleteError?: string) {
                 description: item.description ?? undefined,
             }}
             canDelete
-            deleteError={deleteError}
+            dangerError={dangerError}
+            mergeOptions={mergeOptions}
             recentJumps={recentJumps}
         />,
     );
+}
+
+async function mergeJumpType(
+    c: AppRequestContext,
+    sourceUuid: string,
+    targetUuid: string,
+) {
+    const db = getAppContext(c).db;
+    const userUuid = getAppContext(c).getUser().uuid;
+    if (!targetUuid || targetUuid === sourceUuid) {
+        return renderEditJumpType(
+            c,
+            "Select a different jump type to merge into.",
+        );
+    }
+    const source = await db
+        .select()
+        .from(jumpTypes)
+        .where(
+            and(
+                eq(jumpTypes.uuid, sourceUuid),
+                eq(jumpTypes.userUuid, userUuid),
+            ),
+        )
+        .get();
+    const target = await db
+        .select()
+        .from(jumpTypes)
+        .where(
+            and(
+                eq(jumpTypes.uuid, targetUuid),
+                eq(jumpTypes.userUuid, userUuid),
+            ),
+        )
+        .get();
+    if (!source || !target) {
+        return renderEditJumpType(
+            c,
+            "Select a different jump type to merge into.",
+        );
+    }
+    const sourceRows = await db
+        .select({ jumpUuid: jumpsToJumpTypes.jumpUuid })
+        .from(jumpsToJumpTypes)
+        .where(eq(jumpsToJumpTypes.jumpTypeUuid, source.uuid));
+    const targetJumpUuids = new Set(
+        (
+            await db
+                .select({ jumpUuid: jumpsToJumpTypes.jumpUuid })
+                .from(jumpsToJumpTypes)
+                .where(eq(jumpsToJumpTypes.jumpTypeUuid, target.uuid))
+        ).map((row) => row.jumpUuid),
+    );
+    const inserts = sourceRows
+        .filter((row) => !targetJumpUuids.has(row.jumpUuid))
+        .map((row) =>
+            db.insert(jumpsToJumpTypes).values({
+                jumpUuid: row.jumpUuid,
+                jumpTypeUuid: target.uuid,
+            }),
+        );
+    await db.batch([
+        db
+            .update(jumpTypes)
+            .set({
+                previousUsageCount:
+                    target.previousUsageCount + source.previousUsageCount,
+            })
+            .where(eq(jumpTypes.uuid, target.uuid)),
+        ...inserts,
+        db
+            .delete(jumpsToJumpTypes)
+            .where(eq(jumpsToJumpTypes.jumpTypeUuid, source.uuid)),
+        db.delete(jumpTypes).where(eq(jumpTypes.uuid, source.uuid)),
+    ]);
+    return c.redirect(routes.jumpTypeEdit({ uuid: target.uuid }));
 }
 
 async function handleEditJumpType(c: AppRequestContext) {
@@ -311,6 +411,9 @@ async function handleEditJumpType(c: AppRequestContext) {
             .returning({ uuid: jumpTypes.uuid })
             .get();
         return deleted ? c.redirect(routes.jumpTypeList({})) : c.notFound();
+    }
+    if (formData.get("action") === "merge") {
+        return mergeJumpType(c, uuid, getFormString(formData, "targetUuid"));
     }
     if (formData.get("action") === "toggleArchive") {
         const update = await db

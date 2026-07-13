@@ -1,8 +1,12 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { getAppContext, app, type AppRequestContext } from "../app";
 import { FormActions, Input, NumberInput, Textarea } from "../components/form";
 import { ErrorList } from "../components/feedback";
-import { ConfirmDeleteButton, DangerZone } from "../components/ui";
+import {
+    ConfirmDeleteButton,
+    DangerZone,
+    MergeIntoForm,
+} from "../components/ui";
 import * as routes from "../routes";
 import { jumps, locations } from "../schema";
 import {
@@ -11,7 +15,7 @@ import {
     type JumpListItem,
 } from "./jump-list";
 import { LogbookPage } from "./layout";
-import { ResourceSchema } from "./resource";
+import { getFormString, ResourceSchema } from "./resource";
 
 interface LocationFormValues {
     name?: string;
@@ -68,7 +72,8 @@ function LocationFormPage(props: {
     values?: LocationFormValues;
     errors?: string[];
     canDelete?: boolean;
-    deleteError?: string;
+    dangerError?: string;
+    mergeOptions?: { uuid: string; name: string }[];
     recentJumps?: JumpListItem[];
 }) {
     return (
@@ -80,10 +85,18 @@ function LocationFormPage(props: {
             />
             {props.canDelete && (
                 <DangerZone>
-                    {props.deleteError && (
+                    {props.dangerError && (
                         <ErrorList
-                            errors={[props.deleteError]}
+                            errors={[props.dangerError]}
                             className="mb-3 border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+                        />
+                    )}
+                    {props.mergeOptions && (
+                        <MergeIntoForm
+                            options={props.mergeOptions}
+                            description="Reassign all jumps using this location to another location, add previous jump counts together, and delete this location."
+                            selectLabel="Merge into"
+                            buttonLabel="Merge location"
                         />
                     )}
                     <ConfirmDeleteButton label="Delete location" />
@@ -245,7 +258,7 @@ async function renderLocationList(c: AppRequestContext) {
     );
 }
 
-async function renderEditLocation(c: AppRequestContext, deleteError?: string) {
+async function renderEditLocation(c: AppRequestContext, dangerError?: string) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
     const { uuid } = routes.locationEdit.params(c);
@@ -260,6 +273,16 @@ async function renderEditLocation(c: AppRequestContext, deleteError?: string) {
     if (!location) {
         return c.notFound();
     }
+    const mergeOptions = await db
+        .select({ uuid: locations.uuid, name: locations.name })
+        .from(locations)
+        .where(
+            and(
+                eq(locations.userUuid, userUuid),
+                ne(locations.uuid, location.uuid),
+            ),
+        )
+        .orderBy(locations.name);
     const recentJumps = await getRecentJumpsForItem(
         c,
         userUuid,
@@ -277,10 +300,67 @@ async function renderEditLocation(c: AppRequestContext, deleteError?: string) {
                 description: location.description ?? undefined,
             }}
             canDelete
-            deleteError={deleteError}
+            dangerError={dangerError}
+            mergeOptions={mergeOptions}
             recentJumps={recentJumps}
         />,
     );
+}
+
+async function mergeLocation(
+    c: AppRequestContext,
+    sourceUuid: string,
+    targetUuid: string,
+) {
+    const db = getAppContext(c).db;
+    const userUuid = getAppContext(c).getUser().uuid;
+    if (!targetUuid || targetUuid === sourceUuid) {
+        return renderEditLocation(
+            c,
+            "Select a different location to merge into.",
+        );
+    }
+    const source = await db
+        .select()
+        .from(locations)
+        .where(
+            and(
+                eq(locations.uuid, sourceUuid),
+                eq(locations.userUuid, userUuid),
+            ),
+        )
+        .get();
+    const target = await db
+        .select()
+        .from(locations)
+        .where(
+            and(
+                eq(locations.uuid, targetUuid),
+                eq(locations.userUuid, userUuid),
+            ),
+        )
+        .get();
+    if (!source || !target) {
+        return renderEditLocation(
+            c,
+            "Select a different location to merge into.",
+        );
+    }
+    await db.batch([
+        db
+            .update(jumps)
+            .set({ locationUuid: target.uuid })
+            .where(eq(jumps.locationUuid, source.uuid)),
+        db
+            .update(locations)
+            .set({
+                previousJumpCount:
+                    target.previousJumpCount + source.previousJumpCount,
+            })
+            .where(eq(locations.uuid, target.uuid)),
+        db.delete(locations).where(eq(locations.uuid, source.uuid)),
+    ]);
+    return c.redirect(routes.locationEdit({ uuid: target.uuid }));
 }
 
 async function handleEditLocation(c: AppRequestContext) {
@@ -312,6 +392,9 @@ async function handleEditLocation(c: AppRequestContext) {
             .returning({ uuid: locations.uuid })
             .get();
         return deleted ? c.redirect(routes.locationList({})) : c.notFound();
+    }
+    if (formData.get("action") === "merge") {
+        return mergeLocation(c, uuid, getFormString(formData, "targetUuid"));
     }
     if (formData.get("action") === "toggleArchive") {
         const update = await db

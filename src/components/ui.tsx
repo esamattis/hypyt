@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useId } from "hono/jsx";
 import { Script } from "./helpers";
 import { $assertElement } from "../utils";
+import { Select } from "./form";
 
 export function DangerZone(props: {
     children: any;
@@ -20,6 +21,44 @@ export function DangerZone(props: {
             </p>
             {props.children}
         </div>
+    );
+}
+
+export function MergeIntoForm(props: {
+    options: { uuid: string; name: string }[];
+    description: string;
+    selectLabel: string;
+    buttonLabel?: string;
+    className?: string;
+}) {
+    if (props.options.length === 0) {
+        return null;
+    }
+    return (
+        <form
+            method="post"
+            className={clsx(
+                "mb-4 space-y-3 border-b border-red-200 pb-4 dark:border-red-900/60",
+                props.className,
+            )}
+        >
+            <input type="hidden" name="action" value="merge" />
+            <p className="text-sm text-red-700/90 dark:text-red-300/90">
+                {props.description}
+            </p>
+            <Select name="targetUuid" label={props.selectLabel} required>
+                <option value="">Select…</option>
+                {props.options.map((option) => (
+                    <option value={option.uuid}>{option.name}</option>
+                ))}
+            </Select>
+            <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 font-medium text-red-600 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:border-red-800 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40 dark:focus:ring-red-400/40"
+            >
+                {props.buttonLabel ?? "Merge"}
+            </button>
+        </form>
     );
 }
 

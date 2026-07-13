@@ -1,8 +1,12 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { getAppContext, app, type AppRequestContext } from "../app";
 import { FormActions, Input, NumberInput, Textarea } from "../components/form";
 import { ErrorList } from "../components/feedback";
-import { ConfirmDeleteButton, DangerZone } from "../components/ui";
+import {
+    ConfirmDeleteButton,
+    DangerZone,
+    MergeIntoForm,
+} from "../components/ui";
 import * as routes from "../routes";
 import { aircrafts, jumps } from "../schema";
 import {
@@ -11,7 +15,7 @@ import {
     type JumpListItem,
 } from "./jump-list";
 import { LogbookPage } from "./layout";
-import { ResourceSchema } from "./resource";
+import { getFormString, ResourceSchema } from "./resource";
 
 interface AircraftFormValues {
     name?: string;
@@ -68,7 +72,8 @@ function AircraftFormPage(props: {
     values?: AircraftFormValues;
     errors?: string[];
     canDelete?: boolean;
-    deleteError?: string;
+    dangerError?: string;
+    mergeOptions?: { uuid: string; name: string }[];
     recentJumps?: JumpListItem[];
 }) {
     return (
@@ -80,10 +85,18 @@ function AircraftFormPage(props: {
             />
             {props.canDelete && (
                 <DangerZone>
-                    {props.deleteError && (
+                    {props.dangerError && (
                         <ErrorList
-                            errors={[props.deleteError]}
+                            errors={[props.dangerError]}
                             className="mb-3 border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+                        />
+                    )}
+                    {props.mergeOptions && (
+                        <MergeIntoForm
+                            options={props.mergeOptions}
+                            description="Reassign all jumps using this aircraft to another aircraft, add previous jump counts together, and delete this aircraft."
+                            selectLabel="Merge into"
+                            buttonLabel="Merge aircraft"
                         />
                     )}
                     <ConfirmDeleteButton label="Delete aircraft" />
@@ -245,7 +258,7 @@ async function renderAircraftList(c: AppRequestContext) {
     );
 }
 
-async function renderEditAircraft(c: AppRequestContext, deleteError?: string) {
+async function renderEditAircraft(c: AppRequestContext, dangerError?: string) {
     const db = getAppContext(c).db;
     const userUuid = getAppContext(c).getUser().uuid;
     const { uuid } = routes.aircraftEdit.params(c);
@@ -260,6 +273,16 @@ async function renderEditAircraft(c: AppRequestContext, deleteError?: string) {
     if (!aircraft) {
         return c.notFound();
     }
+    const mergeOptions = await db
+        .select({ uuid: aircrafts.uuid, name: aircrafts.name })
+        .from(aircrafts)
+        .where(
+            and(
+                eq(aircrafts.userUuid, userUuid),
+                ne(aircrafts.uuid, aircraft.uuid),
+            ),
+        )
+        .orderBy(aircrafts.name);
     const recentJumps = await getRecentJumpsForItem(
         c,
         userUuid,
@@ -277,10 +300,67 @@ async function renderEditAircraft(c: AppRequestContext, deleteError?: string) {
                 description: aircraft.description ?? undefined,
             }}
             canDelete
-            deleteError={deleteError}
+            dangerError={dangerError}
+            mergeOptions={mergeOptions}
             recentJumps={recentJumps}
         />,
     );
+}
+
+async function mergeAircraft(
+    c: AppRequestContext,
+    sourceUuid: string,
+    targetUuid: string,
+) {
+    const db = getAppContext(c).db;
+    const userUuid = getAppContext(c).getUser().uuid;
+    if (!targetUuid || targetUuid === sourceUuid) {
+        return renderEditAircraft(
+            c,
+            "Select a different aircraft to merge into.",
+        );
+    }
+    const source = await db
+        .select()
+        .from(aircrafts)
+        .where(
+            and(
+                eq(aircrafts.uuid, sourceUuid),
+                eq(aircrafts.userUuid, userUuid),
+            ),
+        )
+        .get();
+    const target = await db
+        .select()
+        .from(aircrafts)
+        .where(
+            and(
+                eq(aircrafts.uuid, targetUuid),
+                eq(aircrafts.userUuid, userUuid),
+            ),
+        )
+        .get();
+    if (!source || !target) {
+        return renderEditAircraft(
+            c,
+            "Select a different aircraft to merge into.",
+        );
+    }
+    await db.batch([
+        db
+            .update(jumps)
+            .set({ aircraftUuid: target.uuid })
+            .where(eq(jumps.aircraftUuid, source.uuid)),
+        db
+            .update(aircrafts)
+            .set({
+                previousJumpCount:
+                    target.previousJumpCount + source.previousJumpCount,
+            })
+            .where(eq(aircrafts.uuid, target.uuid)),
+        db.delete(aircrafts).where(eq(aircrafts.uuid, source.uuid)),
+    ]);
+    return c.redirect(routes.aircraftEdit({ uuid: target.uuid }));
 }
 
 async function handleEditAircraft(c: AppRequestContext) {
@@ -312,6 +392,9 @@ async function handleEditAircraft(c: AppRequestContext) {
             .returning({ uuid: aircrafts.uuid })
             .get();
         return deleted ? c.redirect(routes.aircraftList({})) : c.notFound();
+    }
+    if (formData.get("action") === "merge") {
+        return mergeAircraft(c, uuid, getFormString(formData, "targetUuid"));
     }
     if (formData.get("action") === "toggleArchive") {
         const update = await db
