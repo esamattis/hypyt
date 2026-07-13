@@ -1,8 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-
-async function openManageLogbook(page: Page) {
-    await page.getByRole("button", { name: "Manage logbook" }).click();
-}
+import { openManageLogbook } from "./helpers";
 
 async function registerAndAddFirstJump(
     page: Page,

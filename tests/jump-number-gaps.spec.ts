@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openManageLogbook } from "./helpers";
 
 const CSV_HEADER =
     "type,name,previousCount,jumpNumber,jumpDate,exitAltitude,openingAltitude,freefallTime,location,aircraft,gear,jumpTypes,description";
@@ -23,10 +24,6 @@ async function registerUser(page: Page, username: string) {
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page).toHaveURL("/logbook");
-}
-
-async function openManageLogbook(page: Page) {
-    await page.getByRole("button", { name: "Manage logbook" }).click();
 }
 
 test("statistics page lists jump number gaps linking to add jump", async ({

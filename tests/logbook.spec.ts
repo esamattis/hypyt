@@ -1,8 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-async function openManageLogbook(page: Page) {
-    await page.getByRole("button", { name: "Manage logbook" }).click();
-}
+import { expect, test } from "@playwright/test";
+import { openMainMenu, openManageLogbook } from "./helpers";
 
 test("the log book loads additional jumps while scrolling", async ({
     page,
@@ -776,6 +773,7 @@ test("freefall time estimate respects feet altitude units", async ({
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
 
+    await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
     await page.locator('select[name="altitudeUnits"]').selectOption("feet");
     await page.getByRole("button", { name: "Save preferences" }).click();

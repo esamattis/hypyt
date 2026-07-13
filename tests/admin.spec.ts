@@ -1,3 +1,4 @@
+import { logOut, openMainMenu } from "./helpers";
 import {
     expect,
     test,
@@ -40,6 +41,7 @@ async function postAsPage(
 test("non-admins cannot access admin pages", async ({ page }) => {
     await registerUser(page, "non-admin-pages");
 
+    await openMainMenu(page);
     await expect(
         page.getByRole("link", { name: "Admin", exact: true }),
     ).toHaveCount(0);
@@ -102,7 +104,7 @@ test("non-admins cannot perform admin actions", async ({ page, request }) => {
     ).toBeVisible();
 
     // Blocked invitation create must not have created the code.
-    await page.getByRole("button", { name: "Log out" }).click();
+    await logOut(page);
     await expect(page).toHaveURL("/login");
     await page.goto("/register");
     await page.locator('input[name="invitationCode"]').fill("stolen-invite");

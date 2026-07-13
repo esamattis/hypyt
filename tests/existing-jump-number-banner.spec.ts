@@ -1,8 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-async function openManageLogbook(page: Page) {
-    await page.getByRole("button", { name: "Manage logbook" }).click();
-}
+import { expect, test } from "@playwright/test";
+import { openManageLogbook } from "./helpers";
 
 test("new jump page shows a banner when jumpNumber query already exists", async ({
     page,

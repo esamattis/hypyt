@@ -1,14 +1,15 @@
 import { useAppContext } from "../app";
 import { Script, Style } from "../components/helpers";
+import { DropdownMenu, MenuDivider, menuItemClassName } from "../components/ui";
 import * as routes from "../routes";
 import { $assertElement } from "../utils";
 import { useId } from "hono/jsx";
 
-function ChevronDownIcon() {
+function BurgerMenuIcon() {
     return (
         <svg
             aria-hidden="true"
-            className="h-4 w-4 shrink-0 text-slate-400 transition-transform dark:text-slate-500"
+            className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -17,137 +18,56 @@ function ChevronDownIcon() {
             <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                d="M19 9l-7 7-7-7"
+                d="M4 6h16M4 12h16M4 18h16"
             />
         </svg>
     );
 }
 
-function ManageLogbookMenu() {
-    const id = useId();
-    const menuId = `logbook-management-menu-${id}`;
-    const buttonId = `logbook-management-button-${id}`;
-
+function MainMenu(props: { isAdmin: boolean }) {
     return (
-        <div className="relative">
-            <button
-                id={buttonId}
-                type="button"
-                aria-controls={menuId}
-                aria-expanded="false"
-                aria-label="Manage logbook"
-                className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 sm:gap-1.5 sm:rounded-lg sm:px-3 sm:py-2 sm:text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
+        <DropdownMenu
+            label="Menu"
+            button={<BurgerMenuIcon />}
+            buttonClassName="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
+        >
+            <a href={routes.aircraftList({})} className={menuItemClassName}>
+                Manage aircraft
+            </a>
+            <a href={routes.gearList({})} className={menuItemClassName}>
+                Manage gear
+            </a>
+            <a href={routes.jumpTypeList({})} className={menuItemClassName}>
+                Manage jump types
+            </a>
+            <a href={routes.locationList({})} className={menuItemClassName}>
+                Manage locations
+            </a>
+            <MenuDivider />
+            <a
+                href={routes.logbookStatistics({})}
+                className={menuItemClassName}
             >
-                <span className="sm:hidden" aria-hidden="true">
-                    Manage
-                </span>
-                <span className="hidden sm:inline" aria-hidden="true">
-                    Manage logbook
-                </span>
-                <ChevronDownIcon />
-            </button>
-            <div
-                id={menuId}
-                hidden
-                className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-100/10"
-            >
-                <a
-                    href={routes.aircraftList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                    Manage aircraft
+                Statistics
+            </a>
+            <a href={routes.logbookTransfer({})} className={menuItemClassName}>
+                Import or export
+            </a>
+            <MenuDivider />
+            {props.isAdmin && (
+                <a href={routes.admin({})} className={menuItemClassName}>
+                    Admin
                 </a>
-                <a
-                    href={routes.gearList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                    Manage gear
-                </a>
-                <a
-                    href={routes.jumpTypeList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                    Manage jump types
-                </a>
-                <a
-                    href={routes.locationList({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                    Manage locations
-                </a>
-                <div className="my-1 h-px bg-slate-100 dark:bg-slate-800"></div>
-                <a
-                    href={routes.logbookStatistics({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                    Statistics
-                </a>
-                <div className="my-1 h-px bg-slate-100 dark:bg-slate-800"></div>
-                <a
-                    href={routes.logbookTransfer({})}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                    Import or export
-                </a>
-            </div>
-            <Script
-                $deps={[$assertElement]}
-                $args={[buttonId, menuId]}
-                $exec={(buttonId, menuId) => {
-                    const button = document.getElementById(buttonId);
-                    $assertElement(button, HTMLButtonElement);
-                    const menu = document.getElementById(menuId);
-                    $assertElement(menu, HTMLDivElement);
-                    if (
-                        !(button instanceof HTMLButtonElement) ||
-                        !(menu instanceof HTMLDivElement)
-                    ) {
-                        return;
-                    }
-                    const chevron = button.querySelector("svg");
-
-                    function setMenuOpen(
-                        menuElement: HTMLDivElement,
-                        buttonElement: HTMLButtonElement,
-                        isOpen: boolean,
-                    ) {
-                        menuElement.hidden = !isOpen;
-                        buttonElement.setAttribute(
-                            "aria-expanded",
-                            String(isOpen),
-                        );
-                        if (chevron) {
-                            chevron.style.transform = isOpen
-                                ? "rotate(180deg)"
-                                : "";
-                        }
-                    }
-
-                    button.addEventListener("click", (event) => {
-                        event.stopPropagation();
-                        setMenuOpen(menu, button, Boolean(menu.hidden));
-                    });
-
-                    document.addEventListener("click", (event) => {
-                        if (
-                            !menu.hidden &&
-                            event.target instanceof Node &&
-                            !menu.contains(event.target) &&
-                            !button.contains(event.target)
-                        ) {
-                            setMenuOpen(menu, button, false);
-                        }
-                    });
-
-                    document.addEventListener("keydown", (event) => {
-                        if (event.key === "Escape" && !menu.hidden) {
-                            setMenuOpen(menu, button, false);
-                            button.focus();
-                        }
-                    });
-                }}
-            />
-        </div>
+            )}
+            <a href={routes.preferences({})} className={menuItemClassName}>
+                Preferences
+            </a>
+            <form method="post" action={routes.logout({})}>
+                <button type="submit" className={menuItemClassName}>
+                    Log out
+                </button>
+            </form>
+        </DropdownMenu>
     );
 }
 
@@ -180,7 +100,6 @@ function LogbookActions() {
             >
                 From image
             </a>
-            <ManageLogbookMenu />
         </nav>
     );
 }
@@ -376,62 +295,7 @@ export function LogbookPage(props: { title: string; children: any }) {
                         </a>
                         <div className="ml-auto flex shrink-0 items-center gap-2">
                             <ThemeToggle />
-                            {user.admin && (
-                                <a
-                                    href={routes.admin({})}
-                                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
-                                >
-                                    Admin
-                                </a>
-                            )}
-                            <a
-                                href={routes.preferences({})}
-                                aria-label="Preferences"
-                                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
-                            >
-                                <svg
-                                    aria-hidden="true"
-                                    className="h-4 w-4 sm:hidden"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM19.4 15a1.7 1.7 0 00.34 1.88l.06.06-1.7 1.7-.06-.06a1.7 1.7 0 00-1.88-.34 1.7 1.7 0 00-1.03 1.56v.08h-2.4v-.08a1.7 1.7 0 00-1.03-1.56 1.7 1.7 0 00-1.88.34l-.06.06-1.7-1.7.06-.06A1.7 1.7 0 008.46 15a1.7 1.7 0 00-1.56-1.03h-.08v-2.4h.08A1.7 1.7 0 008.46 10a1.7 1.7 0 00-.34-1.88l-.06-.06 1.7-1.7.06.06a1.7 1.7 0 001.88.34 1.7 1.7 0 001.03-1.56v-.08h2.4v.08a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.88-.34l.06-.06 1.7 1.7-.06.06A1.7 1.7 0 0019.4 10a1.7 1.7 0 001.56 1.03h.08v2.4h-.08A1.7 1.7 0 0019.4 15z"
-                                    />
-                                </svg>
-                                <span className="hidden sm:inline">
-                                    Preferences
-                                </span>
-                            </a>
-                            <form method="post" action={routes.logout({})}>
-                                <button
-                                    type="submit"
-                                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
-                                    title="Log out"
-                                >
-                                    <svg
-                                        aria-hidden="true"
-                                        className="h-4 w-4 sm:hidden"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"
-                                        />
-                                    </svg>
-                                    <span className="hidden sm:inline">
-                                        Log out
-                                    </span>
-                                </button>
-                            </form>
+                            <MainMenu isAdmin={user.admin} />
                         </div>
                     </div>
                     <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800">

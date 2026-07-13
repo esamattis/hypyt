@@ -1,12 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { openMainMenu, openManageLogbook } from "./helpers";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-async function openManageLogbook(page: Page) {
-    await page.getByRole("button", { name: "Manage logbook" }).click();
-}
 
 // eslint-disable-next-line max-lines-per-function
 test("a skydiver can create a jump from an image", async ({ page }) => {
@@ -40,6 +37,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await page.getByRole("button", { name: "Add gear" }).click();
 
     await page.getByRole("link", { name: /Image Skydiver's logbook/ }).click();
+    await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
     await page.locator('input[name="openaiApiKey"]').fill("sk-test-key");
     await page.getByRole("button", { name: "Save preferences" }).click();

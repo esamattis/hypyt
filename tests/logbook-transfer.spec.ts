@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { logOut, openManageLogbook } from "./helpers";
 
 const fixturePath = path.join(import.meta.dirname, "fixtures/logbook.csv");
 const xmlFixturePath = path.join(
@@ -61,10 +62,6 @@ async function registerUser(page: Page, username: string) {
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page).toHaveURL("/logbook");
-}
-
-async function openManageLogbook(page: Page) {
-    await page.getByRole("button", { name: "Manage logbook" }).click();
 }
 
 test("statistics show recorded and total jump counts for every item", async ({
@@ -189,7 +186,7 @@ test("a logbook can be imported, edited, exported, and imported by another user"
     expect(exportContents).toContain(CSV_HEADER);
     expect(exportContents).toContain("Navigator 260");
     expect(exportContents).toContain(",4000,1000,55,");
-    await page.getByRole("button", { name: "Log out" }).click();
+    await logOut(page);
     await registerUser(page, "second-skydiver");
 
     await openManageLogbook(page);
@@ -447,7 +444,7 @@ test("the logbook can be exported with curl and HTTP Basic auth", async ({
     await page.getByRole("button", { name: "Import logbook" }).click();
     await expect(page.getByText("Imported 2 jumps")).toBeVisible();
 
-    await page.getByRole("button", { name: "Manage logbook" }).click();
+    await openManageLogbook(page);
     await page.getByRole("link", { name: "Import or export" }).click();
     await expect(
         page.getByText(/opens in Excel, LibreOffice, Google Docs/i),

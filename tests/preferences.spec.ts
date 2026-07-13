@@ -4,6 +4,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { logOut, openMainMenu, openManageLogbook } from "./helpers";
 
 const execFile = promisify(execFileCallback);
 const require = createRequire(import.meta.url);
@@ -35,10 +36,6 @@ async function queryPlaywrightDb(
     ]);
     const parsed: D1ExecuteResult[] = JSON.parse(stdout);
     return parsed[0]?.results ?? [];
-}
-
-async function openManageLogbook(page: Page) {
-    await page.getByRole("button", { name: "Manage logbook" }).click();
 }
 
 async function registerUser(page: Page, username: string, displayName: string) {
@@ -80,6 +77,7 @@ test("a skydiver can update preferences and account details", async ({
 }) => {
     await registerUser(page, "preferences-skydiver", "Preferences Skydiver");
 
+    await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
     await expect(page).toHaveURL("/preferences");
     await page.locator('input[name="displayName"]').fill("Feet Skydiver");
@@ -100,6 +98,7 @@ test("a skydiver can update preferences and account details", async ({
     await expect(page.getByText("Exit altitude (ft)")).toBeVisible();
     await expect(page.getByText("Opening altitude (ft)")).toBeVisible();
 
+    await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
     await expect(page.locator('input[name="displayName"]')).toHaveValue(
         "Feet Skydiver",
@@ -114,7 +113,7 @@ test("a skydiver can update preferences and account details", async ({
         "meters-per-second",
     );
 
-    await page.getByRole("button", { name: "Log out" }).click();
+    await logOut(page);
     await expect(page).toHaveURL("/login");
     await page
         .locator('input[name="usernameOrEmail"]')
@@ -141,6 +140,7 @@ test("a skydiver can permanently delete their account and all jump items", async
     await addItem(page, "Manage jump types", "Add jump type", "Doomed Type");
     await page.getByRole("link", { name: `${displayName}'s logbook` }).click();
 
+    await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
     await page.locator('input[name="openaiApiKey"]').fill("sk-test-key");
     await page.getByRole("button", { name: "Save preferences" }).click();
@@ -191,6 +191,7 @@ test("a skydiver can permanently delete their account and all jump items", async
         (await queryPlaywrightDb("SELECT count(*) AS c FROM ai_usage"))[0]?.c,
     );
 
+    await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
     await expect(page).toHaveURL("/preferences");
     await expect(page.getByText("Danger zone")).toBeVisible();
