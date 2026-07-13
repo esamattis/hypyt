@@ -56,7 +56,7 @@ function JumpTypeForm(props: {
             <Textarea
                 name="description"
                 label="Description"
-                defaultValue={values.description}
+                value={values.description}
             />
             <FormActions
                 submitLabel={props.submitLabel}

@@ -161,13 +161,7 @@ function JumpFromImageSection(props: { options: UserOptions }) {
                 placeholder="sk-..."
                 value={props.options.openaiApiKey}
             />
-            <Select
-                name="jumpImageModel"
-                label="Default AI model"
-                defaultValue={
-                    props.options.jumpImageModel || DEFAULT_JUMP_IMAGE_MODEL
-                }
-            >
+            <Select name="jumpImageModel" label="Default AI model">
                 {JUMP_IMAGE_MODELS.map((model) => (
                     <option
                         value={model.id}
@@ -185,7 +179,7 @@ function JumpFromImageSection(props: { options: UserOptions }) {
                 name="jumpImagePrompt"
                 label="Image reading prompt"
                 rows={8}
-                defaultValue={
+                value={
                     props.options.jumpImagePrompt || DEFAULT_JUMP_IMAGE_PROMPT
                 }
             />

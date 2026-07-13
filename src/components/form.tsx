@@ -16,7 +16,6 @@ export function Input(props: {
     required?: boolean;
     autofocus?: boolean;
     value?: string;
-    defaultValue?: string;
     placeholder?: string;
     className?: string;
     inputClassName?: string;
@@ -31,7 +30,6 @@ export function Input(props: {
                 required={props.required}
                 autofocus={props.autofocus}
                 value={props.value}
-                defaultValue={props.defaultValue}
                 placeholder={props.placeholder}
                 className={clsx(controlClassName, props.inputClassName)}
             />
@@ -47,7 +45,6 @@ export function NumberInput(props: {
     required?: boolean;
     autofocus?: boolean;
     value?: string;
-    defaultValue?: string;
     className?: string;
     inputClassName?: string;
     persist?: string;
@@ -65,7 +62,6 @@ export function NumberInput(props: {
                 required={props.required}
                 autofocus={props.autofocus}
                 value={props.value}
-                defaultValue={props.defaultValue}
                 className={clsx(controlClassName, props.inputClassName)}
             />
             {props.persist ? (
@@ -94,7 +90,6 @@ export function Select(props: {
     name: string;
     label: string;
     required?: boolean;
-    defaultValue?: string;
     className?: string;
     selectClassName?: string;
     persist?: string;
@@ -108,7 +103,6 @@ export function Select(props: {
                 id={id}
                 name={props.name}
                 required={props.required}
-                defaultValue={props.defaultValue}
                 className={clsx(
                     "appearance-none bg-no-repeat pr-10",
                     controlClassName,
@@ -154,7 +148,7 @@ export function Textarea(props: {
     name: string;
     label: string;
     rows?: number;
-    defaultValue?: string;
+    value?: string;
     className?: string;
     textareaClassName?: string;
     persist?: string;
@@ -173,7 +167,7 @@ export function Textarea(props: {
                     props.textareaClassName,
                 )}
             >
-                {props.defaultValue}
+                {props.value}
             </textarea>
             {props.persist ? (
                 <Script

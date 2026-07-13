@@ -55,6 +55,8 @@ All functions starting with dollar sign `$` are and should be designed so they c
 
 Always write user interface text in English language.
 
+Do not use React-style `defaultValue` on form controls. Hono SSR does not map it to HTML `value`. Use `value={...}` on inputs/selects (and children/`value` on textareas). For selects, mark the chosen option with `selected`.
+
 ## Terminology
 
 "Jump items" refer to gear, locations, aircrafts and jump types that can be assigned to a jump.

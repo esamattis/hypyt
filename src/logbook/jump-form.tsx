@@ -219,7 +219,7 @@ function FreefallTimeField(props: {
                             id={customSpeedId}
                             label="Custom speed (km/h)"
                             min="1"
-                            defaultValue="180"
+                            value="180"
                             persist="freefall-speed-estimate"
                         />
                         <button
@@ -611,7 +611,7 @@ function JumpForm(props: {
             <Textarea
                 name="description"
                 label="Notes"
-                defaultValue={values.description}
+                value={values.description}
             />
             <FormActions
                 submitLabel={props.submitLabel}
