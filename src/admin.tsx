@@ -198,6 +198,7 @@ interface AdminSessionRow {
     displayName: string | null;
     createdAt: number;
     expiresAt: number;
+    lastUsedAt: number;
 }
 
 function formatUnixSeconds(seconds: number): string {
@@ -249,6 +250,12 @@ function AdminSessionsSection(props: { sessions: AdminSessionRow[] }) {
                                             Created{" "}
                                             {formatUnixSeconds(
                                                 session.createdAt,
+                                            )}
+                                        </p>
+                                        <p className="mt-1">
+                                            Last used{" "}
+                                            {formatUnixSeconds(
+                                                session.lastUsedAt,
                                             )}
                                         </p>
                                         <p className="mt-1">
@@ -352,6 +359,7 @@ async function renderAdminPage(c: AppRequestContext) {
                 displayName: users.displayName,
                 createdAt: sessions.createdAt,
                 expiresAt: sessions.expiresAt,
+                lastUsedAt: sessions.lastUsedAt,
             })
             .from(sessions)
             .innerJoin(users, eq(sessions.userUuid, users.uuid))

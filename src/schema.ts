@@ -145,6 +145,7 @@ export const sessions = sqliteTable("sessions", {
         .notNull(),
     createdAt: integer("created_at").notNull(), // unix seconds
     expiresAt: integer("expires_at").notNull(), // unix seconds
+    lastUsedAt: integer("last_used_at").notNull(), // unix seconds
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

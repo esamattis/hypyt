@@ -502,6 +502,7 @@ export async function createSession(
             userUuid,
             createdAt: now,
             expiresAt: now + SESSION_MAX_AGE,
+            lastUsedAt: now,
         })
         .run();
 

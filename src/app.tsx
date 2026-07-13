@@ -266,6 +266,7 @@ async function authenticateMiddleware(
                 options: users.options,
                 admin: users.admin,
                 expiresAt: sessions.expiresAt,
+                lastUsedAt: sessions.lastUsedAt,
             })
             .from(sessions)
             .innerJoin(users, eq(sessions.userUuid, users.uuid))
@@ -274,9 +275,17 @@ async function authenticateMiddleware(
             .get();
 
         if (row && row.expiresAt > now) {
-            const { expiresAt, ...userRow } = row;
+            const { expiresAt, lastUsedAt, ...userRow } = row;
             void expiresAt;
             setAuthenticatedUser(ctx, userRow);
+            // Throttle last-used writes to once per 5 minutes
+            if (lastUsedAt <= now - 5 * 60) {
+                await ctx.db
+                    .update(sessions)
+                    .set({ lastUsedAt: now })
+                    .where(eq(sessions.tokenHash, tokenHash))
+                    .run();
+            }
         } else {
             deleteCookie(c, SESSION_COOKIE_NAME);
         }

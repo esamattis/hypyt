@@ -71,6 +71,13 @@
             "when": 1783930808427,
             "tag": "0009_rapid_quasar",
             "breakpoints": true
+        },
+        {
+            "idx": 10,
+            "version": "6",
+            "when": 1783932088314,
+            "tag": "0010_faulty_frightful_four",
+            "breakpoints": true
         }
     ]
 }
