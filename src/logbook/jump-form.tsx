@@ -548,6 +548,7 @@ function JumpForm(props: {
     gear: Resource[];
     jumpTypes: Resource[];
     errors?: Child[];
+    notices?: Child[];
     submitLabel: string;
     nextJumpNumber?: string;
 }) {
@@ -560,6 +561,10 @@ function JumpForm(props: {
             method="post"
             className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
+            <ErrorList
+                errors={props.notices ?? []}
+                className="border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200"
+            />
             <ErrorList
                 errors={props.errors ?? []}
                 className="border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
@@ -626,6 +631,7 @@ export function JumpFormPage(props: {
     submitLabel: string;
     values?: JumpFormValues;
     errors?: Child[];
+    notices?: Child[];
     resources: {
         locations: Resource[];
         aircrafts: Resource[];
@@ -641,6 +647,7 @@ export function JumpFormPage(props: {
             <JumpForm
                 values={props.values}
                 errors={props.errors}
+                notices={props.notices}
                 submitLabel={props.submitLabel}
                 nextJumpNumber={props.nextJumpNumber}
                 {...props.resources}

@@ -408,6 +408,20 @@ function duplicateJumpNumberError(jumpNumber: number, existingUuid: string) {
     );
 }
 
+function existingJumpNumberNotice(jumpNumber: number, existingUuid: string) {
+    return (
+        <>
+            Jump #{jumpNumber} already exists.{" "}
+            <a
+                href={routes.jumpEdit({ uuid: existingUuid })}
+                className="font-medium underline"
+            >
+                Open existing jump
+            </a>
+        </>
+    );
+}
+
 function splitQueryList(value: string | undefined): string[] {
     if (!value) {
         return [];
@@ -555,12 +569,26 @@ async function renderNewJump(c: AppRequestContext) {
         values = applyJumpQueryPrefill(values, query);
     }
 
+    const notices: ReturnType<typeof existingJumpNumberNotice>[] = [];
+    if (query.jumpNumber) {
+        const jumpNumber = Number(query.jumpNumber);
+        if (Number.isInteger(jumpNumber) && jumpNumber > 0) {
+            const existingJump = await findJumpByNumber(c, jumpNumber);
+            if (existingJump) {
+                notices.push(
+                    existingJumpNumberNotice(jumpNumber, existingJump.uuid),
+                );
+            }
+        }
+    }
+
     return c.render(
         <JumpFormPage
             title="Add jump"
             submitLabel="Add jump"
             values={values}
             nextJumpNumber={nextJumpNumber}
+            notices={notices}
             resources={await getJumpFormResources(c)}
         />,
     );
