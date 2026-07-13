@@ -8,6 +8,7 @@ test("the log book loads additional jumps while scrolling", async ({
     page,
 }) => {
     await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
     await page.locator('input[name="username"]').fill("scrolling-skydiver");
     await page.locator('input[name="displayName"]').fill("Scrolling Skydiver");
     await page.locator('input[name="email"]').fill("scrolling@example.test");
@@ -61,6 +62,7 @@ test("a skydiver can register and record their first jump", async ({
     page,
 }) => {
     await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
     await page.locator('input[name="username"]').fill("skydiver");
     await page.locator('input[name="displayName"]').fill("Test Skydiver");
     await page.locator('input[name="email"]').fill("skydiver@example.test");
@@ -438,6 +440,7 @@ test("gear can be converted to a jump type with its jump references", async ({
     page,
 }) => {
     await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
     await page.locator('input[name="username"]').fill("conversion-skydiver");
     await page.locator('input[name="displayName"]').fill("Conversion Skydiver");
     await page.locator('input[name="email"]').fill("conversion@example.test");
@@ -518,6 +521,7 @@ test("adding a jump with an existing jump number shows an error and link", async
     page,
 }) => {
     await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
     await page.locator('input[name="username"]').fill("duplicate-jump-number");
     await page.locator('input[name="displayName"]').fill("Duplicate Jumper");
     await page

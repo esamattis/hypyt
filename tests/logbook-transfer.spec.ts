@@ -22,6 +22,7 @@ function basicAuthHeader(username: string, password: string): string {
 
 async function registerUser(page: Page, username: string) {
     await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
     await page.locator('input[name="username"]').fill(username);
     await page.locator('input[name="displayName"]').fill(username);
     await page.locator('input[name="email"]').fill(`${username}@example.test`);

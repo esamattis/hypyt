@@ -53,6 +53,13 @@ needed.
 pn db:list-users
 ```
 
+Create or update an invitation code. Prompts for local or remote database,
+code, and number of uses.
+
+```sh
+pn db:create-invitation
+```
+
 ## Cloudflare
 
 Generate or update TypeScript types for Cloudflare bindings:

@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { app, getAppContext, type AppRequestContext } from "./app";
-import { jumpTypes, users } from "./schema";
+import { invitations, jumpTypes, users } from "./schema";
 import { z } from "zod";
 import clsx from "clsx";
 import { AuthFormShell } from "./components/auth";
@@ -175,6 +175,7 @@ function LoginForm(props: {
 
 const RegisterFormSchema = z
     .object({
+        invitationCode: z.string().min(1, "Invitation code is required"),
         username: z.string().min(1, "Username is required"),
         displayName: z.string().optional(),
         email: z
@@ -191,6 +192,7 @@ const RegisterFormSchema = z
 
 function RegisterForm(props: {
     errors?: string[];
+    invitationCode?: string;
     username?: string;
     displayName?: string;
     email?: string;
@@ -204,11 +206,18 @@ function RegisterForm(props: {
             alternateLabel="← Already have an account? Log in"
         >
             <TextInput
+                name="invitationCode"
+                label="Invitation code:"
+                placeholder="Enter invitation code"
+                required
+                autofocus
+                defaultValue={props.invitationCode}
+            />
+            <TextInput
                 name="username"
                 label="Username:"
                 placeholder="Choose username"
                 required
-                autofocus
                 defaultValue={props.username}
             />
             <TextInput
@@ -312,6 +321,20 @@ async function renderRegisterForm(c: AppRequestContext) {
 
 app.get(routes.register.route, renderRegisterForm);
 
+function registerFormProps(raw: {
+    invitationCode?: string;
+    username?: string;
+    displayName?: string;
+    email?: string;
+}) {
+    return {
+        invitationCode: raw.invitationCode,
+        username: raw.username,
+        displayName: raw.displayName,
+        email: raw.email,
+    };
+}
+
 async function handleRegister(c: AppRequestContext) {
     const formData = await c.req.formData();
     const raw = formDataToStrings(formData);
@@ -321,15 +344,37 @@ async function handleRegister(c: AppRequestContext) {
         return c.render(
             <RegisterForm
                 errors={result.error.issues.map((issue) => issue.message)}
-                username={raw.username}
-                displayName={raw.displayName}
-                email={raw.email}
+                {...registerFormProps(raw)}
             />,
         );
     }
 
-    const { username, displayName, email, password } = result.data;
+    const { invitationCode, username, displayName, email, password } =
+        result.data;
     const db = getAppContext(c).db;
+    const formProps = registerFormProps({
+        invitationCode,
+        username,
+        displayName,
+        email,
+    });
+
+    const invitation = await db
+        .select({ code: invitations.code, count: invitations.count })
+        .from(invitations)
+        .where(
+            and(eq(invitations.code, invitationCode), gt(invitations.count, 0)),
+        )
+        .limit(1)
+        .get();
+    if (!invitation) {
+        return c.render(
+            <RegisterForm
+                errors={["Invalid or exhausted invitation code"]}
+                {...formProps}
+            />,
+        );
+    }
 
     const existingByUsername = await db
         .select({ uuid: users.uuid })
@@ -341,9 +386,7 @@ async function handleRegister(c: AppRequestContext) {
         return c.render(
             <RegisterForm
                 errors={["Username is already in use"]}
-                username={username}
-                displayName={displayName}
-                email={email}
+                {...formProps}
             />,
         );
     }
@@ -358,14 +401,29 @@ async function handleRegister(c: AppRequestContext) {
         return c.render(
             <RegisterForm
                 errors={["Email address is already in use"]}
-                username={username}
-                displayName={displayName}
-                email={email}
+                {...formProps}
             />,
         );
     }
 
     const passwordHash = await hashPassword(password);
+
+    const consumed = await db
+        .update(invitations)
+        .set({ count: sql`${invitations.count} - 1` })
+        .where(
+            and(eq(invitations.code, invitationCode), gt(invitations.count, 0)),
+        )
+        .returning({ code: invitations.code })
+        .get();
+    if (!consumed) {
+        return c.render(
+            <RegisterForm
+                errors={["Invalid or exhausted invitation code"]}
+                {...formProps}
+            />,
+        );
+    }
 
     await db
         .insert(users)
@@ -388,9 +446,7 @@ async function handleRegister(c: AppRequestContext) {
         return c.render(
             <RegisterForm
                 errors={["User creation failed. Try again."]}
-                username={username}
-                displayName={displayName}
-                email={email}
+                {...formProps}
             />,
         );
     }

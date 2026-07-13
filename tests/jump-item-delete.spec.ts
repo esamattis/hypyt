@@ -6,6 +6,7 @@ async function openManageLogbook(page: Page) {
 
 async function registerUser(page: Page, username: string, displayName: string) {
     await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
     await page.locator('input[name="username"]').fill(username);
     await page.locator('input[name="displayName"]').fill(displayName);
     await page.locator('input[name="email"]').fill(`${username}@example.test`);

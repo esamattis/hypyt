@@ -4,6 +4,7 @@ test("a skydiver can update preferences and account details", async ({
     page,
 }) => {
     await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
     await page.locator('input[name="username"]').fill("preferences-skydiver");
     await page
         .locator('input[name="displayName"]')

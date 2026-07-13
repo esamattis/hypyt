@@ -27,6 +27,19 @@ async function main(): Promise<void> {
         process.stdout.write(stdout);
         process.stderr.write(stderr);
     }
+
+    const seed = await execFile("wrangler", [
+        "d1",
+        "execute",
+        "DB",
+        "--local",
+        "--persist-to",
+        ".playwright/state",
+        "--command",
+        "INSERT INTO invitations (code, count) VALUES ('test-invite', 1000000)",
+    ]);
+    process.stdout.write(seed.stdout);
+    process.stderr.write(seed.stderr);
 }
 
 main().catch((error: unknown) => {

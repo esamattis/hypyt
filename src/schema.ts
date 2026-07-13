@@ -6,7 +6,7 @@ import {
     primaryKey,
     uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-import { DEFAULT_USER_OPTIONS_JSON } from "./options";
+import { DEFAULT_USER_OPTIONS_JSON } from "./options.ts";
 
 export const users = sqliteTable("users", {
     uuid: text("uuid")
@@ -17,6 +17,11 @@ export const users = sqliteTable("users", {
     password: text("password").notNull(),
     email: text("email").notNull(),
     options: text("options").notNull().default(DEFAULT_USER_OPTIONS_JSON),
+});
+
+export const invitations = sqliteTable("invitations", {
+    code: text("code").primaryKey(),
+    count: integer("count").notNull().default(0),
 });
 
 export const locations = sqliteTable("locations", {
