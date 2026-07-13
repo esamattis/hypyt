@@ -54,7 +54,7 @@ export const JUMP_IMAGE_MODELS: {
     },
 ];
 
-export const DEFAULT_JUMP_IMAGE_MODEL: JumpImageModelId = "gpt-5.6";
+export const DEFAULT_JUMP_IMAGE_MODEL: JumpImageModelId = "gpt-5.6-luna";
 
 export function resolveJumpImageModel(
     value: unknown,

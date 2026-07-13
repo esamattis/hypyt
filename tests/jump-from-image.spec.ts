@@ -47,8 +47,12 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
 
     await page.getByRole("link", { name: "From image", exact: true }).click();
     await expect(page).toHaveURL("/logbook/jumps/new/from-image");
-    await expect(page.locator('textarea[name="prompt"]')).not.toHaveValue("");
-    await expect(page.locator('select[name="model"]')).toHaveValue("gpt-5.6");
+    await expect(
+        page.locator('textarea[name="additionalContext"]'),
+    ).toHaveValue("");
+    await expect(page.locator('select[name="model"]')).toHaveValue(
+        "gpt-5.6-luna",
+    );
     await expect(
         page
             .getByRole("main")
@@ -59,7 +63,6 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
         page.getByRole("button", { name: "Take photo" }),
     ).toBeVisible();
     await expect(page.locator('input[capture="environment"]')).toHaveCount(1);
-    await page.locator('select[name="model"]').selectOption("gpt-5.6-luna");
     await page
         .locator('input[name="image"]')
         .setInputFiles(path.join(__dirname, "fixtures/jump-image.png"));

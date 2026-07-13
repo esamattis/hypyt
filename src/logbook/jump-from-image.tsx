@@ -281,7 +281,7 @@ function JumpImageField() {
 function JumpFromImagePage(props: {
     errors?: string[];
     hasApiKey: boolean;
-    prompt: string;
+    additionalContext: string;
     model: UserOptions["jumpImageModel"];
 }) {
     return (
@@ -348,14 +348,14 @@ function JumpFromImagePage(props: {
                     </div>
                     <div className="space-y-1.5">
                         <Textarea
-                            name="prompt"
-                            label="Image reading prompt"
-                            rows={8}
-                            defaultValue={props.prompt}
+                            name="additionalContext"
+                            label="Additional context"
+                            rows={4}
+                            defaultValue={props.additionalContext}
                         />
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Prefills from your saved prompt. Edit for this read,
-                            or change the default in{" "}
+                            Optional notes for this read only. Change the
+                            default image reading prompt in{" "}
                             <a
                                 href={routes.preferences({})}
                                 className="font-medium text-indigo-600 underline dark:text-indigo-400"
@@ -379,15 +379,12 @@ function renderJumpFromImage(
     c: AppRequestContext,
     options?: {
         errors?: string[];
-        prompt?: string;
+        additionalContext?: string;
         model?: UserOptions["jumpImageModel"];
     },
 ) {
     const userOptions = getAppContext(c).getUser().options;
     const hasApiKey = Boolean(userOptions.openaiApiKey.trim());
-    const prompt =
-        (options?.prompt ?? userOptions.jumpImagePrompt) ||
-        DEFAULT_JUMP_IMAGE_PROMPT;
     const model =
         options?.model ??
         userOptions.jumpImageModel ??
@@ -396,7 +393,7 @@ function renderJumpFromImage(
         <JumpFromImagePage
             errors={options?.errors}
             hasApiKey={hasApiKey}
-            prompt={prompt}
+            additionalContext={options?.additionalContext ?? ""}
             model={model}
         />,
     );
@@ -423,6 +420,7 @@ async function extractJumpDataFromImage(options: {
     apiKey: string;
     model: UserOptions["jumpImageModel"];
     prompt: string;
+    additionalContext: string;
     altitudeUnits: UserOptions["altitudeUnits"];
     image: Uint8Array;
     mediaType: string;
@@ -442,7 +440,12 @@ async function extractJumpDataFromImage(options: {
         buildResourceHint("Aircraft", options.resources.aircrafts),
         buildResourceHint("Gear", options.resources.gear),
         buildResourceHint("Jump types", options.resources.jumpTypes),
-    ].join("\n");
+        options.additionalContext.trim()
+            ? `Additional context from the user:\n${options.additionalContext.trim()}`
+            : "",
+    ]
+        .filter(Boolean)
+        .join("\n");
 
     const { output } = await generateText({
         model: openai(options.model),
@@ -513,11 +516,12 @@ async function handleJumpFromImage(c: AppRequestContext) {
     const options = getAppContext(c).getUser().options;
     const apiKey = options.openaiApiKey.trim();
     const formData = await c.req.formData();
-    const promptField = formData.get("prompt");
-    const prompt =
-        typeof promptField === "string"
-            ? promptField.trim() || DEFAULT_JUMP_IMAGE_PROMPT
-            : options.jumpImagePrompt || DEFAULT_JUMP_IMAGE_PROMPT;
+    const additionalContextField = formData.get("additionalContext");
+    const additionalContext =
+        typeof additionalContextField === "string"
+            ? additionalContextField
+            : "";
+    const prompt = options.jumpImagePrompt || DEFAULT_JUMP_IMAGE_PROMPT;
     const model = resolveJumpImageModel(
         formData.get("model"),
         options.jumpImageModel ?? DEFAULT_JUMP_IMAGE_MODEL,
@@ -528,7 +532,7 @@ async function handleJumpFromImage(c: AppRequestContext) {
             errors: [
                 "Add an OpenAI API key in Preferences before reading an image.",
             ],
-            prompt,
+            additionalContext,
             model,
         });
     }
@@ -537,14 +541,14 @@ async function handleJumpFromImage(c: AppRequestContext) {
     if (!(image instanceof File) || image.size === 0) {
         return renderJumpFromImage(c, {
             errors: ["Choose an image to upload."],
-            prompt,
+            additionalContext,
             model,
         });
     }
     if (image.size > MAX_IMAGE_BYTES) {
         return renderJumpFromImage(c, {
             errors: ["Image is too large. Maximum size is 8 MB."],
-            prompt,
+            additionalContext,
             model,
         });
     }
@@ -552,7 +556,7 @@ async function handleJumpFromImage(c: AppRequestContext) {
     if (!ALLOWED_IMAGE_TYPES.has(mediaType)) {
         return renderJumpFromImage(c, {
             errors: ["Unsupported image type. Use JPEG, PNG, WebP, or GIF."],
-            prompt,
+            additionalContext,
             model,
         });
     }
@@ -564,6 +568,7 @@ async function handleJumpFromImage(c: AppRequestContext) {
             apiKey,
             model,
             prompt,
+            additionalContext,
             altitudeUnits: options.altitudeUnits,
             image: bytes,
             mediaType,
@@ -577,7 +582,11 @@ async function handleJumpFromImage(c: AppRequestContext) {
             error instanceof Error
                 ? error.message
                 : "Failed to read jump data from the image";
-        return renderJumpFromImage(c, { errors: [message], prompt, model });
+        return renderJumpFromImage(c, {
+            errors: [message],
+            additionalContext,
+            model,
+        });
     }
 }
 
