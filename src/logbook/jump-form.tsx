@@ -9,7 +9,7 @@ import {
     Textarea,
 } from "../components/form";
 import { ErrorList } from "../components/feedback";
-import { ConfirmDeleteButton, DangerZone } from "../components/ui";
+import { ConfirmDeleteButton, DangerZone, Dialog } from "../components/ui";
 import { Script } from "../components/helpers";
 import { $assertElement } from "../utils";
 import * as routes from "../routes";
@@ -51,62 +51,10 @@ const FIELD_INPUT_CLASS =
 const DIALOG_OPTION_CLASS =
     "rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40";
 
-function FreefallEstimateDialog(props: { id: string }) {
-    return (
-        <dialog
-            id={props.id}
-            className="m-auto w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-0 text-slate-900 shadow-xl backdrop:bg-slate-900/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-        >
-            <div className="space-y-4 p-5">
-                <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-base font-semibold">
-                        Estimate freefall time
-                    </h2>
-                    <button
-                        type="button"
-                        value="cancel"
-                        className="rounded-lg px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                    >
-                        Close
-                    </button>
-                </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Choose freefall type. Time is estimated from exit and
-                    opening altitude.
-                </p>
-                <div className="grid gap-2">
-                    <button
-                        type="button"
-                        data-speed-kmh="180"
-                        className={DIALOG_OPTION_CLASS}
-                    >
-                        Belly · 180 km/h
-                    </button>
-                    <button
-                        type="button"
-                        data-speed-kmh="240"
-                        className={DIALOG_OPTION_CLASS}
-                    >
-                        Freefly · 240 km/h
-                    </button>
-                    <button
-                        type="button"
-                        data-speed-kmh="80"
-                        className={DIALOG_OPTION_CLASS}
-                    >
-                        Wingsuit · 80 km/h
-                    </button>
-                </div>
-            </div>
-        </dialog>
-    );
-}
-
 function FreefallEstimateScript(props: {
     exitAltitudeId: string;
     openingAltitudeId: string;
     freefallTimeId: string;
-    estimateButtonId: string;
     estimateDialogId: string;
     altitudeUnits: "meters" | "feet";
 }) {
@@ -117,7 +65,6 @@ function FreefallEstimateScript(props: {
                 props.exitAltitudeId,
                 props.openingAltitudeId,
                 props.freefallTimeId,
-                props.estimateButtonId,
                 props.estimateDialogId,
                 props.altitudeUnits,
             ]}
@@ -125,7 +72,6 @@ function FreefallEstimateScript(props: {
                 exitAltitudeId,
                 openingAltitudeId,
                 freefallTimeId,
-                estimateButtonId,
                 estimateDialogId,
                 altitudeUnits,
             ) => {
@@ -133,14 +79,11 @@ function FreefallEstimateScript(props: {
                 const openingAltitude =
                     document.getElementById(openingAltitudeId);
                 const freefallTime = document.getElementById(freefallTimeId);
-                const estimateButton =
-                    document.getElementById(estimateButtonId);
                 const estimateDialog =
                     document.getElementById(estimateDialogId);
                 $assertElement(exitAltitude, HTMLInputElement);
                 $assertElement(openingAltitude, HTMLInputElement);
                 $assertElement(freefallTime, HTMLInputElement);
-                $assertElement(estimateButton, HTMLButtonElement);
                 $assertElement(estimateDialog, HTMLDialogElement);
 
                 function estimateFreefallTime(speedKmh: number) {
@@ -169,24 +112,9 @@ function FreefallEstimateScript(props: {
                     );
                 }
 
-                estimateButton.addEventListener("click", () => {
-                    estimateDialog.showModal();
-                });
-
                 estimateDialog.addEventListener("click", (event) => {
                     const target = event.target;
                     if (!(target instanceof Element)) {
-                        return;
-                    }
-                    if (target === estimateDialog) {
-                        estimateDialog.close();
-                        return;
-                    }
-                    if (
-                        target instanceof HTMLButtonElement &&
-                        target.value === "cancel"
-                    ) {
-                        estimateDialog.close();
                         return;
                     }
                     const speedButton = target.closest("[data-speed-kmh]");
@@ -240,12 +168,40 @@ function FreefallTimeField(props: {
                     Estimate
                 </button>
             </div>
-            <FreefallEstimateDialog id={estimateDialogId} />
+            <Dialog
+                id={estimateDialogId}
+                openButtonId={estimateButtonId}
+                title="Estimate freefall time"
+                description="Choose freefall type. Time is estimated from exit and opening altitude."
+            >
+                <div className="grid gap-2">
+                    <button
+                        type="button"
+                        data-speed-kmh="180"
+                        className={DIALOG_OPTION_CLASS}
+                    >
+                        Belly · 180 km/h
+                    </button>
+                    <button
+                        type="button"
+                        data-speed-kmh="240"
+                        className={DIALOG_OPTION_CLASS}
+                    >
+                        Freefly · 240 km/h
+                    </button>
+                    <button
+                        type="button"
+                        data-speed-kmh="80"
+                        className={DIALOG_OPTION_CLASS}
+                    >
+                        Wingsuit · 80 km/h
+                    </button>
+                </div>
+            </Dialog>
             <FreefallEstimateScript
                 exitAltitudeId={props.exitAltitudeId}
                 openingAltitudeId={props.openingAltitudeId}
                 freefallTimeId={props.freefallTimeId}
-                estimateButtonId={estimateButtonId}
                 estimateDialogId={estimateDialogId}
                 altitudeUnits={props.altitudeUnits}
             />
