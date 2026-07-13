@@ -51,6 +51,10 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await expect(
         page.getByRole("main").getByRole("link", { name: "Preferences" }),
     ).toBeVisible();
+    await expect(
+        page.getByRole("button", { name: "Take photo" }),
+    ).toBeVisible();
+    await expect(page.locator('input[capture="environment"]')).toHaveCount(1);
     await page
         .locator('input[name="image"]')
         .setInputFiles(path.join(__dirname, "fixtures/jump-image.png"));

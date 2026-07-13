@@ -387,6 +387,8 @@ function $formatJumpImageBytes(bytes: number): string {
 
 function $initJumpImageInput(
     inputId: string,
+    cameraInputId: string,
+    cameraButtonId: string,
     previewId: string,
     metaId: string,
     maxDimension: number,
@@ -396,12 +398,18 @@ function $initJumpImageInput(
     storageKey: string,
 ) {
     const inputEl = document.getElementById(inputId);
+    const cameraInputEl = document.getElementById(cameraInputId);
+    const cameraButtonEl = document.getElementById(cameraButtonId);
     const previewEl = document.getElementById(previewId);
     const metaEl = document.getElementById(metaId);
     $assertElement(inputEl, HTMLInputElement);
+    $assertElement(cameraInputEl, HTMLInputElement);
+    $assertElement(cameraButtonEl, HTMLButtonElement);
     $assertElement(previewEl, HTMLImageElement);
     $assertElement(metaEl, HTMLElement);
     const input: HTMLInputElement = inputEl;
+    const cameraInput: HTMLInputElement = cameraInputEl;
+    const cameraButton: HTMLButtonElement = cameraButtonEl;
     const preview: HTMLImageElement = previewEl;
     const meta: HTMLElement = metaEl;
 
@@ -439,8 +447,7 @@ function $initJumpImageInput(
         }
     }
 
-    input.addEventListener("change", () => {
-        const file = input.files?.[0];
+    function handleSelectedFile(file: File | undefined) {
         if (!file) {
             return;
         }
@@ -448,6 +455,19 @@ function $initJumpImageInput(
             meta.textContent = "Could not process the selected image.";
             meta.classList.remove("hidden");
         });
+    }
+
+    input.addEventListener("change", () => {
+        handleSelectedFile(input.files?.[0]);
+    });
+
+    cameraInput.addEventListener("change", () => {
+        handleSelectedFile(cameraInput.files?.[0]);
+        cameraInput.value = "";
+    });
+
+    cameraButton.addEventListener("click", () => {
+        cameraInput.click();
     });
 
     void $loadJumpImageDraft(dbName, storeName, storageKey)
@@ -463,15 +483,87 @@ function $initJumpImageInput(
         });
 }
 
+function JumpImageField() {
+    const inputId = useId();
+    const cameraInputId = useId();
+    const cameraButtonId = useId();
+    const previewId = useId();
+    const metaId = useId();
+
+    return (
+        <div className="space-y-2">
+            <label
+                htmlFor={inputId}
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
+                Jump image
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input
+                    id={inputId}
+                    type="file"
+                    name="image"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    required
+                    className="block min-w-0 flex-1 cursor-pointer rounded-lg border border-slate-300 bg-white text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-l-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-indigo-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:file:bg-indigo-500 dark:hover:file:bg-indigo-600"
+                />
+                <input
+                    id={cameraInputId}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    capture="environment"
+                    className="hidden"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                />
+                <button
+                    type="button"
+                    id={cameraButtonId}
+                    className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
+                >
+                    Take photo
+                </button>
+            </div>
+            <img
+                id={previewId}
+                alt="Selected jump image preview"
+                className="hidden max-h-80 w-full rounded-lg border border-slate-200 object-contain dark:border-slate-700"
+            />
+            <p
+                id={metaId}
+                className="hidden text-sm text-slate-500 dark:text-slate-400"
+            />
+            <Script
+                $deps={[
+                    $assertElement,
+                    $saveJumpImageDraft,
+                    $loadJumpImageDraft,
+                    $resizeJumpImageIfNeeded,
+                    $formatJumpImageBytes,
+                ]}
+                $args={[
+                    inputId,
+                    cameraInputId,
+                    cameraButtonId,
+                    previewId,
+                    metaId,
+                    JUMP_IMAGE_MAX_DIMENSION,
+                    JUMP_IMAGE_TARGET_BYTES,
+                    JUMP_IMAGE_DB_NAME,
+                    JUMP_IMAGE_STORE,
+                    JUMP_IMAGE_KEY,
+                ]}
+                $exec={$initJumpImageInput}
+            />
+        </div>
+    );
+}
+
 function JumpFromImagePage(props: {
     errors?: string[];
     hasApiKey: boolean;
     prompt: string;
 }) {
-    const inputId = useId();
-    const previewId = useId();
-    const metaId = useId();
-
     return (
         <LogbookPage title="Add jump from image">
             <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -506,51 +598,7 @@ function JumpFromImagePage(props: {
                     encType="multipart/form-data"
                     className="space-y-5"
                 >
-                    <div className="space-y-2">
-                        <label
-                            htmlFor={inputId}
-                            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                        >
-                            Jump image
-                        </label>
-                        <input
-                            id={inputId}
-                            type="file"
-                            name="image"
-                            accept="image/jpeg,image/png,image/webp,image/gif"
-                            required
-                            className="block w-full cursor-pointer rounded-lg border border-slate-300 bg-white text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-l-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-indigo-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:file:bg-indigo-500 dark:hover:file:bg-indigo-600"
-                        />
-                        <img
-                            id={previewId}
-                            alt="Selected jump image preview"
-                            className="hidden max-h-80 w-full rounded-lg border border-slate-200 object-contain dark:border-slate-700"
-                        />
-                        <p
-                            id={metaId}
-                            className="hidden text-sm text-slate-500 dark:text-slate-400"
-                        />
-                        <Script
-                            $deps={[
-                                $assertElement,
-                                $saveJumpImageDraft,
-                                $loadJumpImageDraft,
-                                $resizeJumpImageIfNeeded,
-                                $formatJumpImageBytes,
-                            ]}
-                            $args={[
-                                inputId,
-                                previewId,
-                                metaId,
-                                JUMP_IMAGE_MAX_DIMENSION,
-                                JUMP_IMAGE_TARGET_BYTES,
-                                JUMP_IMAGE_DB_NAME,
-                                JUMP_IMAGE_STORE,
-                                JUMP_IMAGE_KEY,
-                            ]}
-                            $exec={$initJumpImageInput}
-                        />
-                    </div>
+                    <JumpImageField />
                     <div className="space-y-1.5">
                         <Textarea
                             name="prompt"
