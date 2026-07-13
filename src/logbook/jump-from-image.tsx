@@ -18,46 +18,58 @@ const JumpImageDataSchema = z.object({
     jumpDate: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/)
-        .optional()
-        .describe("Jump date as YYYY-MM-DD"),
+        .nullable()
+        .describe("Jump date as YYYY-MM-DD, or null if not readable"),
     jumpNumber: z
         .number()
         .int()
         .positive()
-        .optional()
-        .describe("Jump number if present"),
+        .nullable()
+        .describe("Jump number if present, or null if not readable"),
     exitAltitude: z
         .number()
         .int()
         .positive()
-        .optional()
-        .describe("Exit altitude in the requested unit"),
+        .nullable()
+        .describe(
+            "Exit altitude in the requested unit, or null if not readable",
+        ),
     openingAltitude: z
         .number()
         .int()
         .min(0)
-        .optional()
-        .describe("Opening altitude in the requested unit"),
+        .nullable()
+        .describe(
+            "Opening altitude in the requested unit, or null if not readable",
+        ),
     freefallTime: z
         .number()
         .int()
         .min(0)
-        .optional()
-        .describe("Freefall time in whole seconds"),
-    location: z.string().optional().describe("Drop zone or location name"),
-    aircraft: z.string().optional().describe("Aircraft name"),
+        .nullable()
+        .describe("Freefall time in whole seconds, or null if not readable"),
+    location: z
+        .string()
+        .nullable()
+        .describe("Drop zone or location name, or null if not readable"),
+    aircraft: z
+        .string()
+        .nullable()
+        .describe("Aircraft name, or null if not readable"),
     gear: z
         .array(z.string())
-        .optional()
-        .describe("Gear names used on the jump"),
+        .nullable()
+        .describe("Gear names used on the jump, or null if not readable"),
     jumpTypes: z
         .array(z.string())
-        .optional()
-        .describe("Jump type or discipline names"),
+        .nullable()
+        .describe("Jump type or discipline names, or null if not readable"),
     description: z
         .string()
-        .optional()
-        .describe("Any additional notes from the image"),
+        .nullable()
+        .describe(
+            "Any additional notes from the image, or null if not readable",
+        ),
 });
 
 type JumpImageData = z.infer<typeof JumpImageDataSchema>;
@@ -76,7 +88,7 @@ function normalizeName(value: string): string {
 
 function findResourceUuid(
     resources: { uuid: string; name: string }[],
-    name: string | undefined,
+    name: string | null | undefined,
 ): string | undefined {
     if (!name?.trim()) {
         return undefined;
@@ -96,7 +108,7 @@ function findResourceUuid(
 
 function findResourceUuids(
     resources: { uuid: string; name: string }[],
-    names: string[] | undefined,
+    names: string[] | null | undefined,
 ): string[] {
     if (!names?.length) {
         return [];
@@ -317,27 +329,23 @@ function buildJumpNewQuery(
     );
 
     return {
-        jumpDate: data.jumpDate,
+        jumpDate: data.jumpDate ?? undefined,
         jumpNumber:
-            data.jumpNumber !== undefined ? String(data.jumpNumber) : undefined,
+            data.jumpNumber != null ? String(data.jumpNumber) : undefined,
         exitAltitude:
-            data.exitAltitude !== undefined
-                ? String(data.exitAltitude)
-                : undefined,
+            data.exitAltitude != null ? String(data.exitAltitude) : undefined,
         openingAltitude:
-            data.openingAltitude !== undefined
+            data.openingAltitude != null
                 ? String(data.openingAltitude)
                 : undefined,
         freefallTime:
-            data.freefallTime !== undefined
-                ? String(data.freefallTime)
-                : undefined,
+            data.freefallTime != null ? String(data.freefallTime) : undefined,
         locationUuid,
         aircraftUuid,
         gearUuids: gearUuids.length > 0 ? gearUuids.join(",") : undefined,
         jumpTypeUuids:
             jumpTypeUuids.length > 0 ? jumpTypeUuids.join(",") : undefined,
-        description: data.description,
+        description: data.description ?? undefined,
     };
 }
 
