@@ -762,6 +762,10 @@ function escapeCsvField(value: string | number | null | undefined): string {
     return text;
 }
 
+function joinCsvList(values: string[]): string {
+    return values.map((value) => value.replaceAll(";", ";;")).join("; ");
+}
+
 function formatExportCsv(records: ExportRecord[]): string {
     const headers = [
         "type",
@@ -791,8 +795,8 @@ function formatExportCsv(records: ExportRecord[]): string {
                 record.freefallTime,
                 record.location,
                 record.aircraft,
-                record.gear.join("; "),
-                record.jumpTypes.join("; "),
+                joinCsvList(record.gear),
+                joinCsvList(record.jumpTypes),
                 record.description,
             ];
         }
