@@ -1,5 +1,5 @@
 import { and, desc, eq, ne } from "drizzle-orm";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { app, getAppContext, type AppRequestContext } from "../app";
 import * as routes from "../routes";
 import {

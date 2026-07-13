@@ -1,5 +1,5 @@
 import { and, eq, ne } from "drizzle-orm";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { app, getAppContext, type AppRequestContext } from "./app";
 import { Input, NumberInput, Select, FormActions } from "./components/form";
 import { ErrorList } from "./components/feedback";

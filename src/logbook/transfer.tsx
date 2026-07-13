@@ -1,7 +1,7 @@
 /* eslint-disable max-lines, max-lines-per-function */
 import { eq } from "drizzle-orm";
 import { XMLParser } from "fast-xml-parser";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { app, getAppContext, type AppRequestContext } from "../app";
 import * as routes from "../routes";
 import {

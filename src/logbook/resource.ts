@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const ResourceSchema = z.object({
     name: z.string().trim().min(1, "Name is required"),

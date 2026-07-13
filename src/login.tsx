@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { app, getAppContext, type AppRequestContext } from "./app";
 import { jumpTypes, users } from "./schema";
-import { z } from "zod/v4";
+import { z } from "zod";
 import clsx from "clsx";
 import { AuthFormShell } from "./components/auth";
 import { Script } from "./components/helpers";
