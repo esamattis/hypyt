@@ -150,11 +150,35 @@ function $disableFormOnSubmit() {
         if (!(form instanceof HTMLFormElement)) {
             return;
         }
+
+        form.setAttribute("aria-busy", "true");
         form.classList.add(
-            "opacity-50",
+            "opacity-60",
             "cursor-not-allowed",
             "pointer-events-none",
+            "select-none",
         );
+
+        if (!document.getElementById("form-submit-progress")) {
+            const progress = document.createElement("div");
+            progress.id = "form-submit-progress";
+            progress.setAttribute("role", "progressbar");
+            progress.setAttribute("aria-label", "Submitting form");
+            progress.setAttribute("aria-valuetext", "Submitting");
+            document.body.appendChild(progress);
+        }
+
+        const submitter = event.submitter;
+        if (submitter instanceof HTMLButtonElement) {
+            submitter.classList.add("form-submit-pending");
+            if (!submitter.querySelector(".form-submit-spinner")) {
+                const spinner = document.createElement("span");
+                spinner.className = "form-submit-spinner";
+                spinner.setAttribute("aria-hidden", "true");
+                submitter.insertBefore(spinner, submitter.firstChild);
+            }
+        }
+
         // Disable after the browser builds the form data set so values still submit.
         setTimeout(() => {
             for (const element of form.elements) {
@@ -186,6 +210,17 @@ function $applyStoredTheme() {
     } catch {
         // ignore
     }
+}
+
+function $disableViewTransitionsInAutomation() {
+    // Playwright/automation leaves view-transition snapshots that never
+    // settle for hit-testing; opt out so e2e clicks stay reliable.
+    if (!navigator.webdriver) {
+        return;
+    }
+    const style = document.createElement("style");
+    style.textContent = "@view-transition { navigation: none; }";
+    document.head.appendChild(style);
 }
 
 function errorHandler(err: Error, c: AppRequestContext) {
@@ -414,6 +449,8 @@ app.use(
                     <title>{title}</title>
                     <Script $exec={$applyStoredTheme} />
                     <link href={routes.tailwindCss({})} rel="stylesheet" />
+                    {/* After CSS so automation can override @view-transition. */}
+                    <Script $exec={$disableViewTransitionsInAutomation} />
                     <script src={routes.htmxScript({})} type="module"></script>
                 </head>
                 <body
