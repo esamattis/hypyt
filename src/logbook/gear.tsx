@@ -3,6 +3,7 @@ import { getAppContext, app, type AppRequestContext } from "../app";
 import { FormActions, Input, NumberInput, Textarea } from "../components/form";
 import { ErrorList } from "../components/feedback";
 import {
+    ConfirmDangerButton,
     ConfirmDeleteButton,
     DangerZone,
     MergeIntoForm,
@@ -105,6 +106,25 @@ function GearFormPage(props: {
                             buttonLabel="Merge gear"
                         />
                     )}
+                    <form
+                        method="post"
+                        className="mb-4 border-b border-red-200 pb-4 dark:border-red-900/60"
+                    >
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="convertToJumpType"
+                        />
+                        <p className="mb-3 text-sm text-red-700/90 dark:text-red-300/90">
+                            Convert this gear into a jump type. All jumps using
+                            this gear will reference the new jump type instead,
+                            and this gear will be deleted.
+                        </p>
+                        <ConfirmDangerButton
+                            label="Convert to jump type"
+                            confirmLabel="Confirm convert"
+                        />
+                    </form>
                     <ConfirmDeleteButton label="Delete gear" />
                 </DangerZone>
             )}
@@ -227,24 +247,6 @@ async function renderGearList(c: AppRequestContext) {
                                 >
                                     Edit
                                 </a>
-                                <form
-                                    method="post"
-                                    action={routes.gearEdit({
-                                        uuid: item.uuid,
-                                    })}
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="action"
-                                        value="convertToJumpType"
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
-                                    >
-                                        Convert to jump type
-                                    </button>
-                                </form>
                                 <form
                                     method="post"
                                     action={routes.gearEdit({

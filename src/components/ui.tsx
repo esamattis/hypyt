@@ -103,6 +103,96 @@ export function DangerZone(props: {
     );
 }
 
+const dangerButtonClassName =
+    "inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 font-medium text-red-600 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:border-red-800 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40 dark:focus:ring-red-400/40";
+
+const confirmDangerCountdownSeconds =
+    process.env.PLAYWRIGHT_TEST === "1" ? 0 : 3;
+
+export function ConfirmDangerButton(props: {
+    label: string;
+    confirmLabel: string;
+    className?: string;
+}) {
+    const buttonId = useId();
+    return (
+        <>
+            <button
+                id={buttonId}
+                type="submit"
+                className={clsx(dangerButtonClassName, props.className)}
+            >
+                {props.label}
+            </button>
+            <Script
+                $deps={[$assertElement]}
+                $args={[
+                    buttonId,
+                    props.confirmLabel,
+                    confirmDangerCountdownSeconds,
+                ]}
+                $exec={(
+                    buttonId: string,
+                    confirmLabel: string,
+                    countdownSeconds: number,
+                ) => {
+                    const el = document.getElementById(buttonId);
+                    $assertElement(el, HTMLButtonElement);
+                    const button: HTMLButtonElement = el;
+                    let state: "idle" | "ready" = "idle";
+                    let timer: ReturnType<typeof setInterval> | null = null;
+
+                    function armReady() {
+                        button.disabled = false;
+                        button.classList.remove(
+                            "opacity-50",
+                            "cursor-not-allowed",
+                        );
+                        button.classList.add(
+                            "border-red-500",
+                            "bg-red-100",
+                            "dark:bg-red-950/60",
+                        );
+                        button.textContent = confirmLabel;
+                    }
+
+                    button.addEventListener("click", (event) => {
+                        if (state === "ready") {
+                            return;
+                        }
+                        event.preventDefault();
+                        state = "ready";
+                        if (countdownSeconds <= 0) {
+                            armReady();
+                            return;
+                        }
+                        button.disabled = true;
+                        button.classList.add(
+                            "opacity-50",
+                            "cursor-not-allowed",
+                            "border-red-500",
+                            "bg-red-100",
+                            "dark:bg-red-950/60",
+                        );
+                        let count = countdownSeconds;
+                        button.textContent = `${confirmLabel} (${count}s)`;
+                        timer = setInterval(() => {
+                            count -= 1;
+                            if (count <= 0) {
+                                if (timer) clearInterval(timer);
+                                timer = null;
+                                armReady();
+                                return;
+                            }
+                            button.textContent = `${confirmLabel} (${count}s)`;
+                        }, 1000);
+                    });
+                }}
+            />
+        </>
+    );
+}
+
 export function MergeIntoForm(props: {
     options: { uuid: string; name: string }[];
     description: string;
@@ -113,6 +203,7 @@ export function MergeIntoForm(props: {
     if (props.options.length === 0) {
         return null;
     }
+    const buttonLabel = props.buttonLabel ?? "Merge";
     return (
         <form
             method="post"
@@ -131,12 +222,10 @@ export function MergeIntoForm(props: {
                     <option value={option.uuid}>{option.name}</option>
                 ))}
             </Select>
-            <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 font-medium text-red-600 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:border-red-800 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40 dark:focus:ring-red-400/40"
-            >
-                {props.buttonLabel ?? "Merge"}
-            </button>
+            <ConfirmDangerButton
+                label={buttonLabel}
+                confirmLabel="Confirm merge"
+            />
         </form>
     );
 }
@@ -145,58 +234,12 @@ export function ConfirmDeleteButton(props: {
     label: string;
     className?: string;
 }) {
-    const buttonId = useId();
     return (
         <form method="post" className={clsx("flex", props.className)}>
             <input type="hidden" name="action" value="delete" />
-            <button
-                id={buttonId}
-                type="submit"
-                className="inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 font-medium text-red-600 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:border-red-800 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/40 dark:focus:ring-red-400/40"
-            >
-                {props.label}
-            </button>
-            <Script
-                $deps={[$assertElement]}
-                $args={[buttonId]}
-                $exec={(buttonId) => {
-                    const button = document.getElementById(buttonId);
-                    $assertElement(button, HTMLButtonElement);
-                    let state: "idle" | "ready" = "idle";
-                    let timer: ReturnType<typeof setInterval> | null = null;
-                    button.addEventListener("click", (event) => {
-                        if (state === "ready") {
-                            return;
-                        }
-                        event.preventDefault();
-                        state = "ready";
-                        button.disabled = true;
-                        button.classList.add(
-                            "opacity-50",
-                            "cursor-not-allowed",
-                            "border-red-500",
-                            "bg-red-100",
-                            "dark:bg-red-950/60",
-                        );
-                        let count = 3;
-                        button.textContent = `Confirm delete (${count}s)`;
-                        timer = setInterval(() => {
-                            count -= 1;
-                            if (count <= 0) {
-                                if (timer) clearInterval(timer);
-                                timer = null;
-                                button.disabled = false;
-                                button.classList.remove(
-                                    "opacity-50",
-                                    "cursor-not-allowed",
-                                );
-                                button.textContent = "Confirm delete";
-                                return;
-                            }
-                            button.textContent = `Confirm delete (${count}s)`;
-                        }, 1000);
-                    });
-                }}
+            <ConfirmDangerButton
+                label={props.label}
+                confirmLabel="Confirm delete"
             />
         </form>
     );

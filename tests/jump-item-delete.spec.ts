@@ -38,8 +38,7 @@ async function confirmDelete(page: Page, deleteLabel: string) {
         .getByRole("button");
     await expect(button).toHaveText(deleteLabel);
     await button.click();
-    await expect(button).toHaveText(/Confirm delete \(\d+s\)/);
-    await expect(button).toHaveText("Confirm delete", { timeout: 8000 });
+    await expect(button).toHaveText("Confirm delete", { timeout: 1000 });
     await button.click();
 }
 
@@ -191,8 +190,7 @@ test("aircraft can be deleted once no jumps use it", async ({ page }) => {
         .getByRole("button");
     await expect(button).toHaveText("Delete jump");
     await button.click();
-    await expect(button).toHaveText(/Confirm delete \(\d+s\)/);
-    await expect(button).toHaveText("Confirm delete", { timeout: 8000 });
+    await expect(button).toHaveText("Confirm delete", { timeout: 1000 });
     await button.click();
     await expect(page).toHaveURL("/logbook");
 

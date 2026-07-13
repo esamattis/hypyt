@@ -60,7 +60,11 @@ async function mergeItem(
     await mergeForm.locator('select[name="targetUuid"]').selectOption({
         label: targetName,
     });
-    await mergeForm.getByRole("button", { name: mergeButtonLabel }).click();
+    const mergeButton = mergeForm.getByRole("button");
+    await expect(mergeButton).toHaveText(mergeButtonLabel);
+    await mergeButton.click();
+    await expect(mergeButton).toHaveText("Confirm merge", { timeout: 1000 });
+    await mergeButton.click();
 }
 
 test("location can be merged into another location", async ({ page }) => {

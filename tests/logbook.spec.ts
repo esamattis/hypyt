@@ -495,7 +495,17 @@ test("gear can be converted to a jump type with its jump references", async ({
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
-    await page.getByRole("button", { name: "Convert to jump type" }).click();
+    await page.getByRole("link", { name: "Edit" }).click();
+    const convertForm = page.locator("form").filter({
+        has: page.locator('input[name="action"][value="convertToJumpType"]'),
+    });
+    const convertButton = convertForm.getByRole("button");
+    await expect(convertButton).toHaveText("Convert to jump type");
+    await convertButton.click();
+    await expect(convertButton).toHaveText("Confirm convert", {
+        timeout: 1000,
+    });
+    await convertButton.click();
     await expect(page).toHaveURL(/\/logbook\/jump-types\/.+/);
     await expect(page.locator('input[name="name"]')).toHaveValue(
         "Convertible gear",

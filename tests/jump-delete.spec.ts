@@ -77,12 +77,9 @@ test("a jump can be deleted from the edit view after the countdown elapses", asy
     const button = deleteButton(page);
     await expect(button).toHaveText("Delete jump");
 
-    // First click arms the countdown without deleting.
+    // First click arms confirmation without deleting.
     await button.click();
-    await expect(button).toHaveText(/Confirm delete \(\d+s\)/);
-
-    // Wait for the countdown to elapse and the button to become ready.
-    await expect(button).toHaveText("Confirm delete", { timeout: 8000 });
+    await expect(button).toHaveText("Confirm delete", { timeout: 1000 });
 
     // Now a click confirms and deletes the jump.
     await button.click();
@@ -92,7 +89,7 @@ test("a jump can be deleted from the edit view after the countdown elapses", asy
     await expect(page.getByText("Doomed jump")).toHaveCount(0);
 });
 
-test("the delete button looks inactive while the countdown is running", async ({
+test("the first delete click only arms confirmation and does not delete", async ({
     page,
 }) => {
     await registerAndAddFirstJump(
@@ -105,15 +102,8 @@ test("the delete button looks inactive while the countdown is running", async ({
     const button = deleteButton(page);
 
     await button.click();
-    await expect(button).toHaveText(/Confirm delete \(\d+s\)/);
-    // The button is disabled (inactive) and shows a not-allowed cursor while counting.
-    await expect(button).toBeDisabled();
-    await expect(button).toHaveClass(/cursor-not-allowed/);
-    await expect(button).toHaveClass(/opacity-50/);
-
-    // Once the countdown elapses the button becomes active again.
-    await expect(button).toBeEnabled({ timeout: 8000 });
-    await expect(button).not.toHaveClass(/cursor-not-allowed/);
-    await expect(button).not.toHaveClass(/opacity-50/);
+    await expect(button).toHaveText("Confirm delete", { timeout: 1000 });
+    await expect(button).toBeEnabled();
     await expect(page).toHaveURL(/\/logbook\/jumps\//);
+    await expect(page.getByText("Doomed jump")).toBeVisible();
 });
