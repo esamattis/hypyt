@@ -331,6 +331,30 @@ function JumpFromImagePage(props: {
                     >
                         <JumpImageField />
                         <div className="space-y-1.5">
+                            <Textarea
+                                name="additionalContext"
+                                label="Additional context"
+                                rows={4}
+                                value={props.additionalContext}
+                                placeholder="Jump 41"
+                                persist="jump-from-image-additional-context"
+                            />
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Optional notes for this read only. Use this to
+                                specify which jump to pick if the image contains
+                                multiple jumps, or to explain abbreviations
+                                (e.g. RW means Formation Skydiving). Change the
+                                default image reading prompt in{" "}
+                                <a
+                                    href={routes.preferences({})}
+                                    className="font-medium text-indigo-600 underline dark:text-indigo-400"
+                                >
+                                    Preferences
+                                </a>
+                                .
+                            </p>
+                        </div>
+                        <div className="space-y-1.5">
                             <Select
                                 name="model"
                                 label="AI model"
@@ -348,26 +372,6 @@ function JumpFromImagePage(props: {
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                                 Prefills from your saved default. Change for
                                 this read, or set the default in{" "}
-                                <a
-                                    href={routes.preferences({})}
-                                    className="font-medium text-indigo-600 underline dark:text-indigo-400"
-                                >
-                                    Preferences
-                                </a>
-                                .
-                            </p>
-                        </div>
-                        <div className="space-y-1.5">
-                            <Textarea
-                                name="additionalContext"
-                                label="Additional context"
-                                rows={4}
-                                value={props.additionalContext}
-                                persist="jump-from-image-additional-context"
-                            />
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Optional notes for this read only. Change the
-                                default image reading prompt in{" "}
                                 <a
                                     href={routes.preferences({})}
                                     className="font-medium text-indigo-600 underline dark:text-indigo-400"

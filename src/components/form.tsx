@@ -149,6 +149,7 @@ export function Textarea(props: {
     label: string;
     rows?: number;
     value?: string;
+    placeholder?: string;
     className?: string;
     textareaClassName?: string;
     persist?: string;
@@ -161,6 +162,7 @@ export function Textarea(props: {
                 id={id}
                 name={props.name}
                 rows={props.rows ?? 4}
+                placeholder={props.placeholder}
                 className={clsx(
                     "resize-y",
                     controlClassName,
