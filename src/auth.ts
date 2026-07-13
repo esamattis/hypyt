@@ -11,6 +11,7 @@ export interface AuthenticatedUser {
     displayName: string | null;
     email: string;
     options: string;
+    admin: boolean;
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
@@ -125,6 +126,7 @@ export async function findUserForAuth(
             email: users.email,
             options: users.options,
             password: users.password,
+            admin: users.admin,
         })
         .from(users)
         .where(
@@ -145,5 +147,6 @@ export async function findUserForAuth(
         displayName: userRow.displayName,
         email: userRow.email,
         options: userRow.options,
+        admin: userRow.admin,
     };
 }

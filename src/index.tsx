@@ -2,6 +2,7 @@ import { app, getAppContext, type AppRequestContext } from "./app";
 import "./login";
 import "./preferences";
 import "./logbook";
+import "./admin";
 import * as routes from "./routes";
 
 function redirectFromHome(c: AppRequestContext) {

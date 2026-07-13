@@ -37,6 +37,7 @@ export interface User {
     displayName: string | null;
     email: string;
     options: UserOptions;
+    admin: boolean;
     getDisplayName(): string;
 }
 
@@ -218,6 +219,7 @@ function setAuthenticatedUser(ctx: AppContext, user: AuthenticatedUser) {
         displayName: user.displayName,
         email: user.email,
         options: parseUserOptions(user.options),
+        admin: user.admin,
         getDisplayName() {
             return user.displayName || user.username;
         },
@@ -252,6 +254,7 @@ async function authenticateMiddleware(
                 displayName: users.displayName,
                 email: users.email,
                 options: users.options,
+                admin: users.admin,
             })
             .from(users)
             .where(eq(users.uuid, sessionUuid))

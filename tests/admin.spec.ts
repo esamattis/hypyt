@@ -1,0 +1,133 @@
+import {
+    expect,
+    test,
+    type APIRequestContext,
+    type Page,
+} from "@playwright/test";
+
+async function registerUser(page: Page, username: string) {
+    await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
+    await page.locator('input[name="username"]').fill(username);
+    await page.locator('input[name="displayName"]').fill(username);
+    await page.locator('input[name="email"]').fill(`${username}@example.test`);
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/logbook");
+}
+
+async function sessionCookieHeader(page: Page): Promise<string> {
+    const cookies = await page.context().cookies();
+    return cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ");
+}
+
+async function postAsPage(
+    page: Page,
+    request: APIRequestContext,
+    path: string,
+    form: Record<string, string>,
+) {
+    return request.post(path, {
+        form,
+        headers: {
+            Cookie: await sessionCookieHeader(page),
+        },
+        maxRedirects: 0,
+    });
+}
+
+test("non-admins cannot access admin pages", async ({ page }) => {
+    await registerUser(page, "non-admin-pages");
+
+    await expect(
+        page.getByRole("link", { name: "Admin", exact: true }),
+    ).toHaveCount(0);
+
+    for (const path of [
+        "/admin",
+        "/admin/invitations/new",
+        "/admin/invitations/test-invite",
+    ]) {
+        const response = await page.goto(path);
+        expect(response?.status()).toBe(404);
+    }
+});
+
+test("non-admins cannot perform admin actions", async ({ page, request }) => {
+    await registerUser(page, "non-admin-actions");
+
+    const loginAsResponse = await postAsPage(page, request, "/admin/login-as", {
+        uuid: "00000000-0000-0000-0000-000000000000",
+    });
+    expect(loginAsResponse.status()).toBe(404);
+
+    const toggleAdminResponse = await postAsPage(
+        page,
+        request,
+        "/admin/toggle-admin",
+        {
+            uuid: "00000000-0000-0000-0000-000000000000",
+        },
+    );
+    expect(toggleAdminResponse.status()).toBe(404);
+
+    const createInvitationResponse = await postAsPage(
+        page,
+        request,
+        "/admin/invitations/new",
+        {
+            code: "stolen-invite",
+            count: "10",
+        },
+    );
+    expect(createInvitationResponse.status()).toBe(404);
+
+    const editInvitationResponse = await postAsPage(
+        page,
+        request,
+        "/admin/invitations/test-invite",
+        {
+            code: "test-invite",
+            count: "0",
+        },
+    );
+    expect(editInvitationResponse.status()).toBe(404);
+
+    // Session must remain the non-admin user after blocked login-as.
+    await page.goto("/logbook");
+    await expect(page).toHaveURL("/logbook");
+    await expect(
+        page.getByRole("link", { name: /non-admin-actions's logbook/ }),
+    ).toBeVisible();
+
+    // Blocked invitation create must not have created the code.
+    await page.getByRole("button", { name: "Log out" }).click();
+    await expect(page).toHaveURL("/login");
+    await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("stolen-invite");
+    await page.locator('input[name="username"]').fill("stolen-invite-user");
+    await page.locator('input[name="displayName"]').fill("Stolen Invite User");
+    await page
+        .locator('input[name="email"]')
+        .fill("stolen-invite@example.test");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/register");
+    await expect(
+        page.getByText("Invalid or exhausted invitation code"),
+    ).toBeVisible();
+
+    // Blocked invitation edit must not have exhausted the test invite.
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
+    await page.locator('input[name="username"]').fill("still-valid-invite");
+    await page.locator('input[name="displayName"]').fill("Still Valid Invite");
+    await page
+        .locator('input[name="email"]')
+        .fill("still-valid-invite@example.test");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/logbook");
+});

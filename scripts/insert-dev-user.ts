@@ -59,7 +59,12 @@ async function main(): Promise<void> {
         if (existingUser) {
             await db
                 .update(users)
-                .set({ displayName, password: passwordHash, email })
+                .set({
+                    displayName,
+                    password: passwordHash,
+                    email,
+                    admin: true,
+                })
                 .where(eq(users.uuid, existingUser.uuid))
                 .run();
         } else {
@@ -70,6 +75,7 @@ async function main(): Promise<void> {
                     displayName,
                     password: passwordHash,
                     email,
+                    admin: true,
                 })
                 .run();
         }

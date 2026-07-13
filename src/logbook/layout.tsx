@@ -376,6 +376,14 @@ export function LogbookPage(props: { title: string; children: any }) {
                         </a>
                         <div className="ml-auto flex shrink-0 items-center gap-2">
                             <ThemeToggle />
+                            {user.admin && (
+                                <a
+                                    href={routes.admin({})}
+                                    className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
+                                >
+                                    Admin
+                                </a>
+                            )}
                             <a
                                 href={routes.preferences({})}
                                 aria-label="Preferences"

@@ -17,6 +17,7 @@ export const users = sqliteTable("users", {
     password: text("password").notNull(),
     email: text("email").notNull(),
     options: text("options").notNull().default(DEFAULT_USER_OPTIONS_JSON),
+    admin: integer("admin", { mode: "boolean" }).notNull().default(false),
 });
 
 export const invitations = sqliteTable("invitations", {

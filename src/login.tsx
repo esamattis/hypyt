@@ -483,7 +483,10 @@ async function handleLogout(c: AppRequestContext) {
 
 app.post(routes.logout.route, handleLogout);
 
-function setSessionCookie(c: Parameters<typeof setCookie>[0], uuid: string) {
+export function setSessionCookie(
+    c: Parameters<typeof setCookie>[0],
+    uuid: string,
+) {
     setCookie(c, SESSION_COOKIE_NAME, uuid, {
         httpOnly: true,
         secure: true,
