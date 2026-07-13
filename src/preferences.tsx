@@ -11,7 +11,9 @@ import {
 import { ErrorList } from "./components/feedback";
 import { hashPassword, Password } from "./login";
 import {
+    DEFAULT_JUMP_IMAGE_MODEL,
     DEFAULT_JUMP_IMAGE_PROMPT,
+    JUMP_IMAGE_MODELS,
     UserOptionsSchema,
     type UserOptions,
 } from "./options";
@@ -34,6 +36,7 @@ const PreferencesSchema = z
         previousJumpCount: UserOptionsSchema.shape.previousJumpCount,
         openaiApiKey: z.string(),
         jumpImagePrompt: z.string(),
+        jumpImageModel: UserOptionsSchema.shape.jumpImageModel,
     })
     .superRefine((data, ctx) => {
         const changingPassword =
@@ -158,6 +161,26 @@ function JumpFromImageSection(props: { options: UserOptions }) {
                 placeholder="sk-..."
                 value={props.options.openaiApiKey}
             />
+            <Select
+                name="jumpImageModel"
+                label="Default AI model"
+                defaultValue={
+                    props.options.jumpImageModel || DEFAULT_JUMP_IMAGE_MODEL
+                }
+            >
+                {JUMP_IMAGE_MODELS.map((model) => (
+                    <option
+                        value={model.id}
+                        selected={
+                            model.id ===
+                            (props.options.jumpImageModel ||
+                                DEFAULT_JUMP_IMAGE_MODEL)
+                        }
+                    >
+                        {model.label} — {model.description}
+                    </option>
+                ))}
+            </Select>
             <Textarea
                 name="jumpImagePrompt"
                 label="Image reading prompt"
@@ -275,6 +298,7 @@ function optionsFromRawForm(
         previousJumpCount: raw.previousJumpCount ?? current.previousJumpCount,
         openaiApiKey: raw.openaiApiKey ?? current.openaiApiKey,
         jumpImagePrompt: raw.jumpImagePrompt ?? current.jumpImagePrompt,
+        jumpImageModel: raw.jumpImageModel ?? current.jumpImageModel,
     });
     return partial.success ? partial.data : current;
 }
@@ -334,6 +358,7 @@ async function handlePreferences(c: AppRequestContext) {
         openaiApiKey: result.data.openaiApiKey.trim(),
         jumpImagePrompt:
             result.data.jumpImagePrompt.trim() || DEFAULT_JUMP_IMAGE_PROMPT,
+        jumpImageModel: result.data.jumpImageModel,
     });
     values.options = options;
     await ctx.db

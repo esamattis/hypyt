@@ -11,12 +11,73 @@ Return only values that are clearly visible or confidently readable.
 - description for any other useful notes (weather, formation, instructors, etc.)
 If a field is missing or unclear, omit it (except openingAltitude, which defaults to 900).`;
 
+/** Vision-capable OpenAI models suited to structured logbook image extraction. */
+export const JUMP_IMAGE_MODEL_IDS = [
+    "gpt-5.6",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+    "gpt-4o",
+    "gpt-4o-mini",
+] as const;
+
+export type JumpImageModelId = (typeof JUMP_IMAGE_MODEL_IDS)[number];
+
+export const JUMP_IMAGE_MODELS: {
+    id: JumpImageModelId;
+    label: string;
+    description: string;
+}[] = [
+    {
+        id: "gpt-5.6",
+        label: "GPT-5.6",
+        description: "Best quality for hard-to-read images",
+    },
+    {
+        id: "gpt-5.6-terra",
+        label: "GPT-5.6 Terra",
+        description: "Balanced quality and cost",
+    },
+    {
+        id: "gpt-5.6-luna",
+        label: "GPT-5.6 Luna",
+        description: "Faster and cheaper",
+    },
+    {
+        id: "gpt-4o",
+        label: "GPT-4o",
+        description: "Previous generation, strong vision",
+    },
+    {
+        id: "gpt-4o-mini",
+        label: "GPT-4o mini",
+        description: "Low-cost previous generation",
+    },
+];
+
+export const DEFAULT_JUMP_IMAGE_MODEL: JumpImageModelId = "gpt-5.6";
+
+export function resolveJumpImageModel(
+    value: unknown,
+    fallback: JumpImageModelId = DEFAULT_JUMP_IMAGE_MODEL,
+): JumpImageModelId {
+    if (typeof value !== "string") {
+        return fallback;
+    }
+    for (const id of JUMP_IMAGE_MODEL_IDS) {
+        if (id === value) {
+            return id;
+        }
+    }
+    return fallback;
+}
+
 export const DEFAULT_USER_OPTIONS = {
     altitudeUnits: "meters",
     speedUnits: "kilometers-per-hour",
     previousJumpCount: 0,
     openaiApiKey: "",
     jumpImagePrompt: DEFAULT_JUMP_IMAGE_PROMPT,
+    jumpImageModel: DEFAULT_JUMP_IMAGE_MODEL,
 } as const;
 
 export const UserOptionsSchema = z.object({
@@ -27,6 +88,9 @@ export const UserOptionsSchema = z.object({
     previousJumpCount: z.coerce.number().int().nonnegative().default(0),
     openaiApiKey: z.string().default(""),
     jumpImagePrompt: z.string().default(DEFAULT_JUMP_IMAGE_PROMPT),
+    jumpImageModel: z
+        .enum(JUMP_IMAGE_MODEL_IDS)
+        .default(DEFAULT_JUMP_IMAGE_MODEL),
 });
 
 export type UserOptions = z.output<typeof UserOptionsSchema>;
