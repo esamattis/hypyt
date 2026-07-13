@@ -3,10 +3,7 @@ import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import {
-    orderTableNamesByFk,
-    rewriteDumpForImport,
-} from "./sql-dump.ts";
+import { orderTableNamesByFk, rewriteDumpForImport } from "./sql-dump.ts";
 import { wranglerBin } from "./wrangler-bin.ts";
 
 const execFile = promisify(execFileCallback);

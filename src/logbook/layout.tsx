@@ -358,24 +358,12 @@ export function LogbookPage(props: { title: string; children: any }) {
                             href={routes.logbook({})}
                             className="flex shrink-0 items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-lg dark:text-slate-100"
                         >
-                            <span
+                            <img
+                                src="/logo.svg"
+                                alt=""
                                 aria-hidden="true"
-                                className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 text-sm text-white shadow-sm"
-                            >
-                                <svg
-                                    className="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2.2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M12 19V5M5 12l7-7 7 7"
-                                    />
-                                </svg>
-                            </span>
+                                className="h-8 w-auto"
+                            />
                             <span className="hidden sm:inline">
                                 Jump Logbook
                             </span>

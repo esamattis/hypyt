@@ -297,6 +297,7 @@ const PUBLIC_ROOT_ASSETS = new Set([
     "/icon-512.png",
     "/apple-72x72.png",
     "/apple-144x144.png",
+    "/logo.svg",
     "/manifest.json",
     "/sw.js",
 ]);
@@ -447,7 +448,8 @@ app.use(
                         content="width=device-width, initial-scale=1.0"
                     />
                     <ViteClient />
-                    <link rel="icon" href="/icon.png" />
+                    <link rel="icon" href="/favicon.ico" sizes="any" />
+                    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
                     <link rel="manifest" href="/manifest.json" />
                     <meta name="theme-color" content="#4f46e5" />
                     <link

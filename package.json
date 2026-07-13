@@ -21,6 +21,7 @@
         "db:list-users": "node scripts/list-users.ts",
         "db:make-admin": "node scripts/make-admin.ts",
         "db:create-invitation": "node scripts/create-invitation.ts",
+        "icons": "node scripts/generate-icons.ts",
         "test:e2e": "playwright test",
         "test:tsc": "tsc --noEmit",
         "prettier-write": "prettier --write .",
