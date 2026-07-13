@@ -107,3 +107,18 @@ test("the first delete click only arms confirmation and does not delete", async 
     await expect(page).toHaveURL(/\/logbook\/jumps\//);
     await expect(page.getByText("Doomed jump")).toBeVisible();
 });
+
+test("clicking outside the confirm button resets it", async ({ page }) => {
+    await registerAndAddFirstJump(page, "reset-skydiver", "Reset Skydiver");
+
+    await page.getByRole("link", { name: /#1/ }).click();
+    const button = deleteButton(page);
+
+    await button.click();
+    await expect(button).toHaveText("Confirm delete", { timeout: 1000 });
+
+    await page.getByText("Danger zone").click();
+    await expect(button).toHaveText("Delete jump");
+    await expect(page).toHaveURL(/\/logbook\/jumps\//);
+    await expect(page.getByText("Doomed jump")).toBeVisible();
+});

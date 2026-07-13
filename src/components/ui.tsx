@@ -128,11 +128,13 @@ export function ConfirmDangerButton(props: {
                 $deps={[$assertElement]}
                 $args={[
                     buttonId,
+                    props.label,
                     props.confirmLabel,
                     confirmDangerCountdownSeconds,
                 ]}
                 $exec={(
                     buttonId: string,
+                    label: string,
                     confirmLabel: string,
                     countdownSeconds: number,
                 ) => {
@@ -141,6 +143,38 @@ export function ConfirmDangerButton(props: {
                     const button: HTMLButtonElement = el;
                     let state: "idle" | "ready" = "idle";
                     let timer: ReturnType<typeof setInterval> | null = null;
+
+                    function clearTimer() {
+                        if (timer) {
+                            clearInterval(timer);
+                            timer = null;
+                        }
+                    }
+
+                    function reset() {
+                        if (state === "idle") {
+                            return;
+                        }
+                        clearTimer();
+                        state = "idle";
+                        button.disabled = false;
+                        button.classList.remove(
+                            "opacity-50",
+                            "cursor-not-allowed",
+                            "border-red-500",
+                            "bg-red-100",
+                            "dark:bg-red-950/60",
+                        );
+                        button.textContent = label;
+                    }
+
+                    function onOutsideClick(event: MouseEvent) {
+                        const target = event.target;
+                        if (target instanceof Node && button.contains(target)) {
+                            return;
+                        }
+                        reset();
+                    }
 
                     function armReady() {
                         button.disabled = false;
@@ -154,6 +188,15 @@ export function ConfirmDangerButton(props: {
                             "dark:bg-red-950/60",
                         );
                         button.textContent = confirmLabel;
+                        // Defer so the arming click does not consume the listener.
+                        setTimeout(() => {
+                            if (state !== "ready") {
+                                return;
+                            }
+                            document.addEventListener("click", onOutsideClick, {
+                                once: true,
+                            });
+                        }, 0);
                     }
 
                     button.addEventListener("click", (event) => {
@@ -179,8 +222,7 @@ export function ConfirmDangerButton(props: {
                         timer = setInterval(() => {
                             count -= 1;
                             if (count <= 0) {
-                                if (timer) clearInterval(timer);
-                                timer = null;
+                                clearTimer();
                                 armReady();
                                 return;
                             }
