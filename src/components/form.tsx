@@ -6,6 +6,7 @@ const controlClassName =
     "mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/30";
 
 export function Input(props: {
+    id?: string;
     name: string;
     label: string;
     type?: string;
@@ -21,6 +22,7 @@ export function Input(props: {
         <label className={clsx(labelClassName, props.className)}>
             {props.label}
             <input
+                id={props.id}
                 name={props.name}
                 type={props.type ?? "text"}
                 required={props.required}

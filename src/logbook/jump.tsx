@@ -10,7 +10,6 @@ import {
 import {
     Checkbox,
     FormActions,
-    Input,
     NumberInput,
     Select,
     Textarea,
@@ -207,6 +206,59 @@ function AvgSpeed(props: { values: JumpFormValues }) {
     );
 }
 
+function JumpDateField(props: { value: string }) {
+    const inputId = useId();
+    const buttonId = useId();
+
+    return (
+        <div>
+            <label
+                htmlFor={inputId}
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
+                Jump date
+            </label>
+            <div className="mt-1.5 flex gap-2">
+                <input
+                    id={inputId}
+                    name="jumpDate"
+                    type="date"
+                    required
+                    value={props.value}
+                    className="block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/30"
+                />
+                <button
+                    id={buttonId}
+                    type="button"
+                    className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
+                >
+                    Today
+                </button>
+            </div>
+            <Script
+                $deps={[$assertElement]}
+                $args={[inputId, buttonId]}
+                $exec={(inputId, buttonId) => {
+                    const input = document.getElementById(inputId);
+                    const button = document.getElementById(buttonId);
+                    $assertElement(input, HTMLInputElement);
+                    $assertElement(button, HTMLButtonElement);
+                    button.addEventListener("click", () => {
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const month = String(now.getMonth() + 1).padStart(
+                            2,
+                            "0",
+                        );
+                        const day = String(now.getDate()).padStart(2, "0");
+                        input.value = `${year}-${month}-${day}`;
+                    });
+                }}
+            />
+        </div>
+    );
+}
+
 function JumpForm(props: {
     values?: JumpFormValues;
     locations: Resource[];
@@ -230,13 +282,7 @@ function JumpForm(props: {
                 className="border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
             />
             <div className="grid gap-5 sm:grid-cols-2">
-                <Input
-                    name="jumpDate"
-                    label="Jump date"
-                    type="date"
-                    required
-                    value={values.jumpDate ?? getToday()}
-                />
+                <JumpDateField value={values.jumpDate ?? getToday()} />
                 <NumberInput
                     name="jumpNumber"
                     label="Jump number"
@@ -482,6 +528,7 @@ async function renderNewJump(c: AppRequestContext) {
             ]);
             values = {
                 ...values,
+                jumpDate: jump.jumpDate,
                 locationUuid: jump.locationUuid,
                 aircraftUuid: jump.aircraftUuid,
                 exitAltitude: altitudeInputValue(

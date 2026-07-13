@@ -120,6 +120,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await page.locator('input[name="jumpNumber"]').fill("1");
+    await page.locator('input[name="jumpDate"]').fill("2024-06-15");
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
@@ -179,6 +180,20 @@ test("a skydiver can register and record their first jump", async ({
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?from=/);
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("2");
+    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+        "2024-06-15",
+    );
+    await page.getByRole("button", { name: "Today" }).click();
+    const today = new Date();
+    const todayValue = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+    ].join("-");
+    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+        todayValue,
+    );
+    await page.locator('input[name="jumpDate"]').fill("2024-06-15");
     await expect(page.locator('input[name="exitAltitude"]')).toHaveValue(
         "4000",
     );
@@ -209,6 +224,9 @@ test("a skydiver can register and record their first jump", async ({
 
     await expect(page).toHaveURL("/logbook/jumps/new");
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("3");
+    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+        "2024-06-15",
+    );
     await expect(page.locator('input[name="exitAltitude"]')).toHaveValue(
         "4000",
     );
