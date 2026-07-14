@@ -268,7 +268,10 @@ function $initMobileHeader(headerId: string) {
     const headerEl = document.getElementById(headerId);
     $assertElement(headerEl, HTMLElement);
     const header = headerEl;
-    const mobile = window.matchMedia("(max-width: 639px)");
+    const smBreakpoint = getComputedStyle(document.documentElement)
+        .getPropertyValue("--breakpoint-sm")
+        .trim();
+    const mobile = window.matchMedia(`(width < ${smBreakpoint})`);
     let previousScrollY = window.scrollY;
     let ticking = false;
 
