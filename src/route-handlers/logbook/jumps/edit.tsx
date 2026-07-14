@@ -84,10 +84,11 @@ export async function handleEditJump(c: AppRequestContext) {
         return deleted ? c.redirect(routes.logbook.index({})) : c.notFound();
     }
     const parsed = await parseAndResolveJumpForm(c, formData);
+    const jumpNumber = parsed.raw.jumpNumber;
     if (!parsed.ok) {
         return c.render(
             <JumpFormPage
-                title="Edit jump"
+                title={`Edit jump #${jumpNumber}`}
                 submitLabel="Save jump"
                 values={parsed.raw}
                 resources={parsed.resources}
@@ -103,7 +104,7 @@ export async function handleEditJump(c: AppRequestContext) {
     if (existingJump) {
         return c.render(
             <JumpFormPage
-                title="Edit jump"
+                title={`Edit jump #${jumpNumber}`}
                 submitLabel="Save jump"
                 values={parsed.raw}
                 resources={parsed.resources}
