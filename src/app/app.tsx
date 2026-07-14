@@ -468,8 +468,8 @@ export function $applyStoredTheme() {
                 matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.classList.toggle("dark", isDark);
         document.documentElement.style.colorScheme = isDark ? "dark" : "light";
-    } catch {
-        // ignore
+    } catch (error) {
+        console.error("Failed to apply the stored theme", error);
     }
 }
 
@@ -520,8 +520,8 @@ export function $registerServiceWorker(workerUrl: string, toastId: string) {
                 });
             });
         })
-        .catch(() => {
-            // ignore registration failures
+        .catch((error) => {
+            console.error("Failed to register the service worker", error);
         });
     navigator.serviceWorker.addEventListener("controllerchange", () => {
         if (!hadControllerOnLoad) {

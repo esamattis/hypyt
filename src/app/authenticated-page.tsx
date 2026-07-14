@@ -236,8 +236,8 @@ function $initThemeToggle(
             if (value === "light" || value === "dark" || value === "system") {
                 return value;
             }
-        } catch {
-            // ignore
+        } catch (error) {
+            console.error("Failed to read the stored theme", error);
         }
         return "system";
     }
@@ -275,8 +275,8 @@ function $initThemeToggle(
     function setTheme(theme: "light" | "dark" | "system") {
         try {
             localStorage.setItem("theme", theme);
-        } catch {
-            // ignore
+        } catch (error) {
+            console.error("Failed to store the selected theme", error);
         }
         applyTheme(theme);
         updateUi(theme);

@@ -1,10 +1,5 @@
 import { logOut, openMainMenu } from "./helpers";
-import {
-    expect,
-    test,
-    type APIRequestContext,
-    type Page,
-} from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "./fixtures";
 
 async function registerUser(page: Page, username: string) {
     await page.goto("/register");

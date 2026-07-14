@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { openManageLogbook } from "./helpers";
 
 test("new jump page shows a banner when jumpNumber query already exists", async ({

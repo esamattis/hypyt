@@ -109,7 +109,8 @@ export function parseUserOptions(value: string | null): UserOptions {
     try {
         const result = UserOptionsSchema.safeParse(JSON.parse(value));
         return result.success ? result.data : UserOptionsSchema.parse({});
-    } catch {
+    } catch (error) {
+        console.error("Failed to parse stored user options", error);
         return UserOptionsSchema.parse({});
     }
 }

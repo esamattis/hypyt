@@ -23,8 +23,8 @@ function $registerServiceWorker(workerUrl: string, toastId: string) {
                 });
             });
         })
-        .catch(() => {
-            /* Ignore registration failures. */
+        .catch((error) => {
+            console.error("Failed to register the service worker", error);
         });
     navigator.serviceWorker.addEventListener("controllerchange", () => {
         if (hadControllerOnLoad) $showUpdateToast(toastId);

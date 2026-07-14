@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { openManageLogbook } from "./helpers";
 
 // eslint-disable-next-line max-lines-per-function

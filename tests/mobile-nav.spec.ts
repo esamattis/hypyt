@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { openMainMenu } from "./helpers";
 
 async function registerUser(page: Page, username: string, displayName: string) {

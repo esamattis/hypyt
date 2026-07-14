@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { openManageLogbook } from "./helpers";
 
 test("edited forms warn before leaving via a link", async ({ page }) => {

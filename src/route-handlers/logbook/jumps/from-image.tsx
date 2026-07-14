@@ -657,6 +657,7 @@ async function handleJumpFromImage(c: AppRequestContext) {
             routes.logbook.jumps.new({}, buildJumpNewQuery(data, resources)),
         );
     } catch (error) {
+        console.error("Failed to extract jump data from the image", error);
         const message =
             error instanceof Error
                 ? error.message

@@ -10,8 +10,8 @@ function $applyStoredTheme() {
                 matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.classList.toggle("dark", isDark);
         document.documentElement.style.colorScheme = isDark ? "dark" : "light";
-    } catch {
-        // Ignore unavailable local storage.
+    } catch (error) {
+        console.error("Failed to apply the stored theme", error);
     }
 }
 

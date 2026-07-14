@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { openMainMenu, openManageLogbook } from "./helpers";
 
 test("the log book loads additional jumps while scrolling", async ({

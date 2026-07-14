@@ -263,8 +263,8 @@ export function $setupClipboardImageInput(
                     return;
                 }
             }
-        } catch {
-            // Clipboard read is not supported or no image available; ignore.
+        } catch (error) {
+            console.error("Failed to read an image from the clipboard", error);
         }
     });
 
@@ -371,8 +371,8 @@ export function $initJumpImageInput(props: {
                 props.storeName,
                 props.storageKey,
             );
-        } catch {
-            // Storage is best-effort; form still works without restore.
+        } catch (error) {
+            console.error("Failed to save the jump image draft", error);
         }
     }
 
@@ -380,7 +380,8 @@ export function $initJumpImageInput(props: {
         if (!file) {
             return;
         }
-        void applyFile(file).catch(() => {
+        void applyFile(file).catch((error) => {
+            console.error("Failed to process the selected jump image", error);
             meta.textContent = "Could not process the selected image.";
             meta.classList.remove("hidden");
         });
@@ -408,7 +409,7 @@ export function $initJumpImageInput(props: {
             }
             return applyFile(file);
         })
-        .catch(() => {
-            // Ignore restore failures.
+        .catch((error) => {
+            console.error("Failed to restore the jump image draft", error);
         });
 }

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("password visibility can be toggled independently", async ({ page }) => {
     await page.goto("/register");

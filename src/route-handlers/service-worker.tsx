@@ -87,7 +87,8 @@ function $installShareTargetServiceWorker(config: ShareTargetWorkerConfig) {
 
         try {
             await saveDraft(file);
-        } catch {
+        } catch (error) {
+            console.error("Failed to save the shared image draft", error);
             return new Response("Failed to save shared image", {
                 status: 500,
             });
