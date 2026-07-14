@@ -47,7 +47,7 @@ return (
 );
 ```
 
-Always use the $assertElement(el, typeclass) to assert the elements. Defined in the utils.tsx.
+Always use the $assertElement(el, typeclass) to assert the elements. Ie. never use type casts or type args like `el.closest<HTMLElement>("[data-tooltip]");`
 
 Write named functions using the `function` keyword. Use arrow functions only for anonymous functions. Callbacks etc.
 
@@ -72,6 +72,10 @@ pn test
 ## Lints
 
 Skip lint comments are only allowed in test files. Production code should be clean of lints.
+
+If a lint complains about too many lines in a function, consider splitting the function into smaller functions.
+
+If it complains that file has too many lines: 1. Extract a helper function or component to a shared helpers file 2. If the helpers are local to the file, create a new directory with the original file and put the helpers there.
 
 ## Route Helpers
 
