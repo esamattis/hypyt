@@ -24,6 +24,8 @@ const LOGO_SVG = join(PUBLIC, "logo.svg");
 
 /** Tailwind indigo-600 / app theme-color */
 const BRAND = "#4f46e5";
+/** Tailwind slate-950 / app dark-mode background */
+const BACKGROUND = "#020617";
 
 const PNG_TARGETS: { file: string; size: number; paddingRatio: number }[] = [
     { file: "icon.png", size: 192, paddingRatio: 0.12 },
@@ -61,19 +63,21 @@ async function rasterizeLogo(outPng: string, height: number) {
 }
 
 /**
- * Square transparent PNG with the logo centered and padded.
+ * Square PNG with a centered logo and optional transparent background.
  */
 async function writeSquarePng(
     sourcePng: string,
     outPath: string,
     size: number,
     paddingRatio: number,
+    transparent = false,
 ) {
     const content = Math.max(1, Math.round(size * (1 - 2 * paddingRatio)));
     await gmConvert([
         sourcePng,
         "-background",
-        "none",
+        transparent ? "none" : BACKGROUND,
+        ...(transparent ? [] : ["-flatten"]),
         "-resize",
         `${content}x${content}`,
         "-gravity",
@@ -123,7 +127,7 @@ async function generateFavicon(sourcePng: string, tmpDir: string) {
     const pngPaths: string[] = [];
     for (const size of FAVICON_SIZES) {
         const path = join(tmpDir, `favicon-${size}.png`);
-        await writeSquarePng(sourcePng, path, size, 0.08);
+        await writeSquarePng(sourcePng, path, size, 0.08, true);
         pngPaths.push(path);
     }
     const buffers = await Promise.all(pngPaths.map((p) => readFile(p)));
