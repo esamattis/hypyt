@@ -2,7 +2,7 @@ import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import type { AppDatabase } from "./db";
+import type { AppDatabase } from "@/db";
 
 export function resolveSqlitePath(path = process.env.SQLITE_PATH): string {
     return resolve(path?.trim() || "data/hypyt.sqlite");

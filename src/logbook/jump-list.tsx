@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { getAppContext, useAppContext, type AppRequestContext } from "../app";
-import { formatAltitude, type UserOptions } from "../options";
-import * as routes from "../routes";
+import { getAppContext, useAppContext, type AppRequestContext } from "@/app";
+import { formatAltitude, type UserOptions } from "@/options";
+import * as routes from "@/routes";
 import {
     aircrafts,
     jumps,
@@ -9,7 +9,7 @@ import {
     jumpsToJumpTypes,
     jumpTypes,
     locations,
-} from "../schema";
+} from "@/schema";
 
 function formatDistance(
     meters: number,

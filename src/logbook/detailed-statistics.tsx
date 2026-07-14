@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, gt, gte, lt, sql } from "drizzle-orm";
-import { app, getAppContext, type AppRequestContext } from "../app";
-import { buttonClassName } from "../components/form";
-import * as routes from "../routes";
+import { app, getAppContext, type AppRequestContext } from "@/app";
+import { buttonClassName } from "@/components/form";
+import * as routes from "@/routes";
 import {
     aircrafts,
     gear,
@@ -10,9 +10,9 @@ import {
     jumpsToJumpTypes,
     jumpTypes,
     locations,
-} from "../schema";
-import { LogbookPage } from "./layout";
-import { formatAltitude, type UserOptions } from "../options";
+} from "@/schema";
+import { LogbookPage } from "@/logbook/layout";
+import { formatAltitude, type UserOptions } from "@/options";
 
 function formatDuration(totalSeconds: number): string {
     const days = Math.floor(totalSeconds / 86_400);

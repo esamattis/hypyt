@@ -4,6 +4,11 @@ import ssrPlugin from "vite-ssr-components/plugin";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            "@": new URL("./src", import.meta.url).pathname,
+        },
+    },
     build: {
         emptyOutDir: false,
         ssr: "src/index.tsx",

@@ -1,13 +1,13 @@
 import { asc, eq, sql } from "drizzle-orm";
 import clsx from "clsx";
 import { useId } from "hono/jsx";
-import { app, getAppContext, type AppRequestContext } from "../app";
-import { ButtonLink } from "../components/form";
-import { Script } from "../components/helpers";
-import * as routes from "../routes";
-import { jumps } from "../schema";
-import { $assertElement } from "../utils";
-import { LogbookPage } from "./layout";
+import { app, getAppContext, type AppRequestContext } from "@/app";
+import { ButtonLink } from "@/components/form";
+import { Script } from "@/route-tools";
+import * as routes from "@/routes";
+import { jumps } from "@/schema";
+import { $assertElement } from "@/utils";
+import { LogbookPage } from "@/logbook/layout";
 
 function formatDate(date: Date): string {
     return date.toISOString().slice(0, 10);

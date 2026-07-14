@@ -4,16 +4,16 @@ import clsx from "clsx";
 import { and, eq } from "drizzle-orm";
 import { useId } from "hono/jsx";
 import { z } from "zod";
-import { app, getAppContext, type AppRequestContext } from "../app";
-import { ErrorList } from "../components/feedback";
+import { app, getAppContext, type AppRequestContext } from "@/app";
+import { ErrorList } from "@/components/feedback";
 import {
     Button,
     fileInputClassName,
     FormActions,
     Select,
     Textarea,
-} from "../components/form";
-import { Script } from "../components/helpers";
+} from "@/components/form";
+import { Script } from "@/route-tools";
 import {
     DEFAULT_JUMP_IMAGE_MODEL,
     DEFAULT_JUMP_IMAGE_PROMPT,
@@ -21,10 +21,10 @@ import {
     altitudeUnitLabel,
     resolveJumpImageModel,
     type UserOptions,
-} from "../options";
-import * as routes from "../routes";
-import { aircrafts, gear, jumpTypes, locations } from "../schema";
-import { $assertElement } from "../utils";
+} from "@/options";
+import * as routes from "@/routes";
+import { aircrafts, gear, jumpTypes, locations } from "@/schema";
+import { $assertElement } from "@/utils";
 import {
     AiUsageSummary,
     buildAiUsageTitle,
@@ -32,7 +32,7 @@ import {
     recordAiUsage,
     type AiUsageRow,
     type AiUsageTotals,
-} from "./ai-usage";
+} from "@/logbook/ai-usage";
 import {
     $formatJumpImageBytes,
     $imageMimeTypeToExtension,
@@ -46,8 +46,8 @@ import {
     JUMP_IMAGE_MAX_DIMENSION,
     JUMP_IMAGE_STORE,
     JUMP_IMAGE_TARGET_BYTES,
-} from "./jump-from-image-client";
-import { LogbookPage } from "./layout";
+} from "@/logbook/jump-from-image-client";
+import { LogbookPage } from "@/logbook/layout";
 
 const JumpImageDataSchema = z.object({
     jumpDate: z

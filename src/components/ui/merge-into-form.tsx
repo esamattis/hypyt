@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { Select } from "../form";
-import { ConfirmDangerButton } from "./confirm-danger-button";
+import { Select } from "@/components/form";
+import { ConfirmDangerButton } from "@/components/ui/confirm-danger-button";
 
 export function MergeIntoForm(props: {
     options: { uuid: string; name: string }[];

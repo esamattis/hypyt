@@ -1,4 +1,4 @@
-import { useAppContext } from "../app";
+import { useAppContext } from "@/app";
 
 export function css(
     strings: TemplateStringsArray,

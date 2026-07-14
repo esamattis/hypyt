@@ -1,7 +1,7 @@
-import { $assertElement } from "../utils";
-import { Button } from "./form";
-import { Script } from "./helpers";
-import { Dialog } from "./ui";
+import { $assertElement } from "@/utils";
+import { Button } from "@/components/form";
+import { Script } from "@/route-tools";
+import { Dialog } from "@/components/ui";
 
 const UNSAVED_CHANGES_DIALOG_ID = "unsaved-changes-dialog";
 function $isFormDirty() {

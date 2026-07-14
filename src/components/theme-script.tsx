@@ -1,4 +1,4 @@
-import { Script } from "./helpers";
+import { Script } from "@/route-tools";
 
 function $applyStoredTheme() {
     try {

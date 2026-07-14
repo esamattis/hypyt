@@ -1,5 +1,5 @@
 import { and, eq, ne } from "drizzle-orm";
-import { getAppContext, app, type AppRequestContext } from "../app";
+import { getAppContext, app, type AppRequestContext } from "@/app";
 import {
     Button,
     ButtonLink,
@@ -7,22 +7,22 @@ import {
     Input,
     NumberInput,
     Textarea,
-} from "../components/form";
-import { ErrorList } from "../components/feedback";
+} from "@/components/form";
+import { ErrorList } from "@/components/feedback";
 import {
     ConfirmDeleteButton,
     DangerZone,
     MergeIntoForm,
-} from "../components/ui";
-import * as routes from "../routes";
-import { jumpTypes, jumpsToJumpTypes } from "../schema";
+} from "@/components/ui";
+import * as routes from "@/routes";
+import { jumpTypes, jumpsToJumpTypes } from "@/schema";
 import {
     getRecentJumpsForItem,
     RecentJumpsSection,
     type JumpListItem,
-} from "./jump-list";
-import { LogbookPage } from "./layout";
-import { getFormString, ResourceSchema } from "./resource";
+} from "@/logbook/jump-list";
+import { LogbookPage } from "@/logbook/layout";
+import { getFormString, ResourceSchema } from "@/logbook/resource";
 
 interface JumpTypeFormValues {
     name?: string;

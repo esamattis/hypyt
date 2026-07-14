@@ -1,18 +1,18 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { app, getAppContext, type AppRequestContext, type User } from "./app";
+import { app, getAppContext, type AppRequestContext, type User } from "@/app";
 import {
     Button,
     ButtonLink,
     FormActions,
     Input,
     NumberInput,
-} from "./components/form";
-import { ErrorList } from "./components/feedback";
-import { LogbookPage } from "./logbook/layout";
-import { createSession } from "./login";
-import * as routes from "./routes";
-import { invitations, sessions, users } from "./schema";
+} from "@/components/form";
+import { ErrorList } from "@/components/feedback";
+import { LogbookPage } from "@/logbook/layout";
+import { createSession } from "@/login";
+import * as routes from "@/routes";
+import { invitations, sessions, users } from "@/schema";
 
 function requireAdmin(c: AppRequestContext): User | null {
     const user = getAppContext(c).getUser();

@@ -5,24 +5,24 @@ import { jsxRenderer, useRequestContext } from "hono/jsx-renderer";
 import { deleteCookie, getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
 import htmx from "htmx.org/dist/htmx.esm.js?raw";
-import tailwind from "./tailwind.css?inline";
-import { Script } from "./components/helpers";
-import { Button } from "./components/form";
-import { Dialog } from "./components/ui";
-import { DisableViewTransitionsInAutomation } from "./components/disable-view-transitions-in-automation";
+import tailwind from "@/tailwind.css?inline";
+import { Script } from "@/route-tools";
+import { Button } from "@/components/form";
+import { Dialog } from "@/components/ui";
+import { DisableViewTransitionsInAutomation } from "@/components/disable-view-transitions-in-automation";
 import {
     DisableFormOnSubmit,
     ShowProgressOnLinkClick,
-} from "./components/navigation-progress";
-import { RestoreFormScrollPosition } from "./components/restore-form-scroll-position";
-import { ServiceWorkerRegistration } from "./components/service-worker-registration";
-import { ThemeScript } from "./components/theme-script";
-import { Tooltips } from "./components/tooltips";
-import { UnsavedChangesDialog as UnsavedChangesDialogComponent } from "./components/unsaved-changes-dialog";
-import { UpdateToast as UpdateToastComponent } from "./components/update-toast";
-import { sessions, users } from "./schema";
-import * as routes from "./routes";
-import { parseUserOptions, type UserOptions } from "./options";
+} from "@/components/navigation-progress";
+import { RestoreFormScrollPosition } from "@/components/restore-form-scroll-position";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+import { ThemeScript } from "@/components/theme-script";
+import { Tooltips } from "@/components/tooltips";
+import { UnsavedChangesDialog as UnsavedChangesDialogComponent } from "@/components/unsaved-changes-dialog";
+import { UpdateToast as UpdateToastComponent } from "@/components/update-toast";
+import { sessions, users } from "@/schema";
+import * as routes from "@/routes";
+import { parseUserOptions, type UserOptions } from "@/options";
 import {
     findUserForAuth,
     hashToken,
@@ -32,9 +32,9 @@ import {
     sessionCookieOptions,
     SESSION_MAX_AGE,
     type AuthenticatedUser,
-} from "./auth";
-import { createD1Database, type AppDatabase } from "./db";
-import { $assertElement } from "./utils";
+} from "@/auth";
+import { createD1Database, type AppDatabase } from "@/db";
+import { $assertElement } from "@/utils";
 
 export type AppType = Hono<Env>;
 

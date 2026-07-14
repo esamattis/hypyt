@@ -1,6 +1,6 @@
 import { eq, or } from "drizzle-orm";
-import type { AppContext } from "./app";
-import { users } from "./schema";
+import type { AppContext } from "@/app";
+import { users } from "@/schema";
 
 const PBKDF2_ITERATIONS = 100_000;
 const PBKDF2_KEYLEN_BITS = 256;

@@ -1,7 +1,7 @@
 import { and, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
-import { app, getAppContext, type AppRequestContext } from "../app";
-import * as routes from "../routes";
+import { app, getAppContext, type AppRequestContext } from "@/app";
+import * as routes from "@/routes";
 import {
     aircrafts,
     gear,
@@ -10,14 +10,14 @@ import {
     jumpsToJumpTypes,
     jumpTypes,
     locations,
-} from "../schema";
-import { altitudeInputValue, altitudeToMeters } from "../options";
+} from "@/schema";
+import { altitudeInputValue, altitudeToMeters } from "@/options";
 import {
     getJumpFormValues,
     getToday,
     JumpFormPage,
     type JumpFormValues,
-} from "./jump-form";
+} from "@/logbook/jump-form";
 
 function isValidJumpDate(value: string): boolean {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {

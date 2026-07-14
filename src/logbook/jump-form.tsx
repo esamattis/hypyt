@@ -1,5 +1,5 @@
 import { useId, type Child } from "hono/jsx";
-import { useAppContext } from "../app";
+import { useAppContext } from "@/app";
 import {
     Button,
     ButtonLink,
@@ -11,14 +11,14 @@ import {
     NumberInput,
     Select,
     Textarea,
-} from "../components/form";
-import { ErrorList } from "../components/feedback";
-import { ConfirmDeleteButton, DangerZone, Dialog } from "../components/ui";
-import { Script } from "../components/helpers";
-import { $assertElement } from "../utils";
-import * as routes from "../routes";
-import { LogbookPage } from "./layout";
-import { altitudeUnitLabel } from "../options";
+} from "@/components/form";
+import { ErrorList } from "@/components/feedback";
+import { ConfirmDeleteButton, DangerZone, Dialog } from "@/components/ui";
+import { Script } from "@/route-tools";
+import { $assertElement } from "@/utils";
+import * as routes from "@/routes";
+import { LogbookPage } from "@/logbook/layout";
+import { altitudeUnitLabel } from "@/options";
 
 export interface Resource {
     uuid: string;

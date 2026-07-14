@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
-import { app, getAppContext, type AppRequestContext } from "./app";
-import * as routes from "./routes";
+import { app, getAppContext, type AppRequestContext } from "@/app";
+import * as routes from "@/routes";
 import {
     aircrafts,
     gear,
@@ -9,26 +9,26 @@ import {
     jumpTypes,
     jumpsToJumpTypes,
     locations,
-} from "./schema";
-import { Button } from "./components/form";
-import { Details } from "./components/ui";
-import { LogbookPage } from "./logbook/layout";
+} from "@/schema";
+import { Button } from "@/components/form";
+import { Details } from "@/components/ui";
+import { LogbookPage } from "@/logbook/layout";
 import {
     Distance,
     formatDuration,
     JumpCard,
     type JumpListItem,
-} from "./logbook/jump-list";
-import { JumpSearch } from "./logbook/search";
-import "./logbook/aircraft";
-import "./logbook/detailed-statistics";
-import "./logbook/gear";
-import "./logbook/jump-from-image";
-import "./logbook/jump";
-import "./logbook/jump-type";
-import "./logbook/location";
-import "./logbook/statistics";
-import "./logbook/transfer";
+} from "@/logbook/jump-list";
+import { JumpSearch } from "@/logbook/search";
+import "@/logbook/aircraft";
+import "@/logbook/detailed-statistics";
+import "@/logbook/gear";
+import "@/logbook/jump-from-image";
+import "@/logbook/jump";
+import "@/logbook/jump-type";
+import "@/logbook/location";
+import "@/logbook/statistics";
+import "@/logbook/transfer";
 
 function LogbookStatsCard(props: { label: string; value: any }) {
     return (

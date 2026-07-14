@@ -1,14 +1,14 @@
 import { and, eq, gt, sql } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { app, getAppContext, type AppRequestContext } from "./app";
-import { invitations, jumpTypes, sessions, users } from "./schema";
+import { app, getAppContext, type AppRequestContext } from "@/app";
+import { invitations, jumpTypes, sessions, users } from "@/schema";
 import { z } from "zod";
 import clsx from "clsx";
-import { AuthFormShell } from "./components/auth";
-import { controlClassName } from "./components/form";
-import { Script } from "./components/helpers";
+import { AuthFormShell } from "@/components/auth";
+import { controlClassName } from "@/components/form";
+import { Script } from "@/route-tools";
 import { useId } from "hono/jsx";
-import { $assertElement } from "./utils";
+import { $assertElement } from "@/utils";
 import {
     findUserForAuth,
     generateSessionToken,
@@ -18,11 +18,11 @@ import {
     SESSION_COOKIE_NAME,
     sessionCookieOptions,
     SESSION_MAX_AGE,
-} from "./auth";
-import { DEFAULT_USER_OPTIONS_JSON } from "./options";
-import * as routes from "./routes";
+} from "@/auth";
+import { DEFAULT_USER_OPTIONS_JSON } from "@/options";
+import * as routes from "@/routes";
 
-export { hashPassword } from "./auth";
+export { hashPassword } from "@/auth";
 
 const DEFAULT_JUMP_TYPES = [
     "Cutaway",

@@ -1,5 +1,5 @@
-import { $assertElement } from "../utils";
-import { Script } from "./helpers";
+import { $assertElement } from "@/utils";
+import { Script } from "@/route-tools";
 
 const UPDATE_TOAST_ID = "update-toast";
 function $initUpdateToast(toastId: string) {

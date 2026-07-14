@@ -1,9 +1,9 @@
-import { useAppContext } from "../app";
-import { Script, Style } from "../components/helpers";
-import { Button, ButtonLink, buttonClassName } from "../components/form";
-import { DropdownMenu, MenuDivider, menuItemClassName } from "../components/ui";
-import * as routes from "../routes";
-import { $assertElement } from "../utils";
+import { useAppContext } from "@/app";
+import { Script, Style } from "@/route-tools";
+import { Button, ButtonLink, buttonClassName } from "@/components/form";
+import { DropdownMenu, MenuDivider, menuItemClassName } from "@/components/ui";
+import * as routes from "@/routes";
+import { $assertElement } from "@/utils";
 import { useId } from "hono/jsx";
 
 function BurgerMenuIcon() {

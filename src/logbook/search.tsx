@@ -1,7 +1,7 @@
 import clsx from "clsx";
-import { controlClassName } from "../components/form";
-import * as routes from "../routes";
-import type { LogbookFilters } from "../logbook";
+import { controlClassName } from "@/components/form";
+import * as routes from "@/routes";
+import type { LogbookFilters } from "@/logbook";
 
 export function buildLogbookUrl(
     filters: LogbookFilters,

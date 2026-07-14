@@ -1,8 +1,8 @@
 import type { LanguageModelUsage } from "ai";
 import { desc, eq, sql } from "drizzle-orm";
-import { getAppContext, type AppRequestContext } from "../app";
-import { JUMP_IMAGE_MODELS } from "../options";
-import { aiUsage } from "../schema";
+import { getAppContext, type AppRequestContext } from "@/app";
+import { JUMP_IMAGE_MODELS } from "@/options";
+import { aiUsage } from "@/schema";
 
 export type AiUsageRow = {
     uuid: string;

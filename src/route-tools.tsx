@@ -1,6 +1,6 @@
-import { AppRequestContext } from "../app";
-export { Script } from "./script";
-export { css, Style } from "./style";
+import { AppRequestContext } from "@/app";
+export { Script } from "@/components/script";
+export { css, Style } from "@/components/style";
 
 export function _routeTypeTests() {
     const home = route("/");

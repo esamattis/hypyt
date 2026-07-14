@@ -1,8 +1,11 @@
 import clsx from "clsx";
-import { Button, Checkbox, fileInputClassName } from "../components/form";
-import * as routes from "../routes";
-import { LogbookPage } from "./layout";
-import { ExportCurlHelp, TransferFormatHelp } from "./transfer-format-help";
+import { Button, Checkbox, fileInputClassName } from "@/components/form";
+import * as routes from "@/routes";
+import { LogbookPage } from "@/logbook/layout";
+import {
+    ExportCurlHelp,
+    TransferFormatHelp,
+} from "@/logbook/transfer-format-help";
 
 interface TransferPageProps {
     errors?: string[];

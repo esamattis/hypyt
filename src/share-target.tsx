@@ -1,10 +1,10 @@
-import { app, type AppRequestContext } from "./app";
-import * as routes from "./routes";
+import { app, type AppRequestContext } from "@/app";
+import * as routes from "@/routes";
 import {
     JUMP_IMAGE_DB_NAME,
     JUMP_IMAGE_KEY,
     JUMP_IMAGE_STORE,
-} from "./logbook/jump-from-image-client";
+} from "@/logbook/jump-from-image-client";
 
 interface ShareTargetWorkerConfig {
     shareTargetPath: string;

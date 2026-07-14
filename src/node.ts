@@ -1,15 +1,15 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { resolve } from "node:path";
-import { app, getAppContext, type AppRequestContext } from "./app";
-import { createSqliteDatabase, resolveSqlitePath } from "./db-sqlite";
-import { migrateSqlite } from "./migrate-sqlite";
-import "./login";
-import "./preferences";
-import "./logbook";
-import "./admin";
-import "./share-target";
-import * as routes from "./routes";
+import { app, getAppContext, type AppRequestContext } from "@/app";
+import { createSqliteDatabase, resolveSqlitePath } from "@/db-sqlite";
+import { migrateSqlite } from "@/migrate-sqlite";
+import "@/login";
+import "@/preferences";
+import "@/logbook";
+import "@/admin";
+import "@/share-target";
+import * as routes from "@/routes";
 
 function redirectFromHome(c: AppRequestContext) {
     const user = getAppContext(c).user;

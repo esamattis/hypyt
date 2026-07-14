@@ -1,5 +1,5 @@
-import { ErrorList } from "./feedback";
-import { Button } from "./form";
+import { ErrorList } from "@/components/feedback";
+import { Button } from "@/components/form";
 
 export function AuthFormShell(props: {
     title: string;

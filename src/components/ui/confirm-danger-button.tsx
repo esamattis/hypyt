@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import { useId } from "hono/jsx";
-import { $assertElement } from "../../utils";
-import { buttonClassName } from "../form";
-import { Script } from "../helpers";
+import { $assertElement } from "@/utils";
+import { buttonClassName } from "@/components/form";
+import { Script } from "@/route-tools";
 
 const dangerButtonClassName = buttonClassName({
     variant: "secondary",

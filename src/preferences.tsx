@@ -1,7 +1,7 @@
 import { and, eq, ne } from "drizzle-orm";
 import { useId } from "hono/jsx";
 import { z } from "zod";
-import { app, getAppContext, type AppRequestContext } from "./app";
+import { app, getAppContext, type AppRequestContext } from "@/app";
 import {
     Button,
     FormActions,
@@ -9,22 +9,22 @@ import {
     NumberInput,
     Select,
     Textarea,
-} from "./components/form";
-import { ErrorList } from "./components/feedback";
-import { Script } from "./components/helpers";
-import { ConfirmDeleteButton, DangerZone } from "./components/ui";
-import { destroySession, hashPassword, Password } from "./login";
+} from "@/components/form";
+import { ErrorList } from "@/components/feedback";
+import { Script } from "@/route-tools";
+import { ConfirmDeleteButton, DangerZone } from "@/components/ui";
+import { destroySession, hashPassword, Password } from "@/login";
 import {
     DEFAULT_JUMP_IMAGE_MODEL,
     DEFAULT_JUMP_IMAGE_PROMPT,
     JUMP_IMAGE_MODELS,
     UserOptionsSchema,
     type UserOptions,
-} from "./options";
-import * as routes from "./routes";
-import { aiUsage, users } from "./schema";
-import { LogbookPage } from "./logbook/layout";
-import { $assertElement, $showAndroidChromeHint } from "./utils";
+} from "@/options";
+import * as routes from "@/routes";
+import { aiUsage, users } from "@/schema";
+import { LogbookPage } from "@/logbook/layout";
+import { $assertElement, $showAndroidChromeHint } from "@/utils";
 
 const PreferencesSchema = z
     .object({

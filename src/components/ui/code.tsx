@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { useId } from "hono/jsx";
-import { $assertElement } from "../../utils";
-import { Script } from "../helpers";
+import { $assertElement } from "@/utils";
+import { Script } from "@/route-tools";
 
 function $initCopyCode(codeId: string, buttonId: string) {
     const code = document.getElementById(codeId);

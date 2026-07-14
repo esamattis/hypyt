@@ -1,4 +1,4 @@
-import { route } from "./components/helpers";
+import { route } from "@/route-tools";
 
 export const home = route("/");
 export const tailwindCss = route("/assets/tailwind.css");
