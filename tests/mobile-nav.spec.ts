@@ -24,6 +24,9 @@ test("mobile navigation uses the bottom bar for actions and menu", async ({
     });
     await expect(bottomBar).toBeVisible();
     await expect(
+        bottomBar.getByRole("link", { name: "Logbook", exact: true }),
+    ).toBeVisible();
+    await expect(
         bottomBar.getByRole("link", { name: "Add jump", exact: true }),
     ).toBeVisible();
     await expect(
@@ -36,7 +39,10 @@ test("mobile navigation uses the bottom bar for actions and menu", async ({
         .click();
     await expect(page).toHaveURL(/\/logbook\/jumps\/new/);
 
-    await page.goto("/logbook");
+    await page.goto("/logbook/jumps/new");
+    await bottomBar.getByRole("link", { name: "Logbook", exact: true }).click();
+    await expect(page).toHaveURL("/logbook");
+
     await bottomBar
         .getByRole("link", { name: "From image", exact: true })
         .click();

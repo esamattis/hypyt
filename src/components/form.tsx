@@ -82,6 +82,7 @@ export function ButtonLink(props: {
     variant?: ButtonVariant;
     size?: ButtonSize;
     className?: string;
+    title?: string;
     "aria-label"?: string;
     "aria-disabled"?: boolean;
     children: Child;
@@ -89,6 +90,7 @@ export function ButtonLink(props: {
     return (
         <a
             href={props.href}
+            title={props.title}
             aria-label={props["aria-label"]}
             aria-disabled={props["aria-disabled"]}
             className={buttonClassName({

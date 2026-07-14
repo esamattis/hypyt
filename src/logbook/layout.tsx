@@ -95,24 +95,76 @@ function PlusIcon() {
     );
 }
 
+function LogbookIcon() {
+    return (
+        <svg
+            aria-hidden="true"
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4 6h16M4 12h10M4 18h14"
+            />
+        </svg>
+    );
+}
+
+function ImageIcon() {
+    return (
+        <svg
+            aria-hidden="true"
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+        </svg>
+    );
+}
+
 function LogbookActions() {
     return (
-        <nav className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <nav className="flex flex-wrap items-center gap-2.5 sm:gap-2">
+            <ButtonLink
+                href={routes.logbook({})}
+                variant="secondary"
+                aria-label="Logbook"
+                title="Logbook"
+                className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
+            >
+                <LogbookIcon />
+                <span className="hidden sm:inline">Logbook</span>
+            </ButtonLink>
             <ButtonLink
                 href={routes.jumpNew({}, {})}
                 variant="primary"
+                aria-label="Add jump"
+                title="Add jump"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
                 <PlusIcon />
-                Add jump
+                <span className="hidden sm:inline">Add jump</span>
             </ButtonLink>
             <ButtonLink
                 href={routes.jumpFromImage({})}
                 variant="secondary"
+                aria-label="From image"
+                title="From image"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
-                <PlusIcon />
-                From image
+                <ImageIcon />
+                <span className="hidden sm:inline">From image</span>
             </ButtonLink>
         </nav>
     );
