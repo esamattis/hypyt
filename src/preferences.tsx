@@ -24,7 +24,7 @@ import {
 import * as routes from "./routes";
 import { aiUsage, users } from "./schema";
 import { LogbookPage } from "./logbook/layout";
-import { $assertElement } from "./utils";
+import { $assertElement, $showAndroidChromeHint } from "./utils";
 
 const PreferencesSchema = z
     .object({
@@ -195,6 +195,7 @@ function JumpFromImageSection(props: { options: UserOptions }) {
 function InstallAppSection() {
     const buttonId = useId();
     const statusId = useId();
+    const hintId = useId();
     return (
         <section className="space-y-5">
             <div>
@@ -204,6 +205,11 @@ function InstallAppSection() {
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Add Jump Logbook to your home screen for quick access.
                 </p>
+                <p
+                    id={hintId}
+                    hidden
+                    className="mt-2 text-sm text-amber-600 dark:text-amber-400"
+                ></p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
                 <Button id={buttonId} type="button" variant="primary" hidden>
@@ -215,15 +221,19 @@ function InstallAppSection() {
                 ></p>
             </div>
             <Script
-                $deps={[$assertElement]}
-                $args={[buttonId, statusId]}
-                $exec={(buttonId: string, statusId: string) => {
+                $deps={[$assertElement, $showAndroidChromeHint]}
+                $args={[buttonId, statusId, hintId]}
+                $exec={(buttonId: string, statusId: string, hintId: string) => {
                     const buttonEl = document.getElementById(buttonId);
                     $assertElement(buttonEl, HTMLButtonElement);
                     const button: HTMLButtonElement = buttonEl;
                     const statusEl = document.getElementById(statusId);
                     $assertElement(statusEl, HTMLElement);
                     const status: HTMLElement = statusEl;
+                    const hintEl = document.getElementById(hintId);
+                    $assertElement(hintEl, HTMLParagraphElement);
+                    const hint: HTMLParagraphElement = hintEl;
+                    $showAndroidChromeHint(hint);
 
                     type BeforeInstallPromptEvent = Event & {
                         prompt: () => Promise<void>;
