@@ -226,6 +226,7 @@ function JumpImageField() {
     const clipboardButtonId = useId();
     const previewId = useId();
     const metaId = useId();
+    const resizeNoteId = useId();
 
     return (
         <div className="space-y-2">
@@ -279,6 +280,10 @@ function JumpImageField() {
                 id={metaId}
                 className="hidden text-sm text-slate-500 dark:text-slate-400"
             />
+            <p
+                id={resizeNoteId}
+                className="hidden rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-200"
+            />
             <Script
                 $deps={[
                     $assertElement,
@@ -297,6 +302,7 @@ function JumpImageField() {
                         clipboardButtonId,
                         previewId,
                         metaId,
+                        resizeNoteId,
                         maxDimension: JUMP_IMAGE_MAX_DIMENSION,
                         targetBytes: JUMP_IMAGE_TARGET_BYTES,
                         dbName: JUMP_IMAGE_DB_NAME,

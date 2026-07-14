@@ -109,7 +109,14 @@ export async function $resizeJumpImageIfNeeded(
     file: File,
     maxDimension: number,
     targetBytes: number,
-): Promise<File> {
+): Promise<{
+    file: File;
+    originalWidth: number;
+    originalHeight: number;
+    width: number;
+    height: number;
+    resized: boolean;
+}> {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const element = new Image();
@@ -127,7 +134,14 @@ export async function $resizeJumpImageIfNeeded(
     const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
     const needsResize = longestSide > maxDimension || file.size > targetBytes;
     if (!needsResize) {
-        return file;
+        return {
+            file,
+            originalWidth: image.naturalWidth,
+            originalHeight: image.naturalHeight,
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+            resized: false,
+        };
     }
 
     let width = image.naturalWidth;
@@ -143,7 +157,14 @@ export async function $resizeJumpImageIfNeeded(
     canvas.height = height;
     const context = canvas.getContext("2d");
     if (!context) {
-        return file;
+        return {
+            file,
+            originalWidth: image.naturalWidth,
+            originalHeight: image.naturalHeight,
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+            resized: false,
+        };
     }
     context.drawImage(image, 0, 0, width, height);
 
@@ -182,10 +203,17 @@ export async function $resizeJumpImageIfNeeded(
             : outputType === "image/webp"
               ? "webp"
               : "jpg";
-    return new File([blob], `${baseName}.${extension}`, {
-        type: outputType,
-        lastModified: Date.now(),
-    });
+    return {
+        file: new File([blob], `${baseName}.${extension}`, {
+            type: outputType,
+            lastModified: Date.now(),
+        }),
+        originalWidth: image.naturalWidth,
+        originalHeight: image.naturalHeight,
+        width,
+        height,
+        resized: true,
+    };
 }
 
 export function $formatJumpImageBytes(bytes: number): string {
@@ -273,6 +301,7 @@ export function $initJumpImageInput(props: {
     clipboardButtonId: string;
     previewId: string;
     metaId: string;
+    resizeNoteId: string;
     maxDimension: number;
     targetBytes: number;
     dbName: string;
@@ -285,18 +314,21 @@ export function $initJumpImageInput(props: {
     const clipboardButtonEl = document.getElementById(props.clipboardButtonId);
     const previewEl = document.getElementById(props.previewId);
     const metaEl = document.getElementById(props.metaId);
+    const resizeNoteEl = document.getElementById(props.resizeNoteId);
     $assertElement(inputEl, HTMLInputElement);
     $assertElement(cameraInputEl, HTMLInputElement);
     $assertElement(cameraButtonEl, HTMLButtonElement);
     $assertElement(clipboardButtonEl, HTMLButtonElement);
     $assertElement(previewEl, HTMLImageElement);
     $assertElement(metaEl, HTMLElement);
+    $assertElement(resizeNoteEl, HTMLElement);
     const input: HTMLInputElement = inputEl;
     const cameraInput: HTMLInputElement = cameraInputEl;
     const cameraButton: HTMLButtonElement = cameraButtonEl;
     const clipboardButton: HTMLButtonElement = clipboardButtonEl;
     const preview: HTMLImageElement = previewEl;
     const meta: HTMLElement = metaEl;
+    const resizeNote: HTMLElement = resizeNoteEl;
 
     let previewUrl: string | null = null;
 
@@ -318,16 +350,23 @@ export function $initJumpImageInput(props: {
     }
 
     async function applyFile(file: File) {
-        const processed = await $resizeJumpImageIfNeeded(
+        const result = await $resizeJumpImageIfNeeded(
             file,
             props.maxDimension,
             props.targetBytes,
         );
-        setInputFile(processed);
-        showPreview(processed);
+        setInputFile(result.file);
+        showPreview(result.file);
+        if (result.resized) {
+            resizeNote.textContent = `Resized from ${$formatJumpImageBytes(file.size)} (${result.originalWidth} x ${result.originalHeight}) to ${$formatJumpImageBytes(result.file.size)} (${result.width} x ${result.height}).`;
+            resizeNote.classList.remove("hidden");
+        } else {
+            resizeNote.classList.add("hidden");
+            resizeNote.textContent = "";
+        }
         try {
             await $saveJumpImageDraft(
-                processed,
+                result.file,
                 props.dbName,
                 props.storeName,
                 props.storageKey,

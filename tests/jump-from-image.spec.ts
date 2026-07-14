@@ -198,6 +198,52 @@ test("from image form persists model and additional context after reload", async
     ).toHaveValue("Remember this context across reload");
 });
 
+test("from image form describes resized images", async ({ page }) => {
+    await page.goto("/register");
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
+    await page.locator('input[name="username"]').fill("resize-skydiver");
+    await page.locator('input[name="displayName"]').fill("Resize Skydiver");
+    await page.locator('input[name="email"]').fill("resize@example.test");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("link", { name: "From image", exact: true }).click();
+
+    await page.evaluate(async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 4096;
+        canvas.height = 4;
+        const context = canvas.getContext("2d");
+        if (!context) {
+            throw new Error("Canvas is unavailable");
+        }
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob((result) => {
+                if (result) {
+                    resolve(result);
+                } else {
+                    reject(new Error("Could not create test image"));
+                }
+            }, "image/png");
+        });
+        const input = document.querySelector('input[name="image"]');
+        if (!(input instanceof HTMLInputElement)) {
+            throw new Error("Image input is unavailable");
+        }
+        const transfer = new DataTransfer();
+        transfer.items.add(new File([blob], "large.png", { type: blob.type }));
+        input.files = transfer.files;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    await expect(
+        page.getByText(
+            /^Resized from \d+(?:\.\d+)? (?:B|KB|MB) \(4096 x 4\) to \d+(?:\.\d+)? (?:B|KB|MB) \(2048 x 2\)\.$/,
+        ),
+    ).toBeVisible();
+});
+
 // eslint-disable-next-line max-lines-per-function
 test("a skydiver can paste a jump image from the clipboard", async ({
     page,
