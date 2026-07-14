@@ -35,10 +35,12 @@ import {
 } from "./ai-usage";
 import {
     $formatJumpImageBytes,
+    $imageMimeTypeToExtension,
     $initJumpImageInput,
     $loadJumpImageDraft,
     $resizeJumpImageIfNeeded,
     $saveJumpImageDraft,
+    $setupClipboardImageInput,
     JUMP_IMAGE_DB_NAME,
     JUMP_IMAGE_KEY,
     JUMP_IMAGE_MAX_DIMENSION,
@@ -221,6 +223,7 @@ function JumpImageField() {
     const inputId = useId();
     const cameraInputId = useId();
     const cameraButtonId = useId();
+    const clipboardButtonId = useId();
     const previewId = useId();
     const metaId = useId();
 
@@ -258,6 +261,14 @@ function JumpImageField() {
                 >
                     Take photo
                 </Button>
+                <Button
+                    type="button"
+                    id={clipboardButtonId}
+                    variant="secondary"
+                    className="shrink-0 text-sm"
+                >
+                    Paste from clipboard
+                </Button>
             </div>
             <img
                 id={previewId}
@@ -275,11 +286,14 @@ function JumpImageField() {
                     $loadJumpImageDraft,
                     $resizeJumpImageIfNeeded,
                     $formatJumpImageBytes,
+                    $setupClipboardImageInput,
+                    $imageMimeTypeToExtension,
                 ]}
                 $args={[
                     inputId,
                     cameraInputId,
                     cameraButtonId,
+                    clipboardButtonId,
                     previewId,
                     metaId,
                     JUMP_IMAGE_MAX_DIMENSION,

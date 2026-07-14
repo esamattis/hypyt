@@ -198,10 +198,79 @@ export function $formatJumpImageBytes(bytes: number): string {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+export function $imageMimeTypeToExtension(mimeType: string): string {
+    const sub = mimeType.split("/")[1] ?? "";
+    if (sub === "jpeg") {
+        return "jpg";
+    }
+    return sub || "img";
+}
+
+export function $setupClipboardImageInput(
+    clipboardButton: HTMLButtonElement,
+    handleSelectedFile: (file: File | undefined) => void,
+) {
+    function applyClipboardImage(blob: Blob, mimeType: string) {
+        const ext = $imageMimeTypeToExtension(mimeType);
+        const file = new File([blob], `pasted-image.${ext}`, {
+            type: mimeType,
+            lastModified: Date.now(),
+        });
+        handleSelectedFile(file);
+    }
+
+    clipboardButton.addEventListener("click", async () => {
+        try {
+            if (typeof navigator.clipboard?.read !== "function") {
+                return;
+            }
+            const clipboardItems = await navigator.clipboard.read();
+            for (const item of clipboardItems) {
+                const imageType = item.types.find((t) =>
+                    t.startsWith("image/"),
+                );
+                if (imageType) {
+                    const blob = await item.getType(imageType);
+                    applyClipboardImage(blob, imageType);
+                    return;
+                }
+            }
+        } catch {
+            // Clipboard read is not supported or no image available; ignore.
+        }
+    });
+
+    window.addEventListener("paste", (event) => {
+        const data = event.clipboardData;
+        if (data == null) {
+            return;
+        }
+        const target = event.target;
+        if (
+            target instanceof HTMLInputElement ||
+            target instanceof HTMLTextAreaElement ||
+            target instanceof HTMLSelectElement
+        ) {
+            return;
+        }
+        for (const item of data.items) {
+            if (item.kind === "file" && item.type.startsWith("image/")) {
+                const file = item.getAsFile();
+                if (file) {
+                    event.preventDefault();
+                    applyClipboardImage(file, file.type || "image/png");
+                    return;
+                }
+            }
+        }
+    });
+}
+
 export function $initJumpImageInput(
     inputId: string,
     cameraInputId: string,
     cameraButtonId: string,
+    clipboardButtonId: string,
     previewId: string,
     metaId: string,
     maxDimension: number,
@@ -213,16 +282,19 @@ export function $initJumpImageInput(
     const inputEl = document.getElementById(inputId);
     const cameraInputEl = document.getElementById(cameraInputId);
     const cameraButtonEl = document.getElementById(cameraButtonId);
+    const clipboardButtonEl = document.getElementById(clipboardButtonId);
     const previewEl = document.getElementById(previewId);
     const metaEl = document.getElementById(metaId);
     $assertElement(inputEl, HTMLInputElement);
     $assertElement(cameraInputEl, HTMLInputElement);
     $assertElement(cameraButtonEl, HTMLButtonElement);
+    $assertElement(clipboardButtonEl, HTMLButtonElement);
     $assertElement(previewEl, HTMLImageElement);
     $assertElement(metaEl, HTMLElement);
     const input: HTMLInputElement = inputEl;
     const cameraInput: HTMLInputElement = cameraInputEl;
     const cameraButton: HTMLButtonElement = cameraButtonEl;
+    const clipboardButton: HTMLButtonElement = clipboardButtonEl;
     const preview: HTMLImageElement = previewEl;
     const meta: HTMLElement = metaEl;
 
@@ -282,6 +354,8 @@ export function $initJumpImageInput(
     cameraButton.addEventListener("click", () => {
         cameraInput.click();
     });
+
+    $setupClipboardImageInput(clipboardButton, handleSelectedFile);
 
     void $loadJumpImageDraft(dbName, storeName, storageKey)
         .then((file) => {
