@@ -38,8 +38,8 @@ export function DropdownMenu(props: {
                 id={menuId}
                 hidden
                 className={clsx(
-                    "absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-100/10",
-                    props.menuClassName,
+                    "absolute right-0 z-40 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5 dark:border-slate-700 dark:bg-slate-900 dark:ring-slate-100/10",
+                    props.menuClassName ?? "mt-2",
                 )}
             >
                 {props.children}

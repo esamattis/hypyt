@@ -24,12 +24,13 @@ function BurgerMenuIcon() {
     );
 }
 
-function MainMenu(props: { isAdmin: boolean }) {
+function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
     return (
         <DropdownMenu
             label="Menu"
             button={<BurgerMenuIcon />}
             buttonClassName="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-indigo-400/40"
+            menuClassName={props.menuClassName}
         >
             <a href={routes.aircraftList({})} className={menuItemClassName}>
                 Manage aircraft
@@ -264,7 +265,10 @@ export function LogbookPage(props: { title: string; children: any }) {
         <div className="min-h-screen">
             <Style>
                 {`
-                    html { scroll-padding-top: 8rem; }
+                    html { scroll-padding-top: 4rem; scroll-padding-bottom: 5rem; }
+                    @media (min-width: 640px) {
+                        html { scroll-padding-top: 8rem; scroll-padding-bottom: 0; }
+                    }
                     summary { list-style: none; }
                     summary::-webkit-details-marker { display: none; }
                 `}
@@ -288,20 +292,36 @@ export function LogbookPage(props: { title: string; children: any }) {
                         </a>
                         <div className="ml-auto flex shrink-0 items-center gap-2">
                             <ThemeToggle />
-                            <MainMenu isAdmin={user.admin} />
+                            <div className="hidden sm:block">
+                                <MainMenu isAdmin={user.admin} />
+                            </div>
                         </div>
                     </div>
-                    <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+                    <div className="mt-2 hidden border-t border-slate-100 pt-2 sm:block dark:border-slate-800">
                         <LogbookActions />
                     </div>
                 </div>
             </header>
-            <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:py-8">
+            <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 pb-24 sm:py-8 sm:pb-8">
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
                     {props.title}
                 </h1>
                 {props.children}
             </main>
+            <nav
+                aria-label="Logbook actions"
+                className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden dark:border-slate-800 dark:bg-slate-900/85"
+            >
+                <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2">
+                    <div className="min-w-0 flex-1">
+                        <LogbookActions />
+                    </div>
+                    <MainMenu
+                        isAdmin={user.admin}
+                        menuClassName="bottom-full mb-2"
+                    />
+                </div>
+            </nav>
         </div>
     );
 }
