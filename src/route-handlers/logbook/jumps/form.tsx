@@ -205,6 +205,7 @@ function FreefallTimeField(props: {
                     id={estimateButtonId}
                     type="button"
                     variant="secondary"
+                    data-tooltip="Estimate freefall time based on exit and opening altitude"
                     className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Estimate
@@ -411,6 +412,7 @@ function JumpDateField(props: { value: string }) {
                     id={buttonId}
                     type="button"
                     variant="secondary"
+                    data-tooltip="Set jump date to today"
                     className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Today
@@ -479,6 +481,7 @@ function JumpNumberField(props: { value: string; nextJumpNumber?: string }) {
                     id={buttonId}
                     type="button"
                     variant="secondary"
+                    data-tooltip="Set number to the next jump number. Ie. latest jump number + 1"
                     className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Next

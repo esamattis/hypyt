@@ -24,7 +24,6 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
     return (
         <DropdownMenu
             label="Menu"
-            tooltip="Menu"
             button={<BurgerMenuIcon className="h-5 w-5" />}
             buttonClassName={buttonClassName({
                 variant: "secondary",
