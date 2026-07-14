@@ -14,7 +14,7 @@ export function sessionCookieOptions(requestUrl: string) {
     return {
         path: "/",
         httpOnly: true,
-        sameSite: "Strict" as const,
+        sameSite: "Lax" as const,
         secure: new URL(requestUrl).protocol === "https:",
     };
 }
