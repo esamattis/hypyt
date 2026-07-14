@@ -144,6 +144,35 @@ function $restoreFormScrollPosition() {
     });
 }
 
+function $showNavigationProgress(options: {
+    mode: "form" | "link";
+    method?: string;
+}) {
+    if (document.getElementById("form-submit-progress")) {
+        return;
+    }
+
+    const isPost =
+        options.mode === "form" &&
+        (options.method ?? "get").toLowerCase() === "post";
+
+    const progress = document.createElement("div");
+    progress.id = "form-submit-progress";
+    progress.setAttribute("role", "progressbar");
+    if (isPost) {
+        progress.classList.add("form-submit-progress-post");
+    }
+    progress.setAttribute(
+        "aria-label",
+        options.mode === "form" ? "Submitting form" : "Loading page",
+    );
+    progress.setAttribute(
+        "aria-valuetext",
+        options.mode === "form" ? "Submitting" : "Loading",
+    );
+    document.body.appendChild(progress);
+}
+
 function $disableFormOnSubmit() {
     document.addEventListener("submit", (event) => {
         const form = event.target;
@@ -159,14 +188,10 @@ function $disableFormOnSubmit() {
             "select-none",
         );
 
-        if (!document.getElementById("form-submit-progress")) {
-            const progress = document.createElement("div");
-            progress.id = "form-submit-progress";
-            progress.setAttribute("role", "progressbar");
-            progress.setAttribute("aria-label", "Submitting form");
-            progress.setAttribute("aria-valuetext", "Submitting");
-            document.body.appendChild(progress);
-        }
+        $showNavigationProgress({
+            mode: "form",
+            method: form.method,
+        });
 
         const submitter = event.submitter;
         if (submitter instanceof HTMLButtonElement) {
@@ -192,6 +217,63 @@ function $disableFormOnSubmit() {
                 }
             }
         }, 0);
+    });
+}
+
+function $showProgressOnLinkClick() {
+    document.addEventListener("click", (event) => {
+        if (event.defaultPrevented) {
+            return;
+        }
+        if (event.button !== 0) {
+            return;
+        }
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+
+        const anchor = target.closest("a");
+        if (!(anchor instanceof HTMLAnchorElement)) {
+            return;
+        }
+
+        if (!anchor.href) {
+            return;
+        }
+        if (anchor.hasAttribute("download")) {
+            return;
+        }
+        if (anchor.target && anchor.target !== "_self") {
+            return;
+        }
+
+        let url: URL;
+        try {
+            url = new URL(anchor.href, window.location.href);
+        } catch {
+            return;
+        }
+
+        if (url.origin !== window.location.origin) {
+            return;
+        }
+        if (
+            url.pathname === window.location.pathname &&
+            url.search === window.location.search &&
+            url.hash !== ""
+        ) {
+            return;
+        }
+        if (url.protocol !== "http:" && url.protocol !== "https:") {
+            return;
+        }
+
+        $showNavigationProgress({ mode: "link" });
     });
 }
 
@@ -479,7 +561,14 @@ app.use(
                 >
                     <div className="min-h-screen">{props.children}</div>
                     <Script $exec={$restoreFormScrollPosition} />
-                    <Script $exec={$disableFormOnSubmit} />
+                    <Script
+                        $deps={[$showNavigationProgress]}
+                        $exec={$disableFormOnSubmit}
+                    />
+                    <Script
+                        $deps={[$showNavigationProgress]}
+                        $exec={$showProgressOnLinkClick}
+                    />
                 </body>
             </html>
         );

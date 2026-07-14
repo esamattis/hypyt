@@ -28,7 +28,7 @@
     }
 }
 
-/* In-flight form submit feedback (before the next page paints). */
+/* In-flight navigation / form submit feedback (before the next page paints). */
 #form-submit-progress {
     position: fixed;
     top: 0;
@@ -47,6 +47,19 @@
     background-size: 40% 100%;
     background-repeat: no-repeat;
     animation: form-submit-progress 1.1s ease-in-out infinite;
+}
+
+/* POST forms: reddish bar to signal a mutating request */
+#form-submit-progress.form-submit-progress-post {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgb(220 38 38),
+        rgb(248 113 113),
+        transparent
+    );
+    background-size: 40% 100%;
+    background-repeat: no-repeat;
 }
 
 .form-submit-pending {
@@ -100,6 +113,11 @@
 
     #form-submit-progress {
         background: rgb(99 102 241);
+        opacity: 0.85;
+    }
+
+    #form-submit-progress.form-submit-progress-post {
+        background: rgb(220 38 38);
         opacity: 0.85;
     }
 }
