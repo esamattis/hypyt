@@ -1,10 +1,14 @@
-This is a Hono.js project using JSX. Using only server side rendering (SSR) with Hono.js and JSX.
+# Project
 
-Never destructure the `prop` parameter on the component functions. Eg. alway refer props via `props.propName`.
+Use Hono.js with JSX and server-side rendering (SSR) only.
 
-Use tailwindcss for styling. When using conditional classes, use the `clsx` package to combine classes.
+# Components And Styling
 
-If you need vanilla use the Css component helper:
+Never destructure component props; use `props.propName`.
+
+Use Tailwind CSS for styling. Combine conditional classes with `clsx`.
+
+For vanilla CSS, use the `Style` helper:
 
 ```tsx
 <Style>
@@ -14,7 +18,11 @@ If you need vanilla use the Css component helper:
 </Style>
 ```
 
-Also if you need client-side javascript, use the `Script` component helper:
+`Style` and `Script` are imported from the project's `helpers.tsx` file.
+
+# Browser Scripts
+
+For client-side JavaScript, use the `Script` helper:
 
 ```tsx
 <Script
@@ -24,11 +32,7 @@ Also if you need client-side javascript, use the `Script` component helper:
 />
 ```
 
-These components are imported from project the helpers.tx file.
-
-When referencing an element in the Script component, use `useId()` hook from
-"hono/jsx" to generate unique ID for the element and use it in the `Script`
-component via the `$args` prop. like this:
+When a `Script` references an element, create its unique ID with `useId()` from `hono/jsx` and pass it through `$args`:
 
 ```tsx
 const id = useId();
@@ -47,52 +51,59 @@ return (
 );
 ```
 
-Always use the $assertElement(el, typeclass) to assert the elements. Ie. never use type casts or type args like `el.closest<HTMLElement>("[data-tooltip]");`
+Always assert elements with `$assertElement(el, typeclass)`. Never use type casts or type arguments such as `el.closest<HTMLElement>("[data-tooltip]");`.
 
-Write named functions using the `function` keyword. Use arrow functions only for anonymous functions. Callbacks etc.
+Functions prefixed with `$` must be executable in the browser.
 
-All functions starting with dollar sign `$` are and should be designed so they can be executed in the browser.
+# Code Conventions
 
-Always write user interface text in English language.
+Write named functions with the `function` keyword. Use arrow functions only for anonymous functions, including callbacks.
 
-Do not use React-style `defaultValue` on form controls. Hono SSR does not map it to HTML `value`. Use `value={...}` on inputs/selects (and children/`value` on textareas). For selects, mark the chosen option with `selected`.
+Write all UI text in English.
 
-## Terminology
+# Forms
 
-"Jump items" refer to gear, locations, aircrafts and jump types that can be assigned to a jump.
+Do not use React-style `defaultValue` on form controls; Hono SSR does not map it to HTML `value`. Use `value={...}` for inputs and selects, and children or `value` for textareas. Mark the selected option with `selected`.
 
-## Tests
+# Terminology
 
-Always after every change run
+"Jump items" are gear, locations, aircraft, and jump types assignable to a jump.
+
+# Tests
+
+After every change, run:
 
 ```
 pn test
 ```
 
-## Lints
+# Lints
 
-Skip lint comments are only allowed in test files. Production code should be clean of lints.
+Lint-skip comments are allowed only in test files. Production code must be lint-clean.
 
-If a lint complains about too many lines in a function, consider splitting the function into smaller functions.
+If a function exceeds the lint line limit, split it into smaller functions.
 
-If it complains that file has too many lines: 1. Extract a helper function or component to a shared helpers file 2. If the helpers are local to the file, create a new directory with the original file and put the helpers there.
+If a file exceeds the lint line limit:
 
-## Route Helpers
+1. Extract a helper function or component into a shared helpers file.
+2. If the helpers are local, create a directory named after the original file and move it there.
 
-Use the route helper functions from routes.tsx for type-safe routing. Follow these patterns:
+# Route Helpers
 
-### Defining Routes
+Use the `routes.tsx` helpers for type-safe routing.
 
-Define routes using the `route()` function in routes.tsx:
+## Defining Routes
+
+Define routes with `route()` in `routes.tsx`:
 
 ```tsx
 export const userView = route("/user/:username");
 export const userManage = route("/user/:username/manage");
 ```
 
-### Generating URLs
+## Generating URLs
 
-Use the route helper's function call to generate URLs with parameters:
+Call the route helper with parameters:
 
 ```tsx
 // Generate URL with parameters
@@ -106,9 +117,9 @@ const url = userView({ username: "john" });
 return c.redirect(userView({ username }));
 ```
 
-### Registering Route Handlers
+## Registering Route Handlers
 
-Use the `.route` property to register handlers:
+Register handlers with `.route`:
 
 ```tsx
 app.get(userView.route, async (c) => {
@@ -116,9 +127,9 @@ app.get(userView.route, async (c) => {
 });
 ```
 
-### Extracting Route Parameters
+## Extracting Route Parameters
 
-Use the `.params()` method to extract parameters in handlers:
+Extract parameters with `.params()`:
 
 ```tsx
 app.get(userView.route, async (c) => {
@@ -127,4 +138,4 @@ app.get(userView.route, async (c) => {
 });
 ```
 
-Never hardcode URLs - always use the route helpers for internal navigation.
+Never hardcode internal URLs; always use route helpers.

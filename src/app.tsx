@@ -6,9 +6,20 @@ import { deleteCookie, getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
 import htmx from "htmx.org/dist/htmx.esm.js?raw";
 import tailwind from "./tailwind.css?inline";
-import { $initTooltips, Script } from "./components/helpers";
+import { Script } from "./components/helpers";
 import { Button } from "./components/form";
 import { Dialog } from "./components/ui";
+import { DisableViewTransitionsInAutomation } from "./components/disable-view-transitions-in-automation";
+import {
+    DisableFormOnSubmit,
+    ShowProgressOnLinkClick,
+} from "./components/navigation-progress";
+import { RestoreFormScrollPosition } from "./components/restore-form-scroll-position";
+import { ServiceWorkerRegistration } from "./components/service-worker-registration";
+import { ThemeScript } from "./components/theme-script";
+import { Tooltips } from "./components/tooltips";
+import { UnsavedChangesDialog as UnsavedChangesDialogComponent } from "./components/unsaved-changes-dialog";
+import { UpdateToast as UpdateToastComponent } from "./components/update-toast";
 import { sessions, users } from "./schema";
 import * as routes from "./routes";
 import { parseUserOptions, type UserOptions } from "./options";
@@ -121,7 +132,7 @@ export function useAppContext(): AppContext {
     return getAppContext(c);
 }
 
-function $restoreFormScrollPosition() {
+export function $restoreFormScrollPosition() {
     const storageKey = "form-scroll-position";
     const storedPosition = sessionStorage.getItem(storageKey);
 
@@ -177,7 +188,7 @@ function $showNavigationProgress(options: {
     document.body.appendChild(progress);
 }
 
-function $disableFormOnSubmit() {
+export function $disableFormOnSubmit() {
     document.addEventListener("submit", (event) => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement)) {
@@ -224,7 +235,7 @@ function $disableFormOnSubmit() {
     });
 }
 
-function $showProgressOnLinkClick() {
+export function $showProgressOnLinkClick() {
     document.addEventListener("click", (event) => {
         if (event.defaultPrevented) {
             return;
@@ -375,7 +386,7 @@ function $navigationHrefFromClick(event: MouseEvent): string | null {
     return anchor.href;
 }
 
-function $guardUnsavedFormChanges(dialogId: string) {
+export function $guardUnsavedFormChanges(dialogId: string) {
     let pendingHref: string | null = null;
 
     document.addEventListener("input", $markFormDirtyFromEvent, true);
@@ -443,7 +454,7 @@ function $guardUnsavedFormChanges(dialogId: string) {
     );
 }
 
-function UnsavedChangesDialog() {
+export function UnsavedChangesDialog() {
     return (
         <Dialog
             id={UNSAVED_CHANGES_DIALOG_ID}
@@ -459,7 +470,7 @@ function UnsavedChangesDialog() {
     );
 }
 
-function $applyStoredTheme() {
+export function $applyStoredTheme() {
     try {
         let theme = localStorage.getItem("theme");
         if (theme !== "light" && theme !== "dark") {
@@ -476,7 +487,7 @@ function $applyStoredTheme() {
     }
 }
 
-function $disableViewTransitionsInAutomation() {
+export function $disableViewTransitionsInAutomation() {
     // Playwright/automation leaves view-transition snapshots that never
     // settle for hit-testing; opt out so e2e clicks stay reliable.
     if (!navigator.webdriver) {
@@ -497,7 +508,7 @@ function $showUpdateToast(toastId: string) {
     toast.hidden = false;
 }
 
-function $registerServiceWorker(workerUrl: string, toastId: string) {
+export function $registerServiceWorker(workerUrl: string, toastId: string) {
     if (!("serviceWorker" in navigator)) {
         return;
     }
@@ -534,7 +545,7 @@ function $registerServiceWorker(workerUrl: string, toastId: string) {
     });
 }
 
-function UpdateToast() {
+export function UpdateToast() {
     return (
         <div
             id={UPDATE_TOAST_ID}
@@ -850,15 +861,13 @@ app.use(
                     />
 
                     <title>{title}</title>
-                    <Script $exec={$applyStoredTheme} />
-                    <Script
-                        $args={[routes.serviceWorker({}), UPDATE_TOAST_ID]}
-                        $deps={[$showUpdateToast]}
-                        $exec={$registerServiceWorker}
+                    <ThemeScript />
+                    <ServiceWorkerRegistration
+                        workerUrl={routes.serviceWorker({})}
                     />
                     <link href={routes.tailwindCss({})} rel="stylesheet" />
                     {/* After CSS so automation can override @view-transition. */}
-                    <Script $exec={$disableViewTransitionsInAutomation} />
+                    <DisableViewTransitionsInAutomation />
                     <script src={routes.htmxScript({})} type="module"></script>
                 </head>
                 <body
@@ -868,29 +877,12 @@ app.use(
                     className="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200"
                 >
                     <div className="min-h-screen">{props.children}</div>
-                    <UnsavedChangesDialog />
-                    <UpdateToast />
-                    <Script
-                        $deps={[
-                            $assertElement,
-                            $isFormDirty,
-                            $clearFormDirty,
-                            $markFormDirtyFromEvent,
-                            $navigationHrefFromClick,
-                        ]}
-                        $args={[UNSAVED_CHANGES_DIALOG_ID]}
-                        $exec={$guardUnsavedFormChanges}
-                    />
-                    <Script $exec={$restoreFormScrollPosition} />
-                    <Script $deps={[$assertElement]} $exec={$initTooltips} />
-                    <Script
-                        $deps={[$showNavigationProgress]}
-                        $exec={$disableFormOnSubmit}
-                    />
-                    <Script
-                        $deps={[$showNavigationProgress]}
-                        $exec={$showProgressOnLinkClick}
-                    />
+                    <UnsavedChangesDialogComponent />
+                    <UpdateToastComponent />
+                    <RestoreFormScrollPosition />
+                    <Tooltips />
+                    <DisableFormOnSubmit />
+                    <ShowProgressOnLinkClick />
                 </body>
             </html>
         );
