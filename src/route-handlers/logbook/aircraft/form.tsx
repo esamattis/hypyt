@@ -21,12 +21,14 @@ export function AircraftForm(props: {
     values?: AircraftFormValues;
     errors?: string[];
     submitLabel: string;
+    confirmationTitle: string;
 }) {
     const values = props.values ?? {};
 
     return (
         <form
             method="post"
+            data-confirm={props.confirmationTitle}
             className="max-w-xl space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
             <ErrorList
@@ -82,6 +84,7 @@ export function AircraftFormPage(props: {
                 values={props.values}
                 errors={props.errors}
                 submitLabel={props.submitLabel}
+                confirmationTitle={props.title}
             />
             {props.canDelete && (
                 <DangerZone>

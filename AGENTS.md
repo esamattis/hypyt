@@ -67,9 +67,15 @@ Use the `@/` alias for imports from `src` (for example, `@/components/feedback`)
 
 Do not use React-style `defaultValue` on form controls; Hono SSR does not map it to HTML `value`. Use `value={...}` for inputs and selects, and children or `value` for textareas. Mark the selected option with `selected`.
 
+Opt saveable edit forms into unsaved-change tracking with `data-confirm="Edit Jump"`, using the dialog title as the attribute value. Forms without `data-confirm` are not tracked. Never add it to destructive or confirmation-gated forms.
+
 # Terminology
 
 "Jump items" are gear, locations, aircraft, and jump types assignable to a jump.
+
+# Git
+
+Never use git commands unless explicitly instructed.
 
 # Tests
 

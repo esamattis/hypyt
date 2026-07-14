@@ -278,6 +278,14 @@ export function $showProgressOnLinkClick() {
     });
 }
 
+/*
+<CODEREVIEW>
+[low] This entire unsaved-changes implementation is dead duplicate code. The
+layout renders the imported `UnsavedChangesDialogComponent`, and no code uses
+these exported declarations. Remove this block and the now-unused `Button` and
+`Dialog` imports so fixes have only one source of truth.
+</CODEREVIEW>
+*/
 const UNSAVED_CHANGES_DIALOG_ID = "unsaved-changes-dialog";
 
 function $isFormDirty(): boolean {

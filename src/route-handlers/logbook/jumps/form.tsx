@@ -672,6 +672,7 @@ function JumpForm(props: {
     errors?: Child[];
     notices?: Child[];
     submitLabel: string;
+    confirmationTitle: string;
     nextJumpNumber?: string;
 }) {
     const values = props.values ?? {};
@@ -689,6 +690,7 @@ function JumpForm(props: {
         <form
             id={formId}
             method="post"
+            data-confirm={props.confirmationTitle}
             className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
             <ErrorList
@@ -767,6 +769,7 @@ function JumpForm(props: {
 export function JumpFormPage(props: {
     title: string;
     submitLabel: string;
+    confirmationTitle: string;
     values?: JumpFormValues;
     errors?: Child[];
     notices?: Child[];
@@ -787,6 +790,7 @@ export function JumpFormPage(props: {
                 errors={props.errors}
                 notices={props.notices}
                 submitLabel={props.submitLabel}
+                confirmationTitle={props.confirmationTitle}
                 nextJumpNumber={props.nextJumpNumber}
                 {...props.resources}
             />

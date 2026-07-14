@@ -37,6 +37,7 @@ export async function renderEditJump(c: AppRequestContext) {
         <JumpFormPage
             title={`Edit jump #${jump.jumpNumber}`}
             submitLabel="Save jump"
+            confirmationTitle="Edit Jump"
             values={{
                 locationUuid: jump.locationUuid,
                 aircraftUuid: jump.aircraftUuid,
@@ -90,6 +91,7 @@ export async function handleEditJump(c: AppRequestContext) {
             <JumpFormPage
                 title={`Edit jump #${jumpNumber}`}
                 submitLabel="Save jump"
+                confirmationTitle="Edit Jump"
                 values={parsed.raw}
                 resources={parsed.resources}
                 errors={parsed.errors}
@@ -106,6 +108,7 @@ export async function handleEditJump(c: AppRequestContext) {
             <JumpFormPage
                 title={`Edit jump #${jumpNumber}`}
                 submitLabel="Save jump"
+                confirmationTitle="Edit Jump"
                 values={parsed.raw}
                 resources={parsed.resources}
                 errors={[

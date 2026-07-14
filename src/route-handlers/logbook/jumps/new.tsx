@@ -168,6 +168,7 @@ export async function renderNewJump(c: AppRequestContext) {
         <JumpFormPage
             title="Add jump"
             submitLabel="Add jump"
+            confirmationTitle="Add Jump"
             values={values}
             nextJumpNumber={nextJumpNumber}
             notices={notices}
@@ -199,6 +200,7 @@ export async function handleNewJump(c: AppRequestContext) {
             <JumpFormPage
                 title="Add jump"
                 submitLabel="Add jump"
+                confirmationTitle="Add Jump"
                 errors={parsed.errors}
                 values={parsed.raw}
                 nextJumpNumber={await getNextJumpNumber(c, userUuid)}
@@ -213,6 +215,7 @@ export async function handleNewJump(c: AppRequestContext) {
             <JumpFormPage
                 title="Add jump"
                 submitLabel="Add jump"
+                confirmationTitle="Add Jump"
                 errors={[
                     duplicateJumpNumberError(
                         parsed.data.jumpNumber,

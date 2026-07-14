@@ -9,11 +9,14 @@ function $isFormDirty() {
 }
 function $clearFormDirty() {
     delete document.documentElement.dataset.formDirty;
+    document.querySelectorAll("form[data-form-dirty]").forEach((form) => {
+        if (form instanceof HTMLFormElement) delete form.dataset.formDirty;
+    });
 }
 function $markFormDirtyFromEvent(event: Event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const form = target.closest("form");
+    const form = target.closest("form[data-confirm]");
     if (
         !(form instanceof HTMLFormElement) ||
         form.method.toLowerCase() !== "post" ||
@@ -26,6 +29,7 @@ function $markFormDirtyFromEvent(event: Event) {
     )
         return;
     document.documentElement.dataset.formDirty = "true";
+    form.dataset.formDirty = "true";
 }
 function $navigationHrefFromClick(event: MouseEvent): string | null {
     if (
@@ -55,18 +59,16 @@ function $navigationHrefFromClick(event: MouseEvent): string | null {
     }
     if (
         (url.protocol !== "http:" && url.protocol !== "https:") ||
-        (url.pathname === window.location.pathname &&
-            url.search === window.location.search &&
-            url.hash !== "") ||
-        (url.pathname === window.location.pathname &&
-            url.search === window.location.search &&
-            url.hash === window.location.hash)
+        (url.origin === window.location.origin &&
+            url.pathname === window.location.pathname &&
+            url.search === window.location.search)
     )
         return null;
     return anchor.href;
 }
 function $guardUnsavedFormChanges(dialogId: string) {
     let pendingHref: string | null = null;
+    let pendingForm: HTMLFormElement | null = null;
     document.addEventListener("input", $markFormDirtyFromEvent, true);
     document.addEventListener("change", $markFormDirtyFromEvent, true);
     document.addEventListener(
@@ -91,10 +93,21 @@ function $guardUnsavedFormChanges(dialogId: string) {
     $assertElement(dialog, HTMLDialogElement);
     dialog.addEventListener("click", (event) => {
         const target = event.target;
-        if (!(target instanceof HTMLButtonElement) || target.value !== "ok")
+        if (!(target instanceof HTMLButtonElement)) return;
+        if (target.value === "save") {
+            event.preventDefault();
+            pendingHref = null;
+            const form = pendingForm;
+            pendingForm = null;
+            $assertElement(form, HTMLFormElement);
+            form.requestSubmit();
+            dialog.close();
             return;
+        }
+        if (target.value !== "leave") return;
         const href = pendingHref;
         pendingHref = null;
+        pendingForm = null;
         $clearFormDirty();
         dialog.close();
         if (href) window.location.href = href;
@@ -108,6 +121,12 @@ function $guardUnsavedFormChanges(dialogId: string) {
             event.preventDefault();
             event.stopImmediatePropagation();
             pendingHref = href;
+            const form = document.querySelector("form[data-form-dirty]");
+            $assertElement(form, HTMLFormElement);
+            pendingForm = form;
+            const title = dialog.querySelector("h2");
+            $assertElement(title, HTMLHeadingElement);
+            title.textContent = form.dataset.confirm ?? "";
             dialog.showModal();
         },
         true,
@@ -136,8 +155,14 @@ export function UnsavedChangesDialog() {
                 title="Unsaved changes"
                 description="You have unsaved changes. Leave this page without saving?"
             >
-                <div className="flex justify-end">
-                    <Button type="button" value="ok" variant="primary">
+                <div className="flex justify-end gap-2">
+                    <Button type="button" value="cancel" variant="secondary">
+                        Cancel
+                    </Button>
+                    <Button type="button" value="save" variant="primary">
+                        Save
+                    </Button>
+                    <Button type="button" value="leave" variant="danger">
                         Leave
                     </Button>
                 </div>
