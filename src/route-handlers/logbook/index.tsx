@@ -11,6 +11,7 @@ import {
     locations,
 } from "@/schema";
 import { Button } from "@/components/form";
+import { ChevronRightIcon } from "@/components/icons";
 import { Details } from "@/components/ui/details";
 import { LogbookPage } from "@/app/authenticated-page";
 import {
@@ -489,20 +490,7 @@ async function renderLogbook(c: AppRequestContext) {
                             className="inline-flex items-center gap-1 text-sm text-slate-500 transition hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
                         >
                             View all statistics
-                            <svg
-                                aria-hidden="true"
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M9 5l7 7-7 7"
-                                />
-                            </svg>
+                            <ChevronRightIcon className="h-4 w-4" />
                         </a>
                     </div>
                 </>

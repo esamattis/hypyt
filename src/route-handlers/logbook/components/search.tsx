@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { controlClassName } from "@/components/form";
+import { CloseIcon, SearchIcon } from "@/components/icons";
 import * as routes from "@/routes";
 import type { LogbookFilters } from "@/route-handlers/logbook/index";
 
@@ -58,20 +59,7 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
                     value={uuid}
                 />
             ))}
-            <svg
-                aria-hidden="true"
-                className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400 dark:text-slate-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
-                />
-            </svg>
+            <SearchIcon className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
             <input
                 type="search"
                 name="search"
@@ -90,20 +78,7 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
                     aria-label="Clear search"
                     className="absolute right-2.5 inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                 >
-                    <svg
-                        aria-hidden="true"
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
-                    </svg>
+                    <CloseIcon className="h-4 w-4" />
                 </a>
             )}
         </form>

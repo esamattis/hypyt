@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { Button, Checkbox, fileInputClassName } from "@/components/form";
+import { ExportIcon, ImportIcon } from "@/components/icons";
 import * as routes from "@/routes";
 import { LogbookPage } from "@/app/authenticated-page";
 import {
@@ -21,19 +22,7 @@ function ExportSection() {
                     aria-hidden="true"
                     className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400"
                 >
-                    <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"
-                        />
-                    </svg>
+                    <ExportIcon className="h-5 w-5" />
                 </span>
                 <div>
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -69,19 +58,7 @@ function ImportSection(props: TransferPageProps) {
                     aria-hidden="true"
                     className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400"
                 >
-                    <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 14l-5 5m0 0l-5-5m5 5V7"
-                        />
-                    </svg>
+                    <ImportIcon className="h-5 w-5" />
                 </span>
                 <div>
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">

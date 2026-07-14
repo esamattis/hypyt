@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { ChevronRightIcon } from "@/components/icons";
 
 export function Details(props: {
     summary: any;
@@ -15,20 +16,7 @@ export function Details(props: {
                     props.summaryClassName,
                 )}
             >
-                <svg
-                    aria-hidden="true"
-                    className="h-4 w-4 flex-none text-slate-400 transition-transform group-open:rotate-90 dark:text-slate-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M9 5l7 7-7 7"
-                    />
-                </svg>
+                <ChevronRightIcon className="h-4 w-4 flex-none text-slate-400 transition-transform group-open:rotate-90 dark:text-slate-500" />
                 {props.summary}
             </summary>
             {props.children}

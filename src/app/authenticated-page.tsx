@@ -3,6 +3,15 @@ import { Script } from "@/components/script";
 import { Style } from "@/components/style";
 import { Button, ButtonLink, buttonClassName } from "@/components/form";
 import {
+    BurgerMenuIcon,
+    DarkThemeIcon,
+    ImageIcon,
+    LightThemeIcon,
+    LogbookIcon,
+    PlusIcon,
+    SystemThemeIcon,
+} from "@/components/icons";
+import {
     DropdownMenu,
     MenuDivider,
     menuItemClassName,
@@ -11,31 +20,12 @@ import * as routes from "@/routes";
 import { $assertElement } from "@/utils";
 import { useId } from "hono/jsx";
 
-function BurgerMenuIcon() {
-    return (
-        <svg
-            aria-hidden="true"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4 6h16M4 12h16M4 18h16"
-            />
-        </svg>
-    );
-}
-
 function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
     return (
         <DropdownMenu
             label="Menu"
             tooltip="Menu"
-            button={<BurgerMenuIcon />}
+            button={<BurgerMenuIcon className="h-5 w-5" />}
             buttonClassName={buttonClassName({
                 variant: "secondary",
                 className: "px-3 py-2",
@@ -97,63 +87,6 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
     );
 }
 
-function PlusIcon() {
-    return (
-        <svg
-            aria-hidden="true"
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2.5"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 4v16m8-8H4"
-            />
-        </svg>
-    );
-}
-
-function LogbookIcon() {
-    return (
-        <svg
-            aria-hidden="true"
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4 6h16M4 12h10M4 18h14"
-            />
-        </svg>
-    );
-}
-
-function ImageIcon() {
-    return (
-        <svg
-            aria-hidden="true"
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-        </svg>
-    );
-}
-
 function LogbookActions() {
     return (
         <nav className="flex flex-wrap items-center gap-2.5 sm:gap-2">
@@ -164,7 +97,7 @@ function LogbookActions() {
                 data-tooltip="Show jump list"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
-                <LogbookIcon />
+                <LogbookIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Logbook</span>
             </ButtonLink>
             <ButtonLink
@@ -174,7 +107,7 @@ function LogbookActions() {
                 data-tooltip="Add jump"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
-                <PlusIcon />
+                <PlusIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Add jump</span>
             </ButtonLink>
             <ButtonLink
@@ -184,30 +117,10 @@ function LogbookActions() {
                 data-tooltip="Create jump from image using AI image recognition"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
-                <ImageIcon />
+                <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">From image</span>
             </ButtonLink>
         </nav>
-    );
-}
-
-function ThemeIcon(props: { id: string; className: string; path: string }) {
-    return (
-        <svg
-            id={props.id}
-            aria-hidden="true"
-            className={props.className}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d={props.path}
-            />
-        </svg>
     );
 }
 
@@ -313,21 +226,9 @@ function ThemeToggle() {
                 data-tooltip="Toggle theme"
                 className="px-3 py-2 text-sm"
             >
-                <ThemeIcon
-                    id={lightIconId}
-                    className="hidden h-4 w-4"
-                    path="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05 5.636 5.636M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-                <ThemeIcon
-                    id={darkIconId}
-                    className="hidden h-4 w-4"
-                    path="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
-                />
-                <ThemeIcon
-                    id={systemIconId}
-                    className="h-4 w-4"
-                    path="M9.75 17h4.5m-8.25 2h12a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0018 5H6a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 006 19z"
-                />
+                <LightThemeIcon id={lightIconId} className="hidden h-4 w-4" />
+                <DarkThemeIcon id={darkIconId} className="hidden h-4 w-4" />
+                <SystemThemeIcon id={systemIconId} className="h-4 w-4" />
             </Button>
             <Script
                 $deps={[$assertElement]}
@@ -404,7 +305,7 @@ export function LogbookPage(props: { title?: string; children: any }) {
                     </div>
                     <MainMenu
                         isAdmin={user.admin}
-                        menuClassName="bottom-full mb-2"
+                        menuClassName="bottom-full mb-2 max-h-[calc(100dvh-5rem)] overflow-y-auto"
                     />
                 </div>
             </nav>

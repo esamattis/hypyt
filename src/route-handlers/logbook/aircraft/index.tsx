@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import { Button, ButtonLink } from "@/components/form";
+import { PlusIcon } from "@/components/icons";
 import { LogbookPage } from "@/app/authenticated-page";
 import * as routes from "@/routes";
 import { aircrafts } from "@/schema";
@@ -24,20 +25,7 @@ async function getAircraftList(c: AppRequestContext) {
                     variant="primary"
                     className="gap-1.5"
                 >
-                    <svg
-                        aria-hidden="true"
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 4v16m8-8H4"
-                        />
-                    </svg>
+                    <PlusIcon className="h-4 w-4" />
                     Add aircraft
                 </ButtonLink>
             </div>
