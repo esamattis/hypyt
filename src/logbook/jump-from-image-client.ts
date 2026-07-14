@@ -266,25 +266,25 @@ export function $setupClipboardImageInput(
     });
 }
 
-export function $initJumpImageInput(
-    inputId: string,
-    cameraInputId: string,
-    cameraButtonId: string,
-    clipboardButtonId: string,
-    previewId: string,
-    metaId: string,
-    maxDimension: number,
-    targetBytes: number,
-    dbName: string,
-    storeName: string,
-    storageKey: string,
-) {
-    const inputEl = document.getElementById(inputId);
-    const cameraInputEl = document.getElementById(cameraInputId);
-    const cameraButtonEl = document.getElementById(cameraButtonId);
-    const clipboardButtonEl = document.getElementById(clipboardButtonId);
-    const previewEl = document.getElementById(previewId);
-    const metaEl = document.getElementById(metaId);
+export function $initJumpImageInput(props: {
+    inputId: string;
+    cameraInputId: string;
+    cameraButtonId: string;
+    clipboardButtonId: string;
+    previewId: string;
+    metaId: string;
+    maxDimension: number;
+    targetBytes: number;
+    dbName: string;
+    storeName: string;
+    storageKey: string;
+}) {
+    const inputEl = document.getElementById(props.inputId);
+    const cameraInputEl = document.getElementById(props.cameraInputId);
+    const cameraButtonEl = document.getElementById(props.cameraButtonId);
+    const clipboardButtonEl = document.getElementById(props.clipboardButtonId);
+    const previewEl = document.getElementById(props.previewId);
+    const metaEl = document.getElementById(props.metaId);
     $assertElement(inputEl, HTMLInputElement);
     $assertElement(cameraInputEl, HTMLInputElement);
     $assertElement(cameraButtonEl, HTMLButtonElement);
@@ -320,13 +320,18 @@ export function $initJumpImageInput(
     async function applyFile(file: File) {
         const processed = await $resizeJumpImageIfNeeded(
             file,
-            maxDimension,
-            targetBytes,
+            props.maxDimension,
+            props.targetBytes,
         );
         setInputFile(processed);
         showPreview(processed);
         try {
-            await $saveJumpImageDraft(processed, dbName, storeName, storageKey);
+            await $saveJumpImageDraft(
+                processed,
+                props.dbName,
+                props.storeName,
+                props.storageKey,
+            );
         } catch {
             // Storage is best-effort; form still works without restore.
         }
@@ -357,7 +362,7 @@ export function $initJumpImageInput(
 
     $setupClipboardImageInput(clipboardButton, handleSelectedFile);
 
-    void $loadJumpImageDraft(dbName, storeName, storageKey)
+    void $loadJumpImageDraft(props.dbName, props.storeName, props.storageKey)
         .then((file) => {
             if (!file || input.files?.length) {
                 return;

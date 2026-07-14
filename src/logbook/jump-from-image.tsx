@@ -290,17 +290,19 @@ function JumpImageField() {
                     $imageMimeTypeToExtension,
                 ]}
                 $args={[
-                    inputId,
-                    cameraInputId,
-                    cameraButtonId,
-                    clipboardButtonId,
-                    previewId,
-                    metaId,
-                    JUMP_IMAGE_MAX_DIMENSION,
-                    JUMP_IMAGE_TARGET_BYTES,
-                    JUMP_IMAGE_DB_NAME,
-                    JUMP_IMAGE_STORE,
-                    JUMP_IMAGE_KEY,
+                    {
+                        inputId,
+                        cameraInputId,
+                        cameraButtonId,
+                        clipboardButtonId,
+                        previewId,
+                        metaId,
+                        maxDimension: JUMP_IMAGE_MAX_DIMENSION,
+                        targetBytes: JUMP_IMAGE_TARGET_BYTES,
+                        dbName: JUMP_IMAGE_DB_NAME,
+                        storeName: JUMP_IMAGE_STORE,
+                        storageKey: JUMP_IMAGE_KEY,
+                    },
                 ]}
                 $exec={$initJumpImageInput}
             />
