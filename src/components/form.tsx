@@ -90,6 +90,7 @@ export function ButtonLink(props: {
     title?: string;
     "data-tooltip"?: string;
     "aria-label"?: string;
+    "aria-current"?: "page";
     "aria-disabled"?: boolean;
     children: Child;
 }) {
@@ -99,6 +100,7 @@ export function ButtonLink(props: {
             title={props.title}
             data-tooltip={props["data-tooltip"]}
             aria-label={props["aria-label"]}
+            aria-current={props["aria-current"]}
             aria-disabled={props["aria-disabled"]}
             className={buttonClassName({
                 variant: props.variant,

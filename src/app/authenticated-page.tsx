@@ -86,13 +86,22 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
     );
 }
 
-function LogbookActions() {
+function LogbookActions(props: { pathname: string }) {
+    const logbookPath = routes.logbook.index({});
+    const newJumpPath = routes.logbook.jumps.new({}, {});
+    const fromImagePath = routes.logbook.jumps.fromImage({});
+
     return (
         <nav className="flex flex-wrap items-center gap-2.5 sm:gap-2">
             <ButtonLink
-                href={routes.logbook.index({})}
-                variant="secondary"
+                href={logbookPath}
+                variant={
+                    props.pathname === logbookPath ? "primary" : "secondary"
+                }
                 aria-label="Logbook"
+                aria-current={
+                    props.pathname === logbookPath ? "page" : undefined
+                }
                 data-tooltip="Show jump list"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
@@ -100,9 +109,14 @@ function LogbookActions() {
                 <span className="hidden sm:inline">Logbook</span>
             </ButtonLink>
             <ButtonLink
-                href={routes.logbook.jumps.new({}, {})}
-                variant="primary"
+                href={newJumpPath}
+                variant={
+                    props.pathname === newJumpPath ? "primary" : "secondary"
+                }
                 aria-label="Add jump"
+                aria-current={
+                    props.pathname === newJumpPath ? "page" : undefined
+                }
                 data-tooltip="Add jump"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
@@ -110,9 +124,14 @@ function LogbookActions() {
                 <span className="hidden sm:inline">Add jump</span>
             </ButtonLink>
             <ButtonLink
-                href={routes.logbook.jumps.fromImage({})}
-                variant="secondary"
+                href={fromImagePath}
+                variant={
+                    props.pathname === fromImagePath ? "primary" : "secondary"
+                }
                 aria-label="From image"
+                aria-current={
+                    props.pathname === fromImagePath ? "page" : undefined
+                }
                 data-tooltip="Create jump from image using AI image recognition"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
@@ -246,7 +265,9 @@ function ThemeToggle() {
 }
 
 export function LogbookPage(props: { title?: string; children: any }) {
-    const user = useAppContext().getUser();
+    const appContext = useAppContext();
+    const user = appContext.getUser();
+    const pathname = appContext.url().pathname;
 
     return (
         <div className="min-h-screen">
@@ -289,7 +310,7 @@ export function LogbookPage(props: { title?: string; children: any }) {
                         </div>
                     </div>
                     <div className="mt-2 hidden border-t border-slate-100 pt-2 sm:block dark:border-slate-800">
-                        <LogbookActions />
+                        <LogbookActions pathname={pathname} />
                     </div>
                 </div>
             </header>
@@ -307,7 +328,7 @@ export function LogbookPage(props: { title?: string; children: any }) {
             >
                 <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2">
                     <div className="min-w-0 flex-1">
-                        <LogbookActions />
+                        <LogbookActions pathname={pathname} />
                     </div>
                     <MainMenu
                         isAdmin={user.admin}
