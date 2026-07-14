@@ -10,6 +10,7 @@ import {
     jumpsToJumpTypes,
     locations,
 } from "./schema";
+import { Button } from "./components/form";
 import { Details } from "./components/ui";
 import { LogbookPage } from "./logbook/layout";
 import {
@@ -234,12 +235,9 @@ function JumpFilters(props: {
                     </div>
                 </fieldset>
                 <div className="flex flex-wrap gap-3 pt-2">
-                    <button
-                        type="submit"
-                        className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
-                    >
+                    <Button type="submit" variant="primary">
                         Apply filters
-                    </button>
+                    </Button>
                 </div>
             </form>
         </Details>

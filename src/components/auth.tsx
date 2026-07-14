@@ -1,4 +1,5 @@
 import { ErrorList } from "./feedback";
+import { Button } from "./form";
 
 export function AuthFormShell(props: {
     title: string;
@@ -19,12 +20,13 @@ export function AuthFormShell(props: {
             />
             <form method="post" className="space-y-4">
                 {props.children}
-                <button
+                <Button
                     type="submit"
-                    className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 sm:py-2.5 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
+                    variant="primary"
+                    className="w-full px-4 py-3 text-base font-semibold sm:py-2.5"
                 >
                     {props.submitLabel}
-                </button>
+                </Button>
                 <div className="pt-2 text-center text-sm text-slate-600 dark:text-slate-400">
                     <a
                         href={props.alternateHref}

@@ -1,7 +1,13 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { app, getAppContext, type AppRequestContext, type User } from "./app";
-import { FormActions, Input, NumberInput } from "./components/form";
+import {
+    Button,
+    ButtonLink,
+    FormActions,
+    Input,
+    NumberInput,
+} from "./components/form";
 import { ErrorList } from "./components/feedback";
 import { LogbookPage } from "./logbook/layout";
 import { createSession } from "./login";
@@ -94,9 +100,6 @@ function getInvitationFormValues(formData: FormData): InvitationFormValues {
     };
 }
 
-const actionButtonClassName =
-    "inline-flex items-center rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40";
-
 interface AdminUserRow {
     uuid: string;
     username: string;
@@ -153,14 +156,16 @@ function AdminUsersSection(props: {
                                             name="uuid"
                                             value={user.uuid}
                                         />
-                                        <button
+                                        <Button
                                             type="submit"
-                                            className={actionButtonClassName}
+                                            variant="secondary"
+                                            size="sm"
+                                            className="px-3 py-2"
                                         >
                                             {user.admin
                                                 ? "Remove admin"
                                                 : "Make admin"}
-                                        </button>
+                                        </Button>
                                     </form>
                                     {user.uuid !== props.currentUserUuid && (
                                         <form
@@ -172,14 +177,14 @@ function AdminUsersSection(props: {
                                                 name="uuid"
                                                 value={user.uuid}
                                             />
-                                            <button
+                                            <Button
                                                 type="submit"
-                                                className={
-                                                    actionButtonClassName
-                                                }
+                                                variant="secondary"
+                                                size="sm"
+                                                className="px-3 py-2"
                                             >
                                                 Log in as
-                                            </button>
+                                            </Button>
                                         </form>
                                     )}
                                 </div>
@@ -282,12 +287,13 @@ function AdminInvitationsSection(props: { invitations: InvitationRow[] }) {
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     Invitations
                 </h2>
-                <a
+                <ButtonLink
                     href={routes.adminInvitationNew({})}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
+                    variant="primary"
+                    className="gap-1.5"
                 >
                     Add invitation
-                </a>
+                </ButtonLink>
             </div>
             {props.invitations.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
@@ -308,14 +314,15 @@ function AdminInvitationsSection(props: { invitations: InvitationRow[] }) {
                                         Remaining uses: {invitation.count}
                                     </p>
                                 </div>
-                                <a
+                                <ButtonLink
                                     href={routes.adminInvitationEdit({
                                         code: invitation.code,
                                     })}
-                                    className="inline-flex items-center rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                                    variant="secondary"
+                                    size="sm"
                                 >
                                     Edit
-                                </a>
+                                </ButtonLink>
                             </div>
                         </li>
                     ))}

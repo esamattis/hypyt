@@ -2,6 +2,7 @@ import { asc, eq, sql } from "drizzle-orm";
 import clsx from "clsx";
 import { useId } from "hono/jsx";
 import { app, getAppContext, type AppRequestContext } from "../app";
+import { ButtonLink } from "../components/form";
 import { Script } from "../components/helpers";
 import * as routes from "../routes";
 import { jumps } from "../schema";
@@ -313,12 +314,13 @@ async function renderStatistics(c: AppRequestContext) {
             </dl>
             <YearlyJumpsHistogram data={yearlyData} />
             <JumpNumberGaps gaps={jumpNumberGaps} />
-            <a
+            <ButtonLink
                 href={routes.logbookDetailedStatistics({}, {})}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                variant="secondary"
+                className="gap-1.5"
             >
                 View detailed statistics
-            </a>
+            </ButtonLink>
         </LogbookPage>,
     );
 }

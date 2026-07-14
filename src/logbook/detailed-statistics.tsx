@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gt, gte, lt, sql } from "drizzle-orm";
-import clsx from "clsx";
 import { app, getAppContext, type AppRequestContext } from "../app";
+import { buttonClassName } from "../components/form";
 import * as routes from "../routes";
 import {
     aircrafts,
@@ -150,12 +150,23 @@ function YearNavigationBar(props: {
     const sortedAscending = [...props.availableYears].sort((a, b) => a - b);
 
     function linkClass(active: boolean): string {
-        return clsx(
-            "inline-flex items-center justify-center rounded-lg border px-3 py-1.5 text-sm font-medium transition",
-            active
-                ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-900/40 dark:text-indigo-300"
-                : "border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-700",
-        );
+        return buttonClassName({
+            variant: "secondary",
+            size: "sm",
+            className: active
+                ? "border-indigo-500 bg-indigo-50 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-500 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/40"
+                : "text-slate-600 dark:text-slate-400",
+        });
+    }
+
+    function navLinkClass(enabled: boolean): string {
+        return buttonClassName({
+            variant: "secondary",
+            size: "sm",
+            className: enabled
+                ? "gap-1"
+                : "pointer-events-none gap-1 border-slate-100 bg-slate-50 text-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-700",
+        });
     }
 
     return (
@@ -191,11 +202,8 @@ function YearNavigationBar(props: {
                                 : undefined
                         }
                         aria-disabled={props.previousYear === undefined}
-                        className={clsx(
-                            "inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition",
-                            props.previousYear === undefined
-                                ? "pointer-events-none border-slate-100 bg-slate-50 text-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-700"
-                                : "border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700",
+                        className={navLinkClass(
+                            props.previousYear !== undefined,
                         )}
                     >
                         ← {props.previousYear ?? "—"}
@@ -212,12 +220,7 @@ function YearNavigationBar(props: {
                                 : undefined
                         }
                         aria-disabled={props.nextYear === undefined}
-                        className={clsx(
-                            "inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition",
-                            props.nextYear === undefined
-                                ? "pointer-events-none border-slate-100 bg-slate-50 text-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-700"
-                                : "border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700",
-                        )}
+                        className={navLinkClass(props.nextYear !== undefined)}
                     >
                         {props.nextYear ?? "—"} →
                     </a>

@@ -1,5 +1,6 @@
 import { useAppContext } from "../app";
 import { Script, Style } from "../components/helpers";
+import { Button, ButtonLink, buttonClassName } from "../components/form";
 import { DropdownMenu, MenuDivider, menuItemClassName } from "../components/ui";
 import * as routes from "../routes";
 import { $assertElement } from "../utils";
@@ -29,7 +30,10 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
         <DropdownMenu
             label="Menu"
             button={<BurgerMenuIcon />}
-            buttonClassName="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+            buttonClassName={buttonClassName({
+                variant: "secondary",
+                className: "px-3 py-2",
+            })}
             menuClassName={props.menuClassName}
         >
             <a href={routes.aircraftList({})} className={menuItemClassName}>
@@ -94,20 +98,22 @@ function PlusIcon() {
 function LogbookActions() {
     return (
         <nav className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <a
+            <ButtonLink
                 href={routes.jumpNew({}, {})}
-                className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
+                variant="primary"
+                className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
                 <PlusIcon />
                 Add jump
-            </a>
-            <a
+            </ButtonLink>
+            <ButtonLink
                 href={routes.jumpFromImage({})}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                variant="secondary"
+                className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
                 <PlusIcon />
                 From image
-            </a>
+            </ButtonLink>
         </nav>
     );
 }
@@ -226,12 +232,13 @@ function ThemeToggle() {
 
     return (
         <>
-            <button
+            <Button
                 id={id}
                 type="button"
+                variant="secondary"
                 aria-label="Toggle theme"
                 title="Toggle theme"
-                className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                className="px-3 py-2 text-sm"
             >
                 <ThemeIcon
                     id={lightIconId}
@@ -248,7 +255,7 @@ function ThemeToggle() {
                     className="h-4 w-4"
                     path="M9.75 17h4.5m-8.25 2h12a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0018 5H6a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 006 19z"
                 />
-            </button>
+            </Button>
             <Script
                 $deps={[$assertElement]}
                 $args={[id, lightIconId, darkIconId, systemIconId]}

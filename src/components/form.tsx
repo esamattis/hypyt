@@ -1,12 +1,106 @@
 import clsx from "clsx";
-import { useId } from "hono/jsx";
+import { useId, type Child } from "hono/jsx";
 import { $assertElement } from "../utils";
 import { Script } from "./helpers";
 
-const labelClassName =
+export const labelClassName =
     "block text-sm font-medium text-slate-700 dark:text-slate-300";
-const controlClassName =
-    "mt-1.5 block w-full rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/30";
+
+export const controlClassName =
+    "block w-full rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/30";
+
+const labeledControlClassName = clsx("mt-1.5", controlClassName);
+
+export const fileInputClassName =
+    "block w-full cursor-pointer rounded-lg border border-slate-300 bg-slate-50 text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-l-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-indigo-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:file:bg-indigo-500 dark:hover:file:bg-indigo-600";
+
+type ButtonVariant = "primary" | "secondary";
+type ButtonSize = "md" | "sm";
+
+const buttonVariantClassName: Record<ButtonVariant, string> = {
+    primary:
+        "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40",
+    secondary:
+        "border border-slate-300 bg-slate-50 text-slate-700 shadow-sm hover:bg-slate-100 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40",
+};
+
+const buttonSizeClassName: Record<ButtonSize, string> = {
+    md: "rounded-lg px-4 py-2.5 font-medium",
+    sm: "rounded-lg px-3 py-1.5 text-sm font-medium",
+};
+
+export function buttonClassName(props: {
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    className?: string;
+}): string {
+    return clsx(
+        "inline-flex items-center justify-center transition focus:outline-none focus:ring-2",
+        buttonVariantClassName[props.variant ?? "primary"],
+        buttonSizeClassName[props.size ?? "md"],
+        props.className,
+    );
+}
+
+export function Button(props: {
+    type?: "button" | "submit" | "reset";
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    className?: string;
+    id?: string;
+    hidden?: boolean;
+    disabled?: boolean;
+    title?: string;
+    "aria-label"?: string;
+    "aria-controls"?: string;
+    "aria-expanded"?: string;
+    children: Child;
+}) {
+    return (
+        <button
+            id={props.id}
+            type={props.type ?? "button"}
+            hidden={props.hidden}
+            disabled={props.disabled}
+            title={props.title}
+            aria-label={props["aria-label"]}
+            aria-controls={props["aria-controls"]}
+            aria-expanded={props["aria-expanded"]}
+            className={buttonClassName({
+                variant: props.variant,
+                size: props.size,
+                className: props.className,
+            })}
+        >
+            {props.children}
+        </button>
+    );
+}
+
+export function ButtonLink(props: {
+    href: string;
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    className?: string;
+    "aria-label"?: string;
+    "aria-disabled"?: boolean;
+    children: Child;
+}) {
+    return (
+        <a
+            href={props.href}
+            aria-label={props["aria-label"]}
+            aria-disabled={props["aria-disabled"]}
+            className={buttonClassName({
+                variant: props.variant,
+                size: props.size,
+                className: props.className,
+            })}
+        >
+            {props.children}
+        </a>
+    );
+}
 
 export function Input(props: {
     id?: string;
@@ -31,7 +125,7 @@ export function Input(props: {
                 autofocus={props.autofocus}
                 value={props.value}
                 placeholder={props.placeholder}
-                className={clsx(controlClassName, props.inputClassName)}
+                className={clsx(labeledControlClassName, props.inputClassName)}
             />
         </label>
     );
@@ -62,7 +156,7 @@ export function NumberInput(props: {
                 required={props.required}
                 autofocus={props.autofocus}
                 value={props.value}
-                className={clsx(controlClassName, props.inputClassName)}
+                className={clsx(labeledControlClassName, props.inputClassName)}
             />
             {props.persist ? (
                 <Script
@@ -105,7 +199,7 @@ export function Select(props: {
                 required={props.required}
                 className={clsx(
                     "appearance-none bg-no-repeat pr-10",
-                    controlClassName,
+                    labeledControlClassName,
                     props.selectClassName,
                 )}
                 style={{
@@ -165,7 +259,7 @@ export function Textarea(props: {
                 placeholder={props.placeholder}
                 className={clsx(
                     "resize-y",
-                    controlClassName,
+                    labeledControlClassName,
                     props.textareaClassName,
                 )}
             >
@@ -229,18 +323,12 @@ export function FormActions(props: {
 }) {
     return (
         <div className="flex flex-wrap gap-3">
-            <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
-            >
+            <Button type="submit" variant="primary">
                 {props.submitLabel}
-            </button>
-            <a
-                href={props.cancelHref}
-                className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
-            >
+            </Button>
+            <ButtonLink href={props.cancelHref} variant="secondary">
                 Cancel
-            </a>
+            </ButtonLink>
         </div>
     );
 }

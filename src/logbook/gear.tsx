@@ -1,6 +1,13 @@
 import { and, eq, ne } from "drizzle-orm";
 import { getAppContext, app, type AppRequestContext } from "../app";
-import { FormActions, Input, NumberInput, Textarea } from "../components/form";
+import {
+    Button,
+    ButtonLink,
+    FormActions,
+    Input,
+    NumberInput,
+    Textarea,
+} from "../components/form";
 import { ErrorList } from "../components/feedback";
 import {
     ConfirmDangerButton,
@@ -189,9 +196,10 @@ async function renderGearList(c: AppRequestContext) {
     return c.render(
         <LogbookPage title="Gear">
             <div className="flex flex-wrap items-center gap-3">
-                <a
+                <ButtonLink
                     href={routes.gearNew({})}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
+                    variant="primary"
+                    className="gap-1.5"
                 >
                     <svg
                         aria-hidden="true"
@@ -208,7 +216,7 @@ async function renderGearList(c: AppRequestContext) {
                         />
                     </svg>
                     Add gear
-                </a>
+                </ButtonLink>
             </div>
             {rows.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
@@ -241,12 +249,13 @@ async function renderGearList(c: AppRequestContext) {
                                 </div>
                             </div>
                             <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
-                                <a
+                                <ButtonLink
                                     href={routes.gearEdit({ uuid: item.uuid })}
-                                    className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                                    variant="secondary"
+                                    size="sm"
                                 >
                                     Edit
-                                </a>
+                                </ButtonLink>
                                 <form
                                     method="post"
                                     action={routes.gearEdit({
@@ -263,14 +272,15 @@ async function renderGearList(c: AppRequestContext) {
                                         name="archived"
                                         value={String(!item.archived)}
                                     />
-                                    <button
+                                    <Button
                                         type="submit"
-                                        className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                                        variant="secondary"
+                                        size="sm"
                                     >
                                         {item.archived
                                             ? "Unarchive"
                                             : "Archive"}
-                                    </button>
+                                    </Button>
                                 </form>
                             </div>
                         </li>

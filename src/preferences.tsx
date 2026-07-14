@@ -3,10 +3,11 @@ import { useId } from "hono/jsx";
 import { z } from "zod";
 import { app, getAppContext, type AppRequestContext } from "./app";
 import {
+    Button,
+    FormActions,
     Input,
     NumberInput,
     Select,
-    FormActions,
     Textarea,
 } from "./components/form";
 import { ErrorList } from "./components/feedback";
@@ -205,14 +206,9 @@ function InstallAppSection() {
                 </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-                <button
-                    id={buttonId}
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
-                    hidden
-                >
+                <Button id={buttonId} type="button" variant="primary" hidden>
                     Install
-                </button>
+                </Button>
                 <p
                     id={statusId}
                     className="text-sm text-slate-500 dark:text-slate-400"

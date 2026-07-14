@@ -1,4 +1,5 @@
-import { Checkbox } from "../components/form";
+import clsx from "clsx";
+import { Button, Checkbox, fileInputClassName } from "../components/form";
 import * as routes from "../routes";
 import { LogbookPage } from "./layout";
 import { ExportCurlHelp, TransferFormatHelp } from "./transfer-format-help";
@@ -48,12 +49,9 @@ function ExportSection() {
                 action={routes.logbookExport({})}
                 className="mt-4"
             >
-                <button
-                    type="submit"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:bg-indigo-500 dark:hover:bg-indigo-600 dark:focus:ring-indigo-400/40"
-                >
+                <Button type="submit" variant="primary" className="gap-1.5">
                     Export logbook
-                </button>
+                </Button>
             </form>
             <ExportCurlHelp />
         </div>
@@ -118,15 +116,12 @@ function ImportSection(props: TransferPageProps) {
                             name="file"
                             accept=".csv,.xml,text/csv,application/xml,text/xml"
                             required
-                            className="mt-1.5 block w-full cursor-pointer rounded-lg border border-slate-300 bg-slate-50 text-sm text-slate-700 file:mr-3 file:cursor-pointer file:rounded-l-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-indigo-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:file:bg-indigo-500 dark:hover:file:bg-indigo-600"
+                            className={clsx(fileInputClassName, "mt-1.5")}
                         />
                     </label>
-                    <button
-                        type="submit"
-                        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
-                    >
+                    <Button type="submit" variant="secondary">
                         Import logbook
-                    </button>
+                    </Button>
                 </div>
                 <div className="space-y-1.5">
                     <Checkbox

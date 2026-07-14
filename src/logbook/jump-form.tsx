@@ -1,7 +1,11 @@
 import { useId, type Child } from "hono/jsx";
 import { useAppContext } from "../app";
 import {
+    Button,
+    ButtonLink,
+    buttonClassName,
     Checkbox,
+    controlClassName,
     FormActions,
     Input,
     NumberInput,
@@ -47,14 +51,12 @@ function getToday(): string {
     return new Date().toISOString().slice(0, 10);
 }
 
-const FIELD_BUTTON_CLASS =
-    "inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40";
+const FIELD_INPUT_CLASS = controlClassName;
 
-const FIELD_INPUT_CLASS =
-    "block w-full rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/30";
-
-const DIALOG_OPTION_CLASS =
-    "rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40";
+const DIALOG_OPTION_CLASS = buttonClassName({
+    variant: "secondary",
+    className: "justify-start px-3.5 py-2.5 text-left text-sm",
+});
 
 function FreefallEstimateScript(props: {
     exitAltitudeId: string;
@@ -183,13 +185,14 @@ function FreefallTimeField(props: {
                     value={props.value}
                     className={FIELD_INPUT_CLASS}
                 />
-                <button
+                <Button
                     id={estimateButtonId}
                     type="button"
-                    className={FIELD_BUTTON_CLASS}
+                    variant="secondary"
+                    className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Estimate
-                </button>
+                </Button>
             </div>
             <Dialog
                 id={estimateDialogId}
@@ -381,15 +384,16 @@ function JumpDateField(props: { value: string }) {
                     type="date"
                     required
                     value={props.value}
-                    className="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/30"
+                    className={FIELD_INPUT_CLASS}
                 />
-                <button
+                <Button
                     id={buttonId}
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                    variant="secondary"
+                    className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Today
-                </button>
+                </Button>
             </div>
             <Script
                 $deps={[$assertElement]}
@@ -448,15 +452,16 @@ function JumpNumberField(props: { value: string; nextJumpNumber?: string }) {
                     required
                     value={props.value}
                     data-next-jump-number={props.nextJumpNumber}
-                    className="block w-full rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400/30"
+                    className={FIELD_INPUT_CLASS}
                 />
-                <button
+                <Button
                     id={buttonId}
                     type="button"
-                    className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                    variant="secondary"
+                    className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Next
-                </button>
+                </Button>
             </div>
             <Script
                 $deps={[$assertElement]}
@@ -756,9 +761,10 @@ export function JumpFormPage(props: {
                 {...props.resources}
             />
             {props.copyHref && (
-                <a
+                <ButtonLink
                     href={props.copyHref}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:ring-indigo-400/40"
+                    variant="secondary"
+                    className="gap-1.5"
                 >
                     <svg
                         aria-hidden="true"
@@ -775,7 +781,7 @@ export function JumpFormPage(props: {
                         />
                     </svg>
                     Copy to new
-                </a>
+                </ButtonLink>
             )}
             {props.canDelete && (
                 <DangerZone>
