@@ -48,6 +48,7 @@ export function Button(props: {
     size?: ButtonSize;
     className?: string;
     id?: string;
+    value?: string;
     hidden?: boolean;
     disabled?: boolean;
     title?: string;
@@ -60,6 +61,7 @@ export function Button(props: {
         <button
             id={props.id}
             type={props.type ?? "button"}
+            value={props.value}
             hidden={props.hidden}
             disabled={props.disabled}
             title={props.title}

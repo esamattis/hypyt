@@ -7,6 +7,8 @@ import { ViteClient } from "vite-ssr-components/hono";
 import htmx from "htmx.org/dist/htmx.esm.js?raw";
 import tailwind from "./tailwind.css?inline";
 import { Script } from "./components/helpers";
+import { Button } from "./components/form";
+import { Dialog } from "./components/ui";
 import { sessions, users } from "./schema";
 import * as routes from "./routes";
 import { parseUserOptions, type UserOptions } from "./options";
@@ -20,6 +22,7 @@ import {
     type AuthenticatedUser,
 } from "./auth";
 import { createD1Database, type AppDatabase } from "./db";
+import { $assertElement } from "./utils";
 
 export type AppType = Hono<Env>;
 
@@ -275,6 +278,184 @@ function $showProgressOnLinkClick() {
 
         $showNavigationProgress({ mode: "link" });
     });
+}
+
+const UNSAVED_CHANGES_DIALOG_ID = "unsaved-changes-dialog";
+
+function $isFormDirty(): boolean {
+    return document.documentElement.dataset.formDirty === "true";
+}
+
+function $clearFormDirty(): void {
+    delete document.documentElement.dataset.formDirty;
+}
+
+function $markFormDirtyFromEvent(event: Event): void {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+        return;
+    }
+    const form = target.closest("form");
+    if (!(form instanceof HTMLFormElement)) {
+        return;
+    }
+    if (form.method.toLowerCase() !== "post") {
+        return;
+    }
+    if (!(
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLSelectElement ||
+        target instanceof HTMLTextAreaElement
+    )) {
+        return;
+    }
+    if (target instanceof HTMLInputElement && target.type === "hidden") {
+        return;
+    }
+    document.documentElement.dataset.formDirty = "true";
+}
+
+function $navigationHrefFromClick(event: MouseEvent): string | null {
+    if (event.defaultPrevented) {
+        return null;
+    }
+    if (event.button !== 0) {
+        return null;
+    }
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return null;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Element)) {
+        return null;
+    }
+
+    const anchor = target.closest("a");
+    if (!(anchor instanceof HTMLAnchorElement)) {
+        return null;
+    }
+
+    if (!anchor.href) {
+        return null;
+    }
+    if (anchor.hasAttribute("download")) {
+        return null;
+    }
+    if (anchor.target && anchor.target !== "_self") {
+        return null;
+    }
+
+    let url: URL;
+    try {
+        url = new URL(anchor.href, window.location.href);
+    } catch {
+        return null;
+    }
+
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+        return null;
+    }
+    if (
+        url.pathname === window.location.pathname &&
+        url.search === window.location.search &&
+        url.hash !== ""
+    ) {
+        return null;
+    }
+    if (
+        url.pathname === window.location.pathname &&
+        url.search === window.location.search &&
+        url.hash === window.location.hash
+    ) {
+        return null;
+    }
+
+    return anchor.href;
+}
+
+function $guardUnsavedFormChanges(dialogId: string) {
+    let pendingHref: string | null = null;
+
+    document.addEventListener("input", $markFormDirtyFromEvent, true);
+    document.addEventListener("change", $markFormDirtyFromEvent, true);
+
+    document.addEventListener(
+        "submit",
+        (event) => {
+            const form = event.target;
+            if (!(form instanceof HTMLFormElement)) {
+                return;
+            }
+            if (form.method.toLowerCase() !== "post") {
+                return;
+            }
+            $clearFormDirty();
+        },
+        true,
+    );
+
+    window.addEventListener("beforeunload", (event) => {
+        if (!$isFormDirty()) {
+            return;
+        }
+        event.preventDefault();
+        event.returnValue = "";
+    });
+
+    const dialog = document.getElementById(dialogId);
+    $assertElement(dialog, HTMLDialogElement);
+
+    dialog.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLButtonElement)) {
+            return;
+        }
+        if (target.value !== "ok") {
+            return;
+        }
+        const href = pendingHref;
+        pendingHref = null;
+        $clearFormDirty();
+        dialog.close();
+        if (href) {
+            window.location.href = href;
+        }
+    });
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            if (!$isFormDirty()) {
+                return;
+            }
+            const href = $navigationHrefFromClick(event);
+            if (!href) {
+                return;
+            }
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            pendingHref = href;
+            dialog.showModal();
+        },
+        true,
+    );
+}
+
+function UnsavedChangesDialog() {
+    return (
+        <Dialog
+            id={UNSAVED_CHANGES_DIALOG_ID}
+            title="Unsaved changes"
+            description="You have unsaved changes. Leave this page without saving?"
+        >
+            <div className="flex justify-end">
+                <Button type="button" value="ok" variant="primary">
+                    Leave
+                </Button>
+            </div>
+        </Dialog>
+    );
 }
 
 function $applyStoredTheme() {
@@ -560,6 +741,18 @@ app.use(
                     className="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200"
                 >
                     <div className="min-h-screen">{props.children}</div>
+                    <UnsavedChangesDialog />
+                    <Script
+                        $deps={[
+                            $assertElement,
+                            $isFormDirty,
+                            $clearFormDirty,
+                            $markFormDirtyFromEvent,
+                            $navigationHrefFromClick,
+                        ]}
+                        $args={[UNSAVED_CHANGES_DIALOG_ID]}
+                        $exec={$guardUnsavedFormChanges}
+                    />
                     <Script $exec={$restoreFormScrollPosition} />
                     <Script
                         $deps={[$showNavigationProgress]}
