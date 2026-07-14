@@ -262,3 +262,48 @@ export function CopyIcon(props: IconProps) {
         </svg>
     );
 }
+
+export function EyeIcon(props: IconProps) {
+    return (
+        <svg
+            id={props.id}
+            aria-hidden="true"
+            className={props.className}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+        </svg>
+    );
+}
+
+export function EyeOffIcon(props: IconProps) {
+    return (
+        <svg
+            id={props.id}
+            aria-hidden="true"
+            className={props.className}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 3l18 18M10.585 10.586a2 2 0 002.829 2.828M9.88 5.09A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.975 9.975 0 01-1.272 2.592M6.228 6.228C4.51 7.41 3.18 9.421 2.458 12c1.274 4.057 5.065 7 9.542 7 1.29 0 2.522-.244 3.655-.688"
+            />
+        </svg>
+    );
+}

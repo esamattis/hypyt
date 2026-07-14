@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useId } from "hono/jsx";
 import { controlClassName } from "@/components/form";
+import { EyeIcon, EyeOffIcon } from "@/components/icons";
 import { Script } from "@/components/script";
 import { $assertElement } from "@/utils";
 
@@ -14,6 +15,9 @@ export function Password(props: {
     className?: string;
 }) {
     const id = useId();
+    const toggleId = `${id}-password-toggle`;
+    const eyeIconId = `${id}-eye-icon`;
+    const eyeOffIconId = `${id}-eye-off-icon`;
     return (
         <div>
             <label
@@ -40,42 +44,43 @@ export function Password(props: {
                 />
                 <button
                     type="button"
-                    id={`togglePassword-${id}`}
+                    id={toggleId}
                     className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-lg text-slate-400 transition hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:text-slate-500 dark:hover:text-slate-300 dark:focus:ring-indigo-400/40"
                     aria-label="Show/hide password"
                 >
-                    <span id={`eyeIcon-${id}`}>👁️</span>
+                    <EyeIcon id={eyeIconId} className="h-5 w-5" />
+                    <EyeOffIcon id={eyeOffIconId} className="hidden h-5 w-5" />
                 </button>
             </div>
             <Script
                 $deps={[$assertElement]}
-                $args={[id]}
-                $exec={(inputId) => {
+                $args={[id, toggleId, eyeIconId, eyeOffIconId]}
+                $exec={(inputId, toggleId, eyeIconId, eyeOffIconId) => {
                     function togglePasswordVisibility() {
                         const input = document.getElementById(inputId);
                         $assertElement(input, HTMLInputElement);
-                        const eyeIcon = document.getElementById(
-                            `eyeIcon-${inputId}`,
-                        );
-                        $assertElement(eyeIcon, HTMLElement);
+                        const eyeIcon = document.getElementById(eyeIconId);
+                        $assertElement(eyeIcon, SVGSVGElement);
+                        const eyeOffIcon =
+                            document.getElementById(eyeOffIconId);
+                        $assertElement(eyeOffIcon, SVGSVGElement);
                         if (input.type === "password") {
                             input.type = "text";
-                            eyeIcon.textContent = "🙈";
+                            eyeIcon.classList.add("hidden");
+                            eyeOffIcon.classList.remove("hidden");
                         } else {
                             input.type = "password";
-                            eyeIcon.textContent = "👁️";
+                            eyeIcon.classList.remove("hidden");
+                            eyeOffIcon.classList.add("hidden");
                         }
                         input.focus();
                     }
-                    const toggleButton = document.getElementById(
-                        `togglePassword-${inputId}`,
+                    const toggleButton = document.getElementById(toggleId);
+                    $assertElement(toggleButton, HTMLButtonElement);
+                    toggleButton.addEventListener(
+                        "click",
+                        togglePasswordVisibility,
                     );
-                    if (toggleButton) {
-                        toggleButton.addEventListener(
-                            "click",
-                            togglePasswordVisibility,
-                        );
-                    }
                 }}
             />
         </div>
