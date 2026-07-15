@@ -100,6 +100,27 @@ test("mobile navigation uses the bottom bar for actions and menu", async ({
     ).toBeVisible();
 });
 
+test("restored pages clear stale navigation progress", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await registerUser(page, "back-nav-skydiver", "Back Nav Skydiver");
+    await page.locator("body").waitFor();
+
+    await page.evaluate(() => {
+        const progress = document.createElement("div");
+        progress.id = "form-submit-progress";
+        progress.setAttribute("role", "progressbar");
+        progress.setAttribute("aria-label", "Loading page");
+        document.body.appendChild(progress);
+        window.dispatchEvent(
+            new PageTransitionEvent("pageshow", { persisted: true }),
+        );
+    });
+
+    await expect(
+        page.getByRole("progressbar", { name: "Loading page" }),
+    ).toHaveCount(0);
+});
+
 test("Android Brave users are advised to install with Chrome", async ({
     page,
 }) => {

@@ -23,6 +23,10 @@ function $showNavigationProgress(options: {
     document.body.appendChild(progress);
 }
 
+function $clearNavigationProgress() {
+    document.getElementById("form-submit-progress")?.remove();
+}
+
 function $disableFormOnSubmit() {
     document.addEventListener("submit", (event) => {
         const form = event.target;
@@ -59,6 +63,7 @@ function $disableFormOnSubmit() {
 }
 
 function $showProgressOnLinkClick() {
+    window.addEventListener("pageshow", $clearNavigationProgress);
     document.addEventListener("click", (event) => {
         if (
             event.defaultPrevented ||
@@ -108,7 +113,7 @@ export function DisableFormOnSubmit() {
 export function ShowProgressOnLinkClick() {
     return (
         <Script
-            $deps={[$showNavigationProgress]}
+            $deps={[$showNavigationProgress, $clearNavigationProgress]}
             $exec={$showProgressOnLinkClick}
         />
     );
