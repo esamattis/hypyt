@@ -242,7 +242,12 @@ export function JumpItemSelect(props: JumpItemSelectProps) {
                             Available
                         </h3>
                         <div className="grid gap-2 sm:grid-cols-2">
-                            {!props.multiple && (
+                            {activeItems.length === 0 &&
+                            selectedItems.length === 0 ? (
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    No {props.label.toLowerCase()} available.
+                                </p>
+                            ) : !props.multiple ? (
                                 <label className={OPTION_CLASS_NAME}>
                                     <input
                                         name={props.name}
@@ -254,7 +259,7 @@ export function JumpItemSelect(props: JumpItemSelectProps) {
                                     />
                                     None
                                 </label>
-                            )}
+                            ) : null}
                             {activeItems.map((item) => (
                                 <JumpItemOption
                                     item={item}

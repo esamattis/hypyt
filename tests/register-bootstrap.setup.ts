@@ -36,6 +36,13 @@ test("bootstrap admin and require invitations for later users", async ({
         await expect(page.getByText(name, { exact: true })).toBeVisible();
     }
 
+    await page.getByRole("link", { name: /Test Admin's logbook/ }).click();
+    await openMainMenu(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
+    for (const name of ["PD Navigator", "PD Sabre 2", "SQRL Freak 5"]) {
+        await expect(page.getByText(name, { exact: true })).toBeVisible();
+    }
+
     await openMainMenu(page);
     await expect(
         page.getByRole("link", { name: "Admin", exact: true }),

@@ -21,6 +21,31 @@ test("the log book loads additional jumps while scrolling", async ({
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();
+    for (const location of ["EFUT", "EFJY", "EFAL", "EFSE", "EFLP"]) {
+        await page
+            .getByRole("listitem")
+            .filter({ hasText: location })
+            .getByRole("button", { name: "Archive" })
+            .click();
+    }
+    await page
+        .getByRole("link", { name: /Scrolling Skydiver's logbook/ })
+        .click();
+    await page.getByRole("link", { name: "Add jump", exact: true }).click();
+    const emptyLocationDialog = await openJumpItemSelect(page, "Location");
+    await expect(
+        emptyLocationDialog.getByText("No location available."),
+    ).toBeVisible();
+    await expect(
+        emptyLocationDialog.getByRole("radio", { name: "None" }),
+    ).toHaveCount(0);
+    await emptyLocationDialog.getByRole("button", { name: "Close" }).click();
+    await page
+        .getByRole("link", { name: /Scrolling Skydiver's logbook/ })
+        .click();
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage locations" }).click();
     await page.getByRole("link", { name: "Add location" }).click();
     await page.locator('input[name="name"]').fill("Scroll Drop Zone");
     await page.getByRole("button", { name: "Add location" }).click();
@@ -268,12 +293,20 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
-    await page.getByRole("link", { name: "Edit" }).click();
+    await page
+        .getByRole("listitem")
+        .filter({ hasText: "Main canopy" })
+        .getByRole("link", { name: "Edit" })
+        .click();
     await page.locator('input[name="name"]').fill("Main canopy updated");
     await page.locator('input[name="previousCount"]').fill("15");
     await page.locator('textarea[name="description"]').fill("Updated gear");
     await page.getByRole("button", { name: "Save gear" }).click();
-    await page.getByRole("link", { name: "Edit" }).click();
+    await page
+        .getByRole("listitem")
+        .filter({ hasText: "Main canopy updated" })
+        .getByRole("link", { name: "Edit" })
+        .click();
     await expect(page.locator('input[name="name"]')).toHaveValue(
         "Main canopy updated",
     );
@@ -526,7 +559,11 @@ test("gear can be converted to a jump type with its jump references", async ({
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
-    await page.getByRole("link", { name: "Edit" }).click();
+    await page
+        .getByRole("listitem")
+        .filter({ hasText: "Convertible gear" })
+        .getByRole("link", { name: "Edit" })
+        .click();
     const convertForm = page.locator("form").filter({
         has: page.locator('input[name="action"][value="convertToJumpType"]'),
     });

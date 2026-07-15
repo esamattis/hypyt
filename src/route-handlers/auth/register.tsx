@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
-import { aircrafts, jumpTypes, locations, users } from "@/schema";
+import { aircrafts, gear, jumpTypes, locations, users } from "@/schema";
 import { z } from "zod";
 import { AuthFormShell } from "@/components/auth";
 import { hashPassword } from "@/auth";
@@ -21,6 +21,8 @@ const DEFAULT_AIRCRAFT = [
 
 const DEFAULT_LOCATIONS = ["EFUT", "EFJY", "EFAL", "EFSE", "EFLP"];
 
+const DEFAULT_GEAR = ["PD Navigator", "PD Sabre 2", "SQRL Freak 5"];
+
 const DEFAULT_JUMP_TYPES = [
     "Cutaway",
     "FS",
@@ -39,6 +41,10 @@ async function createDefaultJumpItems(db: AppDatabase, userUuid: string) {
         db
             .insert(locations)
             .values(DEFAULT_LOCATIONS.map((name) => ({ userUuid, name })))
+            .run(),
+        db
+            .insert(gear)
+            .values(DEFAULT_GEAR.map((name) => ({ userUuid, name })))
             .run(),
         db
             .insert(jumpTypes)

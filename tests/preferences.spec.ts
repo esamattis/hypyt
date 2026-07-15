@@ -294,7 +294,9 @@ test("a skydiver can permanently delete their account and all jump items", async
     await expect(page.getByText("Doomed Canopy", { exact: true })).toHaveCount(
         0,
     );
-    await expect(page.getByText("No gear yet.")).toBeVisible();
+    for (const name of ["PD Navigator", "PD Sabre 2", "SQRL Freak 5"]) {
+        await expect(page.getByText(name, { exact: true })).toBeVisible();
+    }
 
     await page.getByRole("link", { name: `${displayName}'s logbook` }).click();
     await openManageLogbook(page);
