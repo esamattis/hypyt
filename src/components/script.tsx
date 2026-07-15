@@ -1,4 +1,7 @@
 import { useAppContext } from "@/app/app";
+import { $render, clientJsxDependencies } from "@/components/script/client-jsx";
+
+export { $render };
 
 type ClientFunction = ((...args: any[]) => any) & { displayName?: string };
 const nameCache = new WeakMap<ClientFunction, string>();
@@ -24,32 +27,49 @@ export function Script<T extends readonly unknown[] = []>(props: {
     $args?: T;
 }) {
     const jsDupCache = useAppContext().jsDupCache;
+    const dependencies = (props.$deps ?? []).map((fn) => ({
+        fn,
+        name: fn.name,
+    }));
+    if (props.$deps?.includes($render))
+        dependencies.push(...clientJsxDependencies);
     let depsCode = "";
-    for (const dep of props.$deps ?? []) {
-        if (!dep.name)
+    for (const dependency of dependencies) {
+        if (!dependency.name)
             throw new Error(
                 "All client dependencies must have a function name: " +
-                    dep.toString(),
+                    dependency.fn.toString(),
             );
-        if (!jsDupCache.has(dep)) {
-            jsDupCache.add(dep);
-            depsCode += `${getGlobalName(dep)} = ${dep.toString()};\n`;
+        if (!jsDupCache.has(dependency.fn)) {
+            jsDupCache.add(dependency.fn);
+            depsCode += `${getGlobalName(dependency.fn)} = ${dependency.fn.toString()};\n`;
         }
     }
     if (!jsDupCache.has(props.$exec)) {
         jsDupCache.add(props.$exec);
         let execSource = props.$exec.toString();
-        for (const dep of props.$deps ?? []) {
-            const globalName = getGlobalName(dep);
-            const escapedDepName = dep.name.replace(
+        for (const dependency of dependencies) {
+            const globalName = getGlobalName(dependency.fn);
+            const escapedDepName = dependency.name.replace(
                 /[.*+?^${}()|[\]\\]/g,
                 "\\$&",
             );
-            depsCode += `const ${dep.name} = ${globalName};\n`;
+            depsCode += `const ${dependency.name} = ${globalName};\n`;
             execSource = execSource.replace(
                 new RegExp(`\\(0,[\\w$]+\\.${escapedDepName}\\)`, "g"),
-                dep.name,
+                dependency.name,
             );
+            if (
+                clientJsxDependencies.some(
+                    (clientDependency) =>
+                        clientDependency.name === dependency.name,
+                )
+            ) {
+                execSource = execSource.replace(
+                    new RegExp(`\\b${escapedDepName}\\$\\d+\\b`, "g"),
+                    dependency.name,
+                );
+            }
         }
         depsCode += `${getGlobalName(props.$exec)} = ${execSource};\n`;
     }
