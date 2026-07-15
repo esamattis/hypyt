@@ -17,6 +17,7 @@ interface AdminUserRow {
     username: string;
     displayName: string | null;
     email: string;
+    invitationCode: string | null;
     admin: boolean;
 }
 
@@ -56,6 +57,10 @@ function AdminUsersSection(props: {
                                     </p>
                                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                         @{user.username} · {user.email}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                        Invitation code:{" "}
+                                        {user.invitationCode ?? "Not recorded"}
                                     </p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
@@ -255,6 +260,7 @@ async function renderAdminPage(c: AppRequestContext) {
                 username: users.username,
                 displayName: users.displayName,
                 email: users.email,
+                invitationCode: users.invitationCode,
                 admin: users.admin,
             })
             .from(users)

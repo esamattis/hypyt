@@ -50,6 +50,32 @@ test("non-admins cannot access admin pages", async ({ page }) => {
     }
 });
 
+test("shows the invitation code used to register each user", async ({
+    page,
+}) => {
+    await registerUser(page, "invitation-tracked-user");
+    await logOut(page);
+
+    await page.locator('input[name="usernameOrEmail"]').fill("test-admin");
+    await page.locator('input[name="password"]').fill("test-admin-password");
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL("/logbook");
+    await page.goto("/admin");
+
+    const usersSection = page.locator("section").filter({
+        has: page.getByRole("heading", { name: "Users", exact: true }),
+    });
+    const invitedUser = usersSection.getByRole("listitem").filter({
+        hasText: "@invitation-tracked-user",
+    });
+    await expect(invitedUser).toContainText("Invitation code: test-invite");
+
+    const seededAdmin = usersSection.getByRole("listitem").filter({
+        hasText: "@test-admin",
+    });
+    await expect(seededAdmin).toContainText("Invitation code: Not recorded");
+});
+
 test("non-admins cannot perform admin actions", async ({ page, request }) => {
     await registerUser(page, "non-admin-actions");
 

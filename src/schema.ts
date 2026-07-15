@@ -17,6 +17,7 @@ export const users = sqliteTable("users", {
     displayName: text("display_name"),
     password: text("password").notNull(),
     email: text("email").notNull(),
+    invitationCode: text("invitation_code"),
     options: text("options").notNull().default("{}"),
     admin: integer("admin", { mode: "boolean" }).notNull().default(false),
 });

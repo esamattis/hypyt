@@ -211,6 +211,7 @@ async function handleRegister(c: AppRequestContext) {
             displayName: displayName || null,
             email,
             password: passwordHash,
+            invitationCode: consumed.code,
             options: DEFAULT_USER_OPTIONS_JSON,
         })
         .run();
