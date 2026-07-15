@@ -1,5 +1,10 @@
 import { expect, test } from "./fixtures";
-import { openMainMenu, openManageLogbook } from "./helpers";
+import {
+    jumpItemSummary,
+    openMainMenu,
+    openManageLogbook,
+    selectJumpItems,
+} from "./helpers";
 
 test("the log book loads additional jumps while scrolling", async ({
     page,
@@ -37,12 +42,8 @@ test("the log book loads additional jumps while scrolling", async ({
         await page.locator('input[name="exitAltitude"]').fill("4000");
         await page.locator('input[name="openingAltitude"]').fill("1000");
         await page.locator('input[name="freefallTime"]').fill("55");
-        await page.locator('select[name="locationUuid"]').selectOption({
-            label: "Scroll Drop Zone",
-        });
-        await page.locator('select[name="aircraftUuid"]').selectOption({
-            label: "Scroll Plane",
-        });
+        await selectJumpItems(page, "Location", ["Scroll Drop Zone"]);
+        await selectJumpItems(page, "Aircraft", ["Scroll Plane"]);
         await page.getByRole("button", { name: "Add jump" }).click();
     }
 
@@ -123,15 +124,10 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Skydive Test Center",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Cessna 182",
-    });
-    await page.getByRole("checkbox", { name: "Main canopy" }).check();
-    await page.getByRole("checkbox", { name: "Freefly" }).check();
-    await page.getByRole("checkbox", { name: "Tracking" }).check();
+    await selectJumpItems(page, "Location", ["Skydive Test Center"]);
+    await selectJumpItems(page, "Aircraft", ["Cessna 182"]);
+    await selectJumpItems(page, "Gear used", ["Main canopy"]);
+    await selectJumpItems(page, "Jump types", ["Freefly", "Tracking"]);
     await page.locator('textarea[name="description"]').fill("First test jump");
     await page.getByRole("button", { name: "Add jump" }).click();
 
@@ -161,20 +157,17 @@ test("a skydiver can register and record their first jump", async ({
     ).toBeVisible();
 
     await page.getByText("Filter jumps", { exact: true }).click();
-    await page.getByRole("checkbox", { name: "Freefly" }).check();
-    await page.getByRole("checkbox", { name: "Tracking" }).check();
+    await selectJumpItems(page, "Jump types", ["Freefly", "Tracking"]);
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page).toHaveURL(/\/logbook\?jumpTypeUuids=/);
     await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /#2/ })).toHaveCount(0);
 
     await page.getByRole("link", { name: /#1/ }).click();
-    await expect(
-        page.locator('select[name="locationUuid"] option:checked'),
-    ).toHaveText("Skydive Test Center");
-    await expect(
-        page.locator('select[name="aircraftUuid"] option:checked'),
-    ).toHaveText("Cessna 182");
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Skydive Test Center",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText("Cessna 182");
     await page.getByRole("link", { name: "Copy to new" }).click();
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?from=/);
@@ -200,15 +193,15 @@ test("a skydiver can register and record their first jump", async ({
         "1000",
     );
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("55");
-    await expect(page.locator('select[name="locationUuid"]')).toHaveValue(/.+/);
-    await expect(page.locator('select[name="aircraftUuid"]')).toHaveValue(/.+/);
-    await expect(
-        page.getByRole("checkbox", { name: "Main canopy" }),
-    ).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Tracking" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Skydive Test Center",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText("Cessna 182");
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Main canopy",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Freefly");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Tracking");
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "First test jump",
     );
@@ -233,15 +226,15 @@ test("a skydiver can register and record their first jump", async ({
         "1000",
     );
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("55");
-    await expect(page.locator('select[name="locationUuid"]')).toHaveValue(/.+/);
-    await expect(page.locator('select[name="aircraftUuid"]')).toHaveValue(/.+/);
-    await expect(
-        page.getByRole("checkbox", { name: "Main canopy" }),
-    ).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Tracking" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Skydive Test Center",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText("Cessna 182");
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Main canopy",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Freefly");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Tracking");
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "First test jump",
     );
@@ -405,21 +398,16 @@ test("a skydiver can register and record their first jump", async ({
     ).not.toHaveCount(0);
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     // Prefill from the previous jump keeps archived selections visible.
-    await expect(
-        page.locator('select[name="locationUuid"] option:checked'),
-    ).toHaveText("Skydive Updated Center (Archived)");
-    await expect(
-        page.locator('select[name="aircraftUuid"] option:checked'),
-    ).toHaveText("Cessna 206 (Archived)");
-    await expect(
-        page.getByRole("checkbox", { name: "Main canopy updated (Archived)" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Freefly updated (Archived)" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("button", { name: "Show archived items" }),
-    ).toBeVisible();
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Skydive Updated Center",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText("Cessna 206");
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Main canopy updated",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText(
+        "Freefly updated",
+    );
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await openManageLogbook(page);
@@ -432,12 +420,9 @@ test("a skydiver can register and record their first jump", async ({
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
-    await expect(
-        page.getByRole("checkbox", {
-            name: "Main canopy updated",
-            exact: true,
-        }),
-    ).toBeVisible();
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Main canopy updated",
+    );
 });
 
 test("gear can be converted to a jump type with its jump references", async ({
@@ -488,13 +473,9 @@ test("gear can be converted to a jump type with its jump references", async ({
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Conversion location",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Conversion aircraft",
-    });
-    await page.getByRole("checkbox", { name: "Convertible gear" }).check();
+    await selectJumpItems(page, "Location", ["Conversion location"]);
+    await selectJumpItems(page, "Aircraft", ["Conversion aircraft"]);
+    await selectJumpItems(page, "Gear used", ["Convertible gear"]);
     await page.getByRole("button", { name: "Add jump" }).click();
 
     await openManageLogbook(page);
@@ -526,9 +507,9 @@ test("gear can be converted to a jump type with its jump references", async ({
         page.getByRole("link", { name: /#1/ }).getByText("Convertible gear"),
     ).toBeVisible();
     await page.getByRole("link", { name: /#1/ }).click();
-    await expect(
-        page.getByRole("checkbox", { name: "Convertible gear" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Jump types")).toContainText(
+        "Convertible gear",
+    );
 });
 
 // eslint-disable-next-line max-lines-per-function
@@ -565,18 +546,18 @@ test("a skydiver can create jump items from the add jump form", async ({
     ).toBeVisible();
 
     await page.getByRole("link", { name: /#1/ }).click();
-    await expect(
-        page.locator('select[name="locationUuid"] option:checked'),
-    ).toHaveText("Inline Drop Zone");
-    await expect(
-        page.locator('select[name="aircraftUuid"] option:checked'),
-    ).toHaveText("Inline Plane");
-    await expect(
-        page.getByRole("checkbox", { name: "Inline Canopy" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Inline Tracking" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Inline Drop Zone",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText(
+        "Inline Plane",
+    );
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Inline Canopy",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText(
+        "Inline Tracking",
+    );
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();
@@ -639,12 +620,8 @@ test("next jump number button restores max plus one", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Next Number Drop Zone",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Next Number Plane",
-    });
+    await selectJumpItems(page, "Location", ["Next Number Drop Zone"]);
+    await selectJumpItems(page, "Aircraft", ["Next Number Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -697,12 +674,8 @@ test("adding a jump with an existing jump number shows an error and link", async
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Duplicate Drop Zone",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Duplicate Plane",
-    });
+    await selectJumpItems(page, "Location", ["Duplicate Drop Zone"]);
+    await selectJumpItems(page, "Aircraft", ["Duplicate Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -711,12 +684,8 @@ test("adding a jump with an existing jump number shows an error and link", async
     await page.locator('input[name="exitAltitude"]').fill("3500");
     await page.locator('input[name="openingAltitude"]').fill("900");
     await page.locator('input[name="freefallTime"]').fill("45");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Duplicate Drop Zone",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Duplicate Plane",
-    });
+    await selectJumpItems(page, "Location", ["Duplicate Drop Zone"]);
+    await selectJumpItems(page, "Aircraft", ["Duplicate Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
 
     await expect(page).toHaveURL("/logbook/jumps/new");

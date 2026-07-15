@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "./fixtures";
-import { openManageLogbook } from "./helpers";
+import { openManageLogbook, selectJumpItems } from "./helpers";
 
 async function registerAndAddFirstJump(
     page: Page,
@@ -36,12 +36,8 @@ async function registerAndAddFirstJump(
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Delete Drop Zone",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Delete Plane",
-    });
+    await selectJumpItems(page, "Location", ["Delete Drop Zone"]);
+    await selectJumpItems(page, "Aircraft", ["Delete Plane"]);
     await page.locator('textarea[name="description"]').fill("Doomed jump");
     await page.getByRole("button", { name: "Add jump" }).click();
 

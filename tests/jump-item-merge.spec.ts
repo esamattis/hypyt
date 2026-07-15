@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "./fixtures";
-import { openManageLogbook } from "./helpers";
+import { openManageLogbook, selectJumpItems } from "./helpers";
 
 async function registerUser(page: Page, username: string, displayName: string) {
     await page.goto("/register");
@@ -99,12 +99,8 @@ test("location can be merged into another location", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Source DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Merge Plane",
-    });
+    await selectJumpItems(page, "Location", ["Source DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Merge Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -157,12 +153,8 @@ test("aircraft can be merged into another aircraft", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Merge DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Source Plane",
-    });
+    await selectJumpItems(page, "Location", ["Merge DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Source Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -227,13 +219,9 @@ test("gear can be merged into another gear item", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Merge DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Merge Plane",
-    });
-    await page.getByLabel("Source Canopy").check();
+    await selectJumpItems(page, "Location", ["Merge DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Merge Plane"]);
+    await selectJumpItems(page, "Gear used", ["Source Canopy"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -298,13 +286,9 @@ test("jump type can be merged into another jump type", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Merge DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Merge Plane",
-    });
-    await page.getByLabel("Source Type").check();
+    await selectJumpItems(page, "Location", ["Merge DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Merge Plane"]);
+    await selectJumpItems(page, "Jump types", ["Source Type"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 

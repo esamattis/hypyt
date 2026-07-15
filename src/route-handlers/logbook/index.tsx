@@ -21,6 +21,7 @@ import {
     type JumpListItem,
 } from "@/route-handlers/logbook/components/jump-list";
 import { JumpSearch } from "@/route-handlers/logbook/components/search";
+import { JumpItemSelect } from "@/components/jump-item-select";
 
 function LogbookStatsCard(props: { label: string; value: any }) {
     return (
@@ -66,6 +67,8 @@ function LogbookStats(props: {
 interface LogbookResource {
     uuid: string;
     name: string;
+    archived: boolean;
+    description: string | null;
 }
 
 export interface LogbookFilters {
@@ -158,74 +161,30 @@ function JumpFilters(props: {
                         value={props.filters.search}
                     />
                 )}
-                <fieldset>
-                    <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Locations
-                    </legend>
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {props.locations.map((location) => (
-                            <label
-                                key={location.uuid}
-                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/60 dark:has-[:checked]:border-indigo-500 dark:has-[:checked]:bg-indigo-900/40 dark:has-[:checked]:text-indigo-200"
-                            >
-                                <input
-                                    name="locationUuids"
-                                    type="checkbox"
-                                    value={location.uuid}
-                                    checked={selectedLocations.has(
-                                        location.uuid,
-                                    )}
-                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40"
-                                />
-                                {location.name}
-                            </label>
-                        ))}
-                    </div>
-                </fieldset>
-                <fieldset>
-                    <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Gear
-                    </legend>
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {props.gear.map((item) => (
-                            <label
-                                key={item.uuid}
-                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/60 dark:has-[:checked]:border-indigo-500 dark:has-[:checked]:bg-indigo-900/40 dark:has-[:checked]:text-indigo-200"
-                            >
-                                <input
-                                    name="gearUuids"
-                                    type="checkbox"
-                                    value={item.uuid}
-                                    checked={selectedGear.has(item.uuid)}
-                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40"
-                                />
-                                {item.name}
-                            </label>
-                        ))}
-                    </div>
-                </fieldset>
-                <fieldset>
-                    <legend className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Jump types
-                    </legend>
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {props.jumpTypes.map((item) => (
-                            <label
-                                key={item.uuid}
-                                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/60 dark:has-[:checked]:border-indigo-500 dark:has-[:checked]:bg-indigo-900/40 dark:has-[:checked]:text-indigo-200"
-                            >
-                                <input
-                                    name="jumpTypeUuids"
-                                    type="checkbox"
-                                    value={item.uuid}
-                                    checked={selectedJumpTypes.has(item.uuid)}
-                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40"
-                                />
-                                {item.name}
-                            </label>
-                        ))}
-                    </div>
-                </fieldset>
+                <JumpItemSelect
+                    label="Locations"
+                    dialogTitle="Select locations"
+                    name="locationUuids"
+                    items={props.locations}
+                    selectedUuids={selectedLocations}
+                    multiple
+                />
+                <JumpItemSelect
+                    label="Gear"
+                    dialogTitle="Select gear"
+                    name="gearUuids"
+                    items={props.gear}
+                    selectedUuids={selectedGear}
+                    multiple
+                />
+                <JumpItemSelect
+                    label="Jump types"
+                    dialogTitle="Select jump types"
+                    name="jumpTypeUuids"
+                    items={props.jumpTypes}
+                    selectedUuids={selectedJumpTypes}
+                    multiple
+                />
                 <div className="flex flex-wrap gap-3 pt-2">
                     <Button type="submit" variant="primary">
                         Apply filters
@@ -241,17 +200,32 @@ export async function getLogbookFilterResources(c: AppRequestContext) {
     const userUuid = getAppContext(c).getUser().uuid;
     const [locationRows, gearItems, jumpTypeRows] = await Promise.all([
         db
-            .select({ uuid: locations.uuid, name: locations.name })
+            .select({
+                uuid: locations.uuid,
+                name: locations.name,
+                archived: locations.archived,
+                description: locations.description,
+            })
             .from(locations)
             .where(eq(locations.userUuid, userUuid))
             .orderBy(locations.name),
         db
-            .select({ uuid: gear.uuid, name: gear.name })
+            .select({
+                uuid: gear.uuid,
+                name: gear.name,
+                archived: gear.archived,
+                description: gear.description,
+            })
             .from(gear)
             .where(eq(gear.userUuid, userUuid))
             .orderBy(gear.name),
         db
-            .select({ uuid: jumpTypes.uuid, name: jumpTypes.name })
+            .select({
+                uuid: jumpTypes.uuid,
+                name: jumpTypes.name,
+                archived: jumpTypes.archived,
+                description: jumpTypes.description,
+            })
             .from(jumpTypes)
             .where(eq(jumpTypes.userUuid, userUuid))
             .orderBy(jumpTypes.name),

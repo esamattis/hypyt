@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { openManageLogbook } from "./helpers";
+import { openManageLogbook, selectJumpItems } from "./helpers";
 
 test("new jump page shows a banner when jumpNumber query already exists", async ({
     page,
@@ -42,12 +42,8 @@ test("new jump page shows a banner when jumpNumber query already exists", async 
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Banner Drop Zone",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Banner Plane",
-    });
+    await selectJumpItems(page, "Location", ["Banner Drop Zone"]);
+    await selectJumpItems(page, "Aircraft", ["Banner Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 

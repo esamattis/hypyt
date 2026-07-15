@@ -58,6 +58,7 @@ export async function getJumpFormResources(c: AppRequestContext) {
                     uuid: locations.uuid,
                     name: locations.name,
                     archived: locations.archived,
+                    description: locations.description,
                 })
                 .from(locations)
                 .where(eq(locations.userUuid, userUuid))
@@ -67,6 +68,7 @@ export async function getJumpFormResources(c: AppRequestContext) {
                     uuid: aircrafts.uuid,
                     name: aircrafts.name,
                     archived: aircrafts.archived,
+                    description: aircrafts.description,
                 })
                 .from(aircrafts)
                 .where(eq(aircrafts.userUuid, userUuid))
@@ -76,6 +78,7 @@ export async function getJumpFormResources(c: AppRequestContext) {
                     uuid: gear.uuid,
                     name: gear.name,
                     archived: gear.archived,
+                    description: gear.description,
                 })
                 .from(gear)
                 .where(eq(gear.userUuid, userUuid))
@@ -85,6 +88,7 @@ export async function getJumpFormResources(c: AppRequestContext) {
                     uuid: jumpTypes.uuid,
                     name: jumpTypes.name,
                     archived: jumpTypes.archived,
+                    description: jumpTypes.description,
                 })
                 .from(jumpTypes)
                 .where(eq(jumpTypes.userUuid, userUuid))
@@ -282,7 +286,12 @@ async function resolveJumpResources(
                     name,
                     previousJumpCount: 0,
                 });
-                resources.locations.push({ uuid, name, archived: false });
+                resources.locations.push({
+                    uuid,
+                    name,
+                    archived: false,
+                    description: null,
+                });
                 return uuid;
             },
         });
@@ -304,7 +313,12 @@ async function resolveJumpResources(
                     name,
                     previousJumpCount: 0,
                 });
-                resources.aircrafts.push({ uuid, name, archived: false });
+                resources.aircrafts.push({
+                    uuid,
+                    name,
+                    archived: false,
+                    description: null,
+                });
                 return uuid;
             },
         });
@@ -330,6 +344,7 @@ async function resolveJumpResources(
                     uuid: newUuid,
                     name: itemName,
                     archived: false,
+                    description: null,
                 });
                 return newUuid;
             },
@@ -354,6 +369,7 @@ async function resolveJumpResources(
                     uuid: newUuid,
                     name: itemName,
                     archived: false,
+                    description: null,
                 });
                 return newUuid;
             },

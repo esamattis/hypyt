@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "./fixtures";
-import { openManageLogbook } from "./helpers";
+import { openManageLogbook, selectJumpItems } from "./helpers";
 
 async function registerUser(page: Page, username: string, displayName: string) {
     await page.goto("/register");
@@ -122,12 +122,8 @@ test("aircraft cannot be deleted while used by jumps", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Guarded DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Guarded Plane",
-    });
+    await selectJumpItems(page, "Location", ["Guarded DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -184,12 +180,8 @@ test("aircraft can be deleted once no jumps use it", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Free DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Free Plane",
-    });
+    await selectJumpItems(page, "Location", ["Free DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Free Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -255,13 +247,9 @@ test("gear cannot be deleted while used by jumps", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Guarded DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Guarded Plane",
-    });
-    await page.getByLabel("Guarded Canopy").check();
+    await selectJumpItems(page, "Location", ["Guarded DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
+    await selectJumpItems(page, "Gear used", ["Guarded Canopy"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -327,13 +315,9 @@ test("jump types cannot be deleted while used by jumps", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Guarded DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Guarded Plane",
-    });
-    await page.getByLabel("Guarded Type").check();
+    await selectJumpItems(page, "Location", ["Guarded DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
+    await selectJumpItems(page, "Jump types", ["Guarded Type"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 
@@ -388,12 +372,8 @@ test("locations cannot be deleted while used by jumps", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Guarded DZ",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Guarded Plane",
-    });
+    await selectJumpItems(page, "Location", ["Guarded DZ"]);
+    await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
 

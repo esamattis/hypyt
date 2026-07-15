@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "./fixtures";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { logOut, openManageLogbook } from "./helpers";
+import { jumpItemSummary, logOut, openManageLogbook } from "./helpers";
 
 const fixturePath = path.join(import.meta.dirname, "fixtures/logbook.csv");
 const xmlFixturePath = path.join(
@@ -214,12 +214,12 @@ test("a logbook can be imported, edited, exported, and imported by another user"
         "1000",
     );
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("55");
-    await expect(
-        page.getByRole("checkbox", { name: "Navigator 260" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Formation skydiving" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Navigator 260",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText(
+        "Formation skydiving",
+    );
 });
 
 test("clearing all previous data replaces the entire logbook during import", async ({
@@ -295,8 +295,8 @@ test("a Skydiving Logbook XML file can be imported", async ({ page }) => {
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Imported from XML",
     );
-    await expect(page.getByRole("checkbox", { name: "XML Rig" })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
+    await expect(jumpItemSummary(page, "Gear used")).toContainText("XML Rig");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Freefly");
 });
 
 test("a cutaway jump adds the Cutaway type when the type exists in XML", async ({
@@ -318,8 +318,8 @@ test("a cutaway jump adds the Cutaway type when the type exists in XML", async (
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Imported from XML",
     );
-    await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Cutaway" })).toBeChecked();
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Freefly");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Cutaway");
 });
 
 test("a cutaway jump creates and assigns the Cutaway type when XML is missing it", async ({
@@ -341,8 +341,8 @@ test("a cutaway jump creates and assigns the Cutaway type when XML is missing it
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Imported from XML",
     );
-    await expect(page.getByRole("checkbox", { name: "Freefly" })).toBeChecked();
-    await expect(page.getByRole("checkbox", { name: "Cutaway" })).toBeChecked();
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Freefly");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Cutaway");
 });
 
 test("an import deduplicates repeated gear and jump type references", async ({
@@ -377,12 +377,10 @@ test("an import deduplicates repeated gear and jump type references", async ({
         .getByRole("link", { name: /deduplicated-import-skydiver's logbook/ })
         .click();
     await page.getByRole("link", { name: /#1/ }).click();
-    await expect(
-        page.getByRole("checkbox", { name: "Test rig" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Test type" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Gear used")).toContainText("Test rig");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText(
+        "Test type",
+    );
 });
 
 test("CSV import creates unknown jump items and handles double-escaped semicolons", async ({
@@ -418,16 +416,10 @@ test("CSV import creates unknown jump items and handles double-escaped semicolon
         .getByRole("link", { name: /csv-semicolon-skydiver's logbook/ })
         .click();
     await page.getByRole("link", { name: /#10/ }).click();
-    await expect(page.getByRole("checkbox", { name: "A;B" })).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "C", exact: true }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Type;One" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Type Two" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Gear used")).toContainText("A;B");
+    await expect(jumpItemSummary(page, "Gear used")).toContainText("C");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Type;One");
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("Type Two");
     await expect(page.locator('input[name="exitAltitude"]')).toHaveValue(
         "4000",
     );

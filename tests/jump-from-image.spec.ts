@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { openMainMenu, openManageLogbook } from "./helpers";
+import { jumpItemSummary, openMainMenu, openManageLogbook } from "./helpers";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -79,12 +79,12 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
         "1200",
     );
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("50");
-    await expect(
-        page.locator('select[name="locationUuid"] option:checked'),
-    ).toHaveText("Image Drop Zone");
-    await expect(
-        page.locator('select[name="aircraftUuid"] option:checked'),
-    ).toHaveText("Image Plane");
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Image Drop Zone",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText(
+        "Image Plane",
+    );
     await expect(page.locator('input[name="locationName"]')).toHaveValue(
         "Image Drop Zone",
     );
@@ -95,12 +95,10 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
         "Image Canopy",
     );
     await expect(page.locator('input[name="jumpTypeName"]')).toHaveValue("FS");
-    await expect(
-        page.locator("label", { hasText: "Image Canopy" }).locator("input"),
-    ).toBeChecked();
-    await expect(
-        page.locator("label", { hasText: /^FS$/ }).locator("input"),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Image Canopy",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("FS");
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "From image mock",
     );
@@ -121,18 +119,16 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
         "1200",
     );
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("50");
-    await expect(
-        page.locator('select[name="locationUuid"] option:checked'),
-    ).toHaveText("Image Drop Zone");
-    await expect(
-        page.locator('select[name="aircraftUuid"] option:checked'),
-    ).toHaveText("Image Plane");
-    await expect(
-        page.locator("label", { hasText: "Image Canopy" }).locator("input"),
-    ).toBeChecked();
-    await expect(
-        page.locator("label", { hasText: /^FS$/ }).locator("input"),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Image Drop Zone",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText(
+        "Image Plane",
+    );
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Image Canopy",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText("FS");
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "From image mock",
     );

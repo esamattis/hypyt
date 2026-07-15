@@ -1,5 +1,10 @@
 import { expect, test } from "./fixtures";
-import { openManageLogbook } from "./helpers";
+import {
+    jumpItemSummary,
+    openJumpItemSelect,
+    openManageLogbook,
+    selectJumpItems,
+} from "./helpers";
 
 // eslint-disable-next-line max-lines-per-function
 test("editing a jump keeps archived jump items", async ({ page }) => {
@@ -38,6 +43,9 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
     await page.getByRole("link", { name: "Manage gear" }).click();
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Archived Canopy");
+    await page
+        .locator('textarea[name="description"]')
+        .fill("Archived canopy description");
     await page.getByRole("button", { name: "Add gear" }).click();
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Unused Archived Gear");
@@ -60,14 +68,10 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
-    await page.locator('select[name="locationUuid"]').selectOption({
-        label: "Archived Dropzone",
-    });
-    await page.locator('select[name="aircraftUuid"]').selectOption({
-        label: "Archived Plane",
-    });
-    await page.getByRole("checkbox", { name: "Archived Canopy" }).check();
-    await page.getByRole("checkbox", { name: "Archived Freefly" }).check();
+    await selectJumpItems(page, "Location", ["Archived Dropzone"]);
+    await selectJumpItems(page, "Aircraft", ["Archived Plane"]);
+    await selectJumpItems(page, "Gear used", ["Archived Canopy"]);
+    await selectJumpItems(page, "Jump types", ["Archived Freefly"]);
     await page
         .locator('textarea[name="description"]')
         .fill("Jump with items to archive");
@@ -93,47 +97,65 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
     }
 
     await page.getByRole("link", { name: /#1/ }).click();
-    await expect(
-        page.locator('select[name="locationUuid"] option:checked'),
-    ).toHaveText("Archived Dropzone (Archived)");
-    await expect(
-        page.locator('select[name="aircraftUuid"] option:checked'),
-    ).toHaveText("Archived Plane (Archived)");
-    await expect(
-        page.getByRole("checkbox", { name: "Archived Canopy (Archived)" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Archived Freefly (Archived)" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Archived Dropzone",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText(
+        "Archived Plane",
+    );
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Archived Canopy",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText(
+        "Archived Freefly",
+    );
     await expect(
         page.locator('[data-archived="true"]', {
-            hasText: "Unused Archived Gear (Archived)",
+            hasText: "Unused Archived Gear",
         }),
     ).toBeHidden();
+    const gearDialog = await openJumpItemSelect(page, "Gear used");
     await expect(
-        page.getByRole("button", { name: "Show archived items" }),
+        gearDialog.getByRole("heading", { name: "Archived" }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Show archived items" }).click();
+    await expect(
+        gearDialog.locator('label[data-tooltip="Archived canopy description"]'),
+    ).toContainText("Archived Canopy");
+    await expect(
+        jumpItemSummary(page, "Gear used").locator(
+            '[data-tooltip="Archived canopy description"]',
+        ),
+    ).toContainText("Archived Canopy");
+    await expect(gearDialog.getByRole("button", { name: "OK" })).toBeVisible();
+    await expect(
+        gearDialog.getByRole("button", { name: "Show archived items" }),
+    ).toBeVisible();
+    await gearDialog
+        .getByRole("button", { name: "Show archived items" })
+        .click();
     await expect(
         page.getByRole("checkbox", {
-            name: "Unused Archived Gear (Archived)",
+            name: "Unused Archived Gear",
         }),
     ).toBeVisible();
     await expect(
-        page.getByRole("button", { name: "Hide archived items" }),
+        gearDialog.getByRole("button", { name: "Hide archived items" }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Hide archived items" }).click();
+    await gearDialog
+        .getByRole("button", { name: "Hide archived items" })
+        .click();
     await expect(
         page.locator('[data-archived="true"]', {
-            hasText: "Unused Archived Gear (Archived)",
+            hasText: "Unused Archived Gear",
         }),
     ).toBeHidden();
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Archived Canopy",
+    );
     await expect(
-        page.getByRole("checkbox", { name: "Archived Canopy (Archived)" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("button", { name: "Show archived items" }),
+        gearDialog.getByRole("button", { name: "Show archived items" }),
     ).toBeVisible();
+    await gearDialog.getByRole("button", { name: "OK" }).click();
 
     await page
         .locator('textarea[name="description"]')
@@ -143,18 +165,18 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
     await expect(page.getByText("Edited while items archived")).toBeVisible();
 
     await page.getByRole("link", { name: /#1/ }).click();
-    await expect(
-        page.locator('select[name="locationUuid"] option:checked'),
-    ).toHaveText("Archived Dropzone (Archived)");
-    await expect(
-        page.locator('select[name="aircraftUuid"] option:checked'),
-    ).toHaveText("Archived Plane (Archived)");
-    await expect(
-        page.getByRole("checkbox", { name: "Archived Canopy (Archived)" }),
-    ).toBeChecked();
-    await expect(
-        page.getByRole("checkbox", { name: "Archived Freefly (Archived)" }),
-    ).toBeChecked();
+    await expect(jumpItemSummary(page, "Location")).toContainText(
+        "Archived Dropzone",
+    );
+    await expect(jumpItemSummary(page, "Aircraft")).toContainText(
+        "Archived Plane",
+    );
+    await expect(jumpItemSummary(page, "Gear used")).toContainText(
+        "Archived Canopy",
+    );
+    await expect(jumpItemSummary(page, "Jump types")).toContainText(
+        "Archived Freefly",
+    );
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "Edited while items archived",
     );
@@ -246,67 +268,81 @@ test("new jump form hides archived items and shows reveal button", async ({
         .click();
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
 
+    await expect(jumpItemSummary(page, "Location")).toHaveText("None selected");
+    await expect(jumpItemSummary(page, "Aircraft")).toHaveText("None selected");
+    const locationDialog = await openJumpItemSelect(page, "Location");
     await expect(
-        page.getByRole("option", { name: "Active Dropzone", exact: true }),
-    ).toBeAttached();
-    await expect(
-        page.getByRole("option", { name: "Active Plane", exact: true }),
-    ).toBeAttached();
-    await expect(
-        page.getByRole("checkbox", { name: "Active Canopy", exact: true }),
+        locationDialog.getByRole("radio", {
+            name: "Active Dropzone",
+            exact: true,
+        }),
     ).toBeVisible();
     await expect(
-        page.locator('option[data-archived="true"][hidden]', {
-            hasText: "Hidden Dropzone (Archived)",
+        locationDialog.locator('label[data-archived="true"][hidden]', {
+            hasText: "Hidden Dropzone",
+        }),
+    ).toBeAttached();
+    await locationDialog.getByRole("button", { name: "Close" }).click();
+
+    const aircraftDialog = await openJumpItemSelect(page, "Aircraft");
+    await expect(
+        aircraftDialog.getByRole("radio", {
+            name: "Active Plane",
+            exact: true,
+        }),
+    ).toBeVisible();
+    await expect(
+        aircraftDialog.locator('label[data-archived="true"][hidden]', {
+            hasText: "Hidden Plane",
+        }),
+    ).toBeAttached();
+    await aircraftDialog.getByRole("button", { name: "Close" }).click();
+
+    const gearDialog = await openJumpItemSelect(page, "Gear used");
+    await expect(
+        gearDialog.getByRole("checkbox", {
+            name: "Active Canopy",
+            exact: true,
+        }),
+    ).toBeVisible();
+    await expect(
+        gearDialog.locator('label[data-archived="true"][hidden]', {
+            hasText: "Hidden Canopy",
         }),
     ).toBeAttached();
     await expect(
-        page.locator('option[data-archived="true"][hidden]', {
-            hasText: "Hidden Plane (Archived)",
-        }),
-    ).toBeAttached();
+        gearDialog.getByRole("heading", { name: "Archived" }),
+    ).toBeHidden();
     await expect(
         page.locator('label[data-archived="true"][hidden]', {
-            hasText: "Hidden Canopy (Archived)",
+            hasText: "Hidden Freefly",
         }),
     ).toBeAttached();
     await expect(
-        page.locator('label[data-archived="true"][hidden]', {
-            hasText: "Hidden Freefly (Archived)",
-        }),
-    ).toBeAttached();
-    await expect(
-        page.getByRole("button", { name: "Show archived items" }),
+        gearDialog.getByRole("button", { name: "Show archived items" }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Show archived items" }).click();
+    await gearDialog
+        .getByRole("button", { name: "Show archived items" })
+        .click();
     await expect(
-        page.getByRole("option", { name: "Hidden Dropzone (Archived)" }),
-    ).toBeAttached();
-    await expect(
-        page.getByRole("option", { name: "Hidden Plane (Archived)" }),
-    ).toBeAttached();
-    await expect(
-        page.getByRole("checkbox", { name: "Hidden Canopy (Archived)" }),
+        gearDialog.getByRole("heading", { name: "Archived" }),
     ).toBeVisible();
     await expect(
-        page.getByRole("checkbox", { name: "Hidden Freefly (Archived)" }),
+        page.getByRole("checkbox", { name: "Hidden Canopy" }),
     ).toBeVisible();
     await expect(
-        page.getByRole("button", { name: "Hide archived items" }),
+        gearDialog.getByRole("button", { name: "Hide archived items" }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Hide archived items" }).click();
-    await expect(
-        page.locator('option[data-archived="true"][hidden]', {
-            hasText: "Hidden Dropzone (Archived)",
-        }),
-    ).toBeAttached();
+    await gearDialog
+        .getByRole("button", { name: "Hide archived items" })
+        .click();
     await expect(
         page.locator('label[data-archived="true"][hidden]', {
-            hasText: "Hidden Canopy (Archived)",
+            hasText: "Hidden Canopy",
         }),
     ).toBeAttached();
     await expect(
-        page.getByRole("button", { name: "Show archived items" }),
+        gearDialog.getByRole("button", { name: "Show archived items" }),
     ).toBeVisible();
 });
