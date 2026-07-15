@@ -12,6 +12,7 @@ export default defineConfig({
     build: {
         emptyOutDir: false,
         ssr: "src/index.tsx",
+        target: "esnext",
     },
     define: {
         "process.env.PLAYWRIGHT_TEST": JSON.stringify(
