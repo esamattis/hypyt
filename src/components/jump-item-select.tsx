@@ -10,7 +10,7 @@
 import clsx from "clsx";
 import { useId } from "hono/jsx";
 import { Button } from "@/components/form";
-import { Script } from "@/components/script";
+import { html, Script } from "@/components/script";
 import { Dialog } from "@/components/ui/dialog";
 import { $assertElement } from "@/utils";
 
@@ -63,7 +63,7 @@ function JumpItemSelectScript(props: {
 }) {
     return (
         <Script
-            $deps={[$assertElement]}
+            $deps={[html, $assertElement]}
             $args={[props]}
             $exec={(config) => {
                 const optionsEl = document.getElementById(config.optionsId);
@@ -85,28 +85,27 @@ function JumpItemSelectScript(props: {
                 }
 
                 function updateSummary() {
-                    summary.replaceChildren();
                     const selected = selectedInputs();
                     if (selected.length === 0) {
-                        const empty = document.createElement("span");
-                        empty.className = "text-slate-500 dark:text-slate-400";
-                        empty.textContent = config.emptyText;
-                        summary.appendChild(empty);
+                        summary.innerHTML = html`
+                            <span class="text-slate-500 dark:text-slate-400">
+                                ${config.emptyText}
+                            </span>
+                        `;
                         return;
                     }
-                    for (const input of selected) {
-                        const item = document.createElement("span");
-                        item.className =
-                            "rounded-md bg-indigo-50 px-2 py-1 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-200";
-                        item.textContent =
-                            input.getAttribute("data-label") ?? "";
-                        const description =
-                            input.getAttribute("data-description");
-                        if (description) {
-                            item.setAttribute("data-tooltip", description);
-                        }
-                        summary.appendChild(item);
-                    }
+                    summary.innerHTML = selected
+                        .map(
+                            (input) => html`
+                                <span
+                                    data-tooltip="${input.getAttribute("data-description") ?? ""}"
+                                    class="rounded-md bg-indigo-50 px-2 py-1 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-200"
+                                >
+                                    ${input.getAttribute("data-label") ?? ""}
+                                </span>
+                            `,
+                        )
+                        .join("");
                 }
 
                 function setArchivedItemsVisible(visible: boolean) {

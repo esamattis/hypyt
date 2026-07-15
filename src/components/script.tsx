@@ -3,6 +3,23 @@ import { useAppContext } from "@/app/app";
 type ClientFunction = ((...args: any[]) => any) & { displayName?: string };
 const nameCache = new WeakMap<ClientFunction, string>();
 
+export function html(
+    strings: TemplateStringsArray,
+    ...values: unknown[]
+): string {
+    return strings.reduce((result, string, index) => {
+        const value = values[index];
+        const escapedValue =
+            value == null
+                ? ""
+                : String(value).replace(
+                      /[&<>"']/g,
+                      (character) => `&#${character.charCodeAt(0)};`,
+                  );
+        return result + string + escapedValue;
+    }, "");
+}
+
 function getGlobalName(fn: ClientFunction): string {
     const cachedName = nameCache.get(fn);
     if (cachedName) return cachedName;
@@ -16,6 +33,30 @@ function getGlobalName(fn: ClientFunction): string {
         : `__${Math.abs(hash).toString(16)}`;
     nameCache.set(fn, globalName);
     return globalName;
+}
+
+function localizeDependencyReferences(
+    source: string,
+    dependencies: ClientFunction[],
+): string {
+    for (const dependency of dependencies) {
+        // Vite leaves imported functions as module references in Function#toString,
+        // either `(0, module.fn)` for calls or `module.fn` for tagged templates.
+        // Emitted browser scripts do not have those server-side module objects, so
+        // replace both forms with the local dependency binding added by Script.
+        const escapedName = dependency.name.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&",
+        );
+        source = source.replace(
+            new RegExp(
+                `(?:\\(0,[\\w$]+\\.${escapedName}\\)|[\\w$]+\\.${escapedName})`,
+                "g",
+            ),
+            dependency.name,
+        );
+    }
+    return source;
 }
 
 export function Script<T extends readonly unknown[] = []>(props: {
@@ -33,23 +74,22 @@ export function Script<T extends readonly unknown[] = []>(props: {
             );
         if (!jsDupCache.has(dep)) {
             jsDupCache.add(dep);
-            depsCode += `${getGlobalName(dep)} = ${dep.toString()};\n`;
+            const depSource = localizeDependencyReferences(
+                dep.toString(),
+                props.$deps ?? [],
+            );
+            depsCode += `${getGlobalName(dep)} = ${depSource};\n`;
         }
     }
     if (!jsDupCache.has(props.$exec)) {
         jsDupCache.add(props.$exec);
-        let execSource = props.$exec.toString();
+        const execSource = localizeDependencyReferences(
+            props.$exec.toString(),
+            props.$deps ?? [],
+        );
         for (const dep of props.$deps ?? []) {
             const globalName = getGlobalName(dep);
-            const escapedDepName = dep.name.replace(
-                /[.*+?^${}()|[\]\\]/g,
-                "\\$&",
-            );
             depsCode += `const ${dep.name} = ${globalName};\n`;
-            execSource = execSource.replace(
-                new RegExp(`\\(0,[\\w$]+\\.${escapedDepName}\\)`, "g"),
-                dep.name,
-            );
         }
         depsCode += `${getGlobalName(props.$exec)} = ${execSource};\n`;
     }

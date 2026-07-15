@@ -1,21 +1,30 @@
 import { $assertElement } from "@/utils";
-import { Script } from "@/components/script";
+import { html, Script } from "@/components/script";
 
 function $initTooltips() {
-    const tooltip = document.createElement("div");
-    tooltip.id = "tooltip";
-    tooltip.role = "tooltip";
-    tooltip.hidden = true;
-    tooltip.className =
-        "pointer-events-none fixed z-50 max-w-xs rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-slate-100 dark:text-slate-900";
-    const tooltipText = document.createElement("span");
-    const arrow = document.createElement("span");
-    arrow.setAttribute("aria-hidden", "true");
-    arrow.className =
-        "absolute left-1/2 top-full -translate-x-1/2 border-x-4 border-t-4 border-x-transparent border-t-slate-900 dark:border-t-slate-100";
-    tooltip.appendChild(tooltipText);
-    tooltip.appendChild(arrow);
-    document.body.appendChild(tooltip);
+    document.body.insertAdjacentHTML(
+        "beforeend",
+        html`
+            <div
+                id="tooltip"
+                role="tooltip"
+                hidden
+                class="pointer-events-none fixed z-50 max-w-xs rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-slate-100 dark:text-slate-900"
+            >
+                <span data-tooltip-text></span>
+                <span
+                    aria-hidden="true"
+                    class="absolute left-1/2 top-full -translate-x-1/2 border-x-4 border-t-4 border-x-transparent border-t-slate-900 dark:border-t-slate-100"
+                ></span>
+            </div>
+        `,
+    );
+    const tooltipNode = document.getElementById("tooltip");
+    const tooltipTextNode = tooltipNode?.querySelector("[data-tooltip-text]");
+    $assertElement(tooltipNode, HTMLDivElement);
+    $assertElement(tooltipTextNode, HTMLSpanElement);
+    const tooltip: HTMLDivElement = tooltipNode;
+    const tooltipText: HTMLSpanElement = tooltipTextNode;
     let activeTarget: HTMLElement | null = null;
     function getTooltipTarget(target: EventTarget | null): HTMLElement | null {
         if (!(target instanceof Element)) return null;
@@ -81,5 +90,5 @@ function $initTooltips() {
 }
 
 export function Tooltips() {
-    return <Script $deps={[$assertElement]} $exec={$initTooltips} />;
+    return <Script $deps={[html, $assertElement]} $exec={$initTooltips} />;
 }

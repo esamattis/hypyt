@@ -1,4 +1,4 @@
-import { Script } from "@/components/script";
+import { html, Script } from "@/components/script";
 
 function $showNavigationProgress(options: {
     mode: "form" | "link";
@@ -8,19 +8,18 @@ function $showNavigationProgress(options: {
     const isPost =
         options.mode === "form" &&
         (options.method ?? "get").toLowerCase() === "post";
-    const progress = document.createElement("div");
-    progress.id = "form-submit-progress";
-    progress.setAttribute("role", "progressbar");
-    if (isPost) progress.classList.add("form-submit-progress-post");
-    progress.setAttribute(
-        "aria-label",
-        options.mode === "form" ? "Submitting form" : "Loading page",
+    document.body.insertAdjacentHTML(
+        "beforeend",
+        html`
+            <div
+                id="form-submit-progress"
+                role="progressbar"
+                class="${isPost ? "form-submit-progress-post" : ""}"
+                aria-label="${options.mode === "form" ? "Submitting form" : "Loading page"}"
+                aria-valuetext="${options.mode === "form" ? "Submitting" : "Loading"}"
+            ></div>
+        `,
     );
-    progress.setAttribute(
-        "aria-valuetext",
-        options.mode === "form" ? "Submitting" : "Loading",
-    );
-    document.body.appendChild(progress);
 }
 
 function $clearNavigationProgress() {
@@ -43,10 +42,15 @@ function $disableFormOnSubmit() {
         if (submitter instanceof HTMLButtonElement) {
             submitter.classList.add("form-submit-pending");
             if (!submitter.querySelector(".form-submit-spinner")) {
-                const spinner = document.createElement("span");
-                spinner.className = "form-submit-spinner";
-                spinner.setAttribute("aria-hidden", "true");
-                submitter.insertBefore(spinner, submitter.firstChild);
+                submitter.insertAdjacentHTML(
+                    "afterbegin",
+                    html`
+                        <span
+                            class="form-submit-spinner"
+                            aria-hidden="true"
+                        ></span>
+                    `,
+                );
             }
         }
         setTimeout(() => {
@@ -105,7 +109,7 @@ function $showProgressOnLinkClick() {
 export function DisableFormOnSubmit() {
     return (
         <Script
-            $deps={[$showNavigationProgress]}
+            $deps={[html, $showNavigationProgress]}
             $exec={$disableFormOnSubmit}
         />
     );
@@ -113,7 +117,7 @@ export function DisableFormOnSubmit() {
 export function ShowProgressOnLinkClick() {
     return (
         <Script
-            $deps={[$showNavigationProgress, $clearNavigationProgress]}
+            $deps={[html, $showNavigationProgress, $clearNavigationProgress]}
             $exec={$showProgressOnLinkClick}
         />
     );

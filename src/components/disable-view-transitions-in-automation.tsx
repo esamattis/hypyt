@@ -1,12 +1,21 @@
-import { Script } from "@/components/script";
+import { html, Script } from "@/components/script";
 
 function $disableViewTransitionsInAutomation() {
     if (!navigator.webdriver) return;
-    const style = document.createElement("style");
-    style.textContent = "@view-transition { navigation: none; }";
-    document.head.appendChild(style);
+    document.head.insertAdjacentHTML(
+        "beforeend",
+        html`
+            <style>
+                @view-transition {
+                    navigation: none;
+                }
+            </style>
+        `,
+    );
 }
 
 export function DisableViewTransitionsInAutomation() {
-    return <Script $exec={$disableViewTransitionsInAutomation} />;
+    return (
+        <Script $deps={[html]} $exec={$disableViewTransitionsInAutomation} />
+    );
 }

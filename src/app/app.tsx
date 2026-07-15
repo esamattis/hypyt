@@ -4,7 +4,7 @@ import { eq, lte } from "drizzle-orm";
 import { jsxRenderer, useRequestContext } from "hono/jsx-renderer";
 import { deleteCookie, getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
-import { Script } from "@/components/script";
+import { html, Script } from "@/components/script";
 import { Button } from "@/components/form";
 import { Dialog } from "@/components/ui/dialog";
 import { DisableViewTransitionsInAutomation } from "@/components/disable-view-transitions-in-automation";
@@ -157,21 +157,18 @@ function $showNavigationProgress(options: {
         options.mode === "form" &&
         (options.method ?? "get").toLowerCase() === "post";
 
-    const progress = document.createElement("div");
-    progress.id = "form-submit-progress";
-    progress.setAttribute("role", "progressbar");
-    if (isPost) {
-        progress.classList.add("form-submit-progress-post");
-    }
-    progress.setAttribute(
-        "aria-label",
-        options.mode === "form" ? "Submitting form" : "Loading page",
+    document.body.insertAdjacentHTML(
+        "beforeend",
+        html`
+            <div
+                id="form-submit-progress"
+                role="progressbar"
+                class="${isPost ? "form-submit-progress-post" : ""}"
+                aria-label="${options.mode === "form" ? "Submitting form" : "Loading page"}"
+                aria-valuetext="${options.mode === "form" ? "Submitting" : "Loading"}"
+            ></div>
+        `,
     );
-    progress.setAttribute(
-        "aria-valuetext",
-        options.mode === "form" ? "Submitting" : "Loading",
-    );
-    document.body.appendChild(progress);
 }
 
 export function $disableFormOnSubmit() {
@@ -198,10 +195,15 @@ export function $disableFormOnSubmit() {
         if (submitter instanceof HTMLButtonElement) {
             submitter.classList.add("form-submit-pending");
             if (!submitter.querySelector(".form-submit-spinner")) {
-                const spinner = document.createElement("span");
-                spinner.className = "form-submit-spinner";
-                spinner.setAttribute("aria-hidden", "true");
-                submitter.insertBefore(spinner, submitter.firstChild);
+                submitter.insertAdjacentHTML(
+                    "afterbegin",
+                    html`
+                        <span
+                            class="form-submit-spinner"
+                            aria-hidden="true"
+                        ></span>
+                    `,
+                );
             }
         }
 
@@ -487,9 +489,16 @@ export function $disableViewTransitionsInAutomation() {
     if (!navigator.webdriver) {
         return;
     }
-    const style = document.createElement("style");
-    style.textContent = "@view-transition { navigation: none; }";
-    document.head.appendChild(style);
+    document.head.insertAdjacentHTML(
+        "beforeend",
+        html`
+            <style>
+                @view-transition {
+                    navigation: none;
+                }
+            </style>
+        `,
+    );
 }
 
 const UPDATE_TOAST_ID = "update-toast";
