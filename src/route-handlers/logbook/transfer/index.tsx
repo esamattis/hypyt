@@ -7,6 +7,7 @@ import {
     aircrafts,
     gear,
     jumps,
+    jumpsToAircrafts,
     jumpsToGear,
     jumpsToJumpTypes,
     jumpTypes,
@@ -66,7 +67,9 @@ const ImportRecordSchema = z.discriminatedUnion("type", [
             .int("Freefall time must be a whole number")
             .min(0, "Freefall time cannot be negative"),
         location: z.string().trim().min(1, "Location is required"),
-        aircraft: z.string().trim().min(1, "Aircraft is required"),
+        aircraft: z
+            .array(z.string().trim().min(1))
+            .min(1, "Aircraft is required"),
         gear: z.array(z.string().trim().min(1)).default([]),
         jumpTypes: z.array(z.string().trim().min(1)).default([]),
         description: z.string().trim().max(2_000).nullable().optional(),
@@ -281,7 +284,7 @@ function parseSkydivingLogbookXml(xml: string): ImportRecord[] {
             openingAltitude: xmlNumber(record, "deployment_altitude", 0),
             freefallTime: xmlNumber(record, "freefall_time", 0),
             location,
-            aircraft: aircraftName,
+            aircraft: [aircraftName],
             gear: resolveXmlNames({
                 ids: xmlRigIds(record),
                 catalog: gearCatalog,
@@ -438,7 +441,7 @@ function rowToImportValue(fields: string[]): unknown {
             openingAltitude: get(6),
             freefallTime: get(7),
             location: get(8),
-            aircraft: get(9),
+            aircraft: splitCsvList(get(9)),
             gear: splitCsvList(get(10)),
             jumpTypes: splitCsvList(get(11)),
             description: emptyToUndefined(get(12)) ?? null,
@@ -710,14 +713,18 @@ class ImportState {
                 previousCount: 0,
                 description: null,
             });
-        const aircraftUuid =
-            this.resources.aircraft.get(normalizeName(record.aircraft)) ??
-            this.queueResource({
-                type: "aircraft",
-                name: record.aircraft,
-                previousCount: 0,
-                description: null,
-            });
+        const aircraftByUuid = new Map<string, string>();
+        for (const name of record.aircraft) {
+            const aircraftUuid =
+                this.resources.aircraft.get(normalizeName(name)) ??
+                this.queueResource({
+                    type: "aircraft",
+                    name,
+                    previousCount: 0,
+                    description: null,
+                });
+            aircraftByUuid.set(aircraftUuid, name);
+        }
         const gearByUuid = new Map<string, string>();
         for (const name of record.gear) {
             const gearUuid =
@@ -744,7 +751,6 @@ class ImportState {
         }
         const jumpValues = {
             locationUuid,
-            aircraftUuid,
             exitAltitude: record.exitAltitude,
             openingAltitude: record.openingAltitude,
             freefallTime: record.freefallTime,
@@ -752,6 +758,11 @@ class ImportState {
             description: record.description || null,
         };
         if (existingJumpUuid) {
+            this.queueQuery(
+                this.db
+                    .delete(jumpsToAircrafts)
+                    .where(eq(jumpsToAircrafts.jumpUuid, jumpUuid)),
+            );
             this.queueQuery(
                 this.db
                     .update(jumps)
@@ -776,6 +787,13 @@ class ImportState {
                     jumpNumber: record.jumpNumber,
                     ...jumpValues,
                 }),
+            );
+        }
+        for (const aircraftUuid of aircraftByUuid.keys()) {
+            this.queueQuery(
+                this.db
+                    .insert(jumpsToAircrafts)
+                    .values({ jumpUuid, aircraftUuid }),
             );
         }
         for (const gearUuid of gearByUuid.keys()) {

@@ -36,7 +36,7 @@ export type Resource = JumpItemResource;
 
 export interface JumpFormValues {
     locationUuid?: string;
-    aircraftUuid?: string;
+    aircraftUuids?: string[];
     jumpNumber?: string;
     jumpDate?: string;
     exitAltitude?: string;
@@ -537,6 +537,7 @@ function JumpItemCheckboxFieldset(props: {
     nameField: string;
     nameLabel: string;
     nameValue?: string;
+    description?: string;
 }) {
     return (
         <div>
@@ -547,6 +548,7 @@ function JumpItemCheckboxFieldset(props: {
                 items={props.items}
                 selectedUuids={props.selectedUuids}
                 multiple
+                description={props.description}
             />
             <div className="mt-3">
                 <Input
@@ -573,6 +575,7 @@ function JumpForm(props: {
     nextJumpNumber?: string;
 }) {
     const values = props.values ?? {};
+    const selectedAircrafts = new Set(values.aircraftUuids ?? []);
     const selectedGear = new Set(values.gearUuids ?? []);
     const selectedJumpTypes = new Set(values.jumpTypeUuids ?? []);
 
@@ -606,16 +609,17 @@ function JumpForm(props: {
                     nameLabel="Or new location name"
                     nameValue={values.locationName}
                 />
-                <ResourceSelectWithName
-                    selectName="aircraftUuid"
-                    selectLabel="Aircraft"
-                    selectedUuid={values.aircraftUuid}
-                    items={props.aircrafts}
-                    nameField="aircraftName"
-                    nameLabel="Or new aircraft name"
-                    nameValue={values.aircraftName}
-                />
             </div>
+            <JumpItemCheckboxFieldset
+                legend="Aircraft"
+                checkboxName="aircraftUuids"
+                items={props.aircrafts}
+                selectedUuids={selectedAircrafts}
+                nameField="aircraftName"
+                nameLabel="New aircraft name"
+                nameValue={values.aircraftName}
+                description='Multiple aircraft can be selected, so aircraft types and registration numbers can be tracked individually. For example, "Caravan" and "OH-DZF".'
+            />
             <JumpItemCheckboxFieldset
                 legend="Gear used"
                 checkboxName="gearUuids"
@@ -633,6 +637,7 @@ function JumpForm(props: {
                 nameField="jumpTypeName"
                 nameLabel="New jump type name"
                 nameValue={values.jumpTypeName}
+                description="Multiple jump types can be selected, so roles such as load organizer can be tracked on a wingsuit jump. Jump types can also be used to track cutaways and similar events."
             />
             <Textarea
                 name="description"
@@ -702,7 +707,9 @@ export function getJumpFormValues(formData: FormData): JumpFormValues {
 
     return {
         locationUuid: getValue("locationUuid"),
-        aircraftUuid: getValue("aircraftUuid"),
+        aircraftUuids: formData
+            .getAll("aircraftUuids")
+            .filter((value): value is string => typeof value === "string"),
         jumpNumber: getValue("jumpNumber"),
         jumpDate: getValue("jumpDate"),
         exitAltitude: getValue("exitAltitude"),

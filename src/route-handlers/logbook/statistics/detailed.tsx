@@ -11,6 +11,7 @@ import {
     aircrafts,
     gear,
     jumps,
+    jumpsToAircrafts,
     jumpsToGear,
     jumpsToJumpTypes,
     jumpTypes,
@@ -447,10 +448,14 @@ function fetchStatisticsRows(
             })
             .from(aircrafts)
             .leftJoin(
+                jumpsToAircrafts,
+                eq(aircrafts.uuid, jumpsToAircrafts.aircraftUuid),
+            )
+            .leftJoin(
                 jumps,
                 joinCondition(
                     and(
-                        eq(aircrafts.uuid, jumps.aircraftUuid),
+                        eq(jumpsToAircrafts.jumpUuid, jumps.uuid),
                         eq(jumps.userUuid, userUuid),
                     ),
                 ),

@@ -574,7 +574,7 @@ function buildJumpNewQuery(
         freefallTime:
             data.freefallTime != null ? String(data.freefallTime) : undefined,
         locationUuid,
-        aircraftUuid,
+        aircraftUuids: aircraftUuid,
         gearUuids: gearUuids.length > 0 ? gearUuids.join(",") : undefined,
         jumpTypeUuids: jumpTypeUuid,
         locationName: data.location?.trim() || undefined,

@@ -5,6 +5,7 @@ import {
     aircrafts,
     gear,
     jumps,
+    jumpsToAircrafts,
     jumpsToGear,
     jumpsToJumpTypes,
     jumpTypes,
@@ -42,7 +43,7 @@ type ExportJump = {
     openingAltitude: number;
     freefallTime: number;
     location: string;
-    aircraft: string;
+    aircraft: string[];
     gear: string[];
     jumpTypes: string[];
     description: string | null;
@@ -75,7 +76,7 @@ function formatExportCsv(records: ExportRecord[]): string {
                   record.openingAltitude,
                   record.freefallTime,
                   record.location,
-                  record.aircraft,
+                  joinCsvList(record.aircraft),
                   joinCsvList(record.gear),
                   joinCsvList(record.jumpTypes),
                   record.description,
@@ -123,6 +124,7 @@ export async function exportLogbook(c: AppRequestContext) {
         jumpTypeRows,
         locationRows,
         jumpRows,
+        jumpAircraftRows,
         jumpGearRows,
         jumpTypeRelationRows,
     ] = await Promise.all([
@@ -156,13 +158,23 @@ export async function exportLogbook(c: AppRequestContext) {
                 freefallTime: jumps.freefallTime,
                 description: jumps.description,
                 location: locations.name,
-                aircraft: aircrafts.name,
             })
             .from(jumps)
             .innerJoin(locations, eq(jumps.locationUuid, locations.uuid))
-            .innerJoin(aircrafts, eq(jumps.aircraftUuid, aircrafts.uuid))
             .where(eq(jumps.userUuid, user.uuid))
             .orderBy(jumps.jumpNumber),
+        context.db
+            .select({
+                jumpUuid: jumpsToAircrafts.jumpUuid,
+                name: aircrafts.name,
+            })
+            .from(jumpsToAircrafts)
+            .innerJoin(
+                aircrafts,
+                eq(jumpsToAircrafts.aircraftUuid, aircrafts.uuid),
+            )
+            .innerJoin(jumps, eq(jumpsToAircrafts.jumpUuid, jumps.uuid))
+            .where(eq(jumps.userUuid, user.uuid)),
         context.db
             .select({ jumpUuid: jumpsToGear.jumpUuid, name: gear.name })
             .from(jumpsToGear)
@@ -182,8 +194,15 @@ export async function exportLogbook(c: AppRequestContext) {
             .innerJoin(jumps, eq(jumpsToJumpTypes.jumpUuid, jumps.uuid))
             .where(eq(jumps.userUuid, user.uuid)),
     ]);
+    const aircraftsByJump = new Map<string, string[]>();
     const gearByJump = new Map<string, string[]>();
     const jumpTypesByJump = new Map<string, string[]>();
+    for (const row of jumpAircraftRows) {
+        aircraftsByJump.set(row.jumpUuid, [
+            ...(aircraftsByJump.get(row.jumpUuid) ?? []),
+            row.name,
+        ]);
+    }
     for (const row of jumpGearRows) {
         gearByJump.set(row.jumpUuid, [
             ...(gearByJump.get(row.jumpUuid) ?? []),
@@ -229,7 +248,7 @@ export async function exportLogbook(c: AppRequestContext) {
             openingAltitude: row.openingAltitude,
             freefallTime: row.freefallTime,
             location: row.location,
-            aircraft: row.aircraft,
+            aircraft: aircraftsByJump.get(row.uuid) ?? [],
             gear: gearByJump.get(row.uuid) ?? [],
             jumpTypes: jumpTypesByJump.get(row.uuid) ?? [],
             description: row.description,

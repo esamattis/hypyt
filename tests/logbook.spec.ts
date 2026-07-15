@@ -3,6 +3,7 @@ import {
     jumpItemSummary,
     openMainMenu,
     openManageLogbook,
+    openJumpItemSelect,
     selectJumpItems,
 } from "./helpers";
 
@@ -116,6 +117,9 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="previousCount"]').fill("25");
     await page.getByRole("button", { name: "Add aircraft" }).click();
     await expect(page).toHaveURL("/logbook/aircrafts");
+    await page.getByRole("link", { name: "Add aircraft" }).click();
+    await page.locator('input[name="name"]').fill("OH-DZF");
+    await page.getByRole("button", { name: "Add aircraft" }).click();
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
@@ -125,15 +129,29 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
     await selectJumpItems(page, "Location", ["Skydive Test Center"]);
-    await selectJumpItems(page, "Aircraft", ["Cessna 182"]);
+    const aircraftDialog = await openJumpItemSelect(page, "Aircraft");
+    await expect(
+        aircraftDialog.getByText(
+            'Multiple aircraft can be selected, so aircraft types and registration numbers can be tracked individually. For example, "Caravan" and "OH-DZF".',
+        ),
+    ).toBeVisible();
+    await aircraftDialog.getByRole("button", { name: "OK" }).click();
+    await selectJumpItems(page, "Aircraft", ["Cessna 182", "OH-DZF"]);
     await selectJumpItems(page, "Gear used", ["Main canopy"]);
+    const jumpTypeDialog = await openJumpItemSelect(page, "Jump types");
+    await expect(
+        jumpTypeDialog.getByText(
+            "Multiple jump types can be selected, so roles such as load organizer can be tracked on a wingsuit jump. Jump types can also be used to track cutaways and similar events.",
+        ),
+    ).toBeVisible();
+    await jumpTypeDialog.getByRole("button", { name: "OK" }).click();
     await selectJumpItems(page, "Jump types", ["Freefly", "Tracking"]);
     await page.locator('textarea[name="description"]').fill("First test jump");
     await page.getByRole("button", { name: "Add jump" }).click();
 
     await expect(page).toHaveURL("/logbook");
     await expect(page.getByRole("link", { name: /#1/ })).toContainText(
-        "Skydive Test Center / Cessna 182",
+        "Skydive Test Center / Cessna 182, OH-DZF",
     );
     await expect(page.getByText("First test jump")).toBeVisible();
     await expect(page.getByText("4000 m", { exact: true })).toBeVisible();
@@ -330,12 +348,20 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage aircraft" }).click();
-    await page.getByRole("link", { name: "Edit" }).click();
+    await page
+        .getByRole("listitem")
+        .filter({ hasText: "Cessna 182" })
+        .getByRole("link", { name: "Edit" })
+        .click();
     await page.locator('input[name="name"]').fill("Cessna 206");
     await page.locator('input[name="previousCount"]').fill("30");
     await page.locator('textarea[name="description"]').fill("Updated aircraft");
     await page.getByRole("button", { name: "Save aircraft" }).click();
-    await page.getByRole("link", { name: "Edit" }).click();
+    await page
+        .getByRole("listitem")
+        .filter({ hasText: "Cessna 206" })
+        .getByRole("link", { name: "Edit" })
+        .click();
     await expect(page.locator('input[name="name"]')).toHaveValue("Cessna 206");
     await expect(page.locator('input[name="previousCount"]')).toHaveValue("30");
     await expect(page.locator('textarea[name="description"]')).toHaveValue(

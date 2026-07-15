@@ -166,15 +166,18 @@ function JumpItemSelectScript(props: {
     );
 }
 
-export function JumpItemSelect(props: {
+interface JumpItemSelectProps {
     label: string;
     dialogTitle: string;
     name: string;
     items: JumpItemResource[];
     selectedUuids: Set<string>;
     multiple?: boolean;
+    description?: string;
     className?: string;
-}) {
+}
+
+export function JumpItemSelect(props: JumpItemSelectProps) {
     const buttonId = useId();
     const dialogId = useId();
     const optionsId = useId();
@@ -229,6 +232,11 @@ export function JumpItemSelect(props: {
                 title={props.dialogTitle}
                 className="max-w-lg"
             >
+                {props.description && (
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                        {props.description}
+                    </p>
+                )}
                 <div
                     id={optionsId}
                     className="max-h-[60vh] space-y-4 overflow-y-auto pr-1"

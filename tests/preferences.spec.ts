@@ -72,13 +72,15 @@ async function seedAccountData(username: string): Promise<string> {
         SELECT '${jumpTypeUuid}', uuid, 'Doomed Type', 0, 0
         FROM users WHERE username = '${username}';
         INSERT INTO jumps (
-            uuid, user_uuid, location_uuid, aircraft_uuid, jump_number, jump_date,
+            uuid, user_uuid, location_uuid, jump_number, jump_date,
             exit_altitude, opening_altitude, freefall_time, description
         ) VALUES (
             '${jumpUuid}', (SELECT uuid FROM users WHERE username = '${username}'),
-            '${locationUuid}', '${aircraftUuid}', 1,
+            '${locationUuid}', 1,
             '2026-01-01', 4000, 1000, 55, 'Doomed jump'
         );
+        INSERT INTO jumps_to_aircrafts (jump_uuid, aircraft_uuid)
+        VALUES ('${jumpUuid}', '${aircraftUuid}');
         INSERT INTO jumps_to_gear (jump_uuid, gear_uuid)
         VALUES ('${jumpUuid}', '${gearUuid}');
         INSERT INTO jumps_to_jump_types (jump_uuid, jump_type_uuid)

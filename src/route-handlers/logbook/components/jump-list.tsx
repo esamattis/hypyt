@@ -10,6 +10,7 @@ import * as routes from "@/routes";
 import {
     aircrafts,
     jumps,
+    jumpsToAircrafts,
     jumpsToGear,
     jumpsToJumpTypes,
     jumpTypes,
@@ -98,7 +99,7 @@ export interface JumpListItem {
     jumpNumber: number;
     jumpDate: string;
     locationName: string;
-    aircraftName: string;
+    aircraftNames: string[];
     exitAltitude: number;
     openingAltitude: number;
     freefallTime: number;
@@ -140,7 +141,8 @@ export function JumpCard(props: JumpListItem) {
                             {formatCalendarDate(props.jumpDate, dateTimeFormat)}
                         </time>
                         <span className="text-base font-semibold text-slate-900 dark:text-slate-100">
-                            {props.locationName} / {props.aircraftName}
+                            {props.locationName} /{" "}
+                            {props.aircraftNames.join(", ")}
                         </span>
                     </div>
                     {props.jumpTypes.length > 0 && (
@@ -244,7 +246,15 @@ export async function getRecentJumpsForItem(config: {
     const db = getAppContext(config.c).db;
     const itemCondition =
         config.relation === "aircraft"
-            ? eq(jumps.aircraftUuid, config.itemUuid)
+            ? inArray(
+                  jumps.uuid,
+                  db
+                      .select({ jumpUuid: jumpsToAircrafts.jumpUuid })
+                      .from(jumpsToAircrafts)
+                      .where(
+                          eq(jumpsToAircrafts.aircraftUuid, config.itemUuid),
+                      ),
+              )
             : config.relation === "location"
               ? eq(jumps.locationUuid, config.itemUuid)
               : config.relation === "gear"
@@ -278,11 +288,9 @@ export async function getRecentJumpsForItem(config: {
             freefallTime: jumps.freefallTime,
             description: jumps.description,
             locationName: locations.name,
-            aircraftName: aircrafts.name,
         })
         .from(jumps)
         .innerJoin(locations, eq(jumps.locationUuid, locations.uuid))
-        .innerJoin(aircrafts, eq(jumps.aircraftUuid, aircrafts.uuid))
         .where(and(eq(jumps.userUuid, config.userUuid), itemCondition))
         .orderBy(desc(jumps.jumpNumber))
         .limit(RECENT_JUMPS_LIMIT);
@@ -292,16 +300,39 @@ export async function getRecentJumpsForItem(config: {
     }
 
     const jumpUuids = jumpRows.map((jump) => jump.uuid);
-    const jumpTypeRows = await db
-        .select({
-            jumpUuid: jumpsToJumpTypes.jumpUuid,
-            name: jumpTypes.name,
-        })
-        .from(jumpsToJumpTypes)
-        .innerJoin(jumpTypes, eq(jumpsToJumpTypes.jumpTypeUuid, jumpTypes.uuid))
-        .where(inArray(jumpsToJumpTypes.jumpUuid, jumpUuids))
-        .orderBy(jumpTypes.name);
+    const [aircraftRows, jumpTypeRows] = await Promise.all([
+        db
+            .select({
+                jumpUuid: jumpsToAircrafts.jumpUuid,
+                name: aircrafts.name,
+            })
+            .from(jumpsToAircrafts)
+            .innerJoin(
+                aircrafts,
+                eq(jumpsToAircrafts.aircraftUuid, aircrafts.uuid),
+            )
+            .where(inArray(jumpsToAircrafts.jumpUuid, jumpUuids))
+            .orderBy(aircrafts.name),
+        db
+            .select({
+                jumpUuid: jumpsToJumpTypes.jumpUuid,
+                name: jumpTypes.name,
+            })
+            .from(jumpsToJumpTypes)
+            .innerJoin(
+                jumpTypes,
+                eq(jumpsToJumpTypes.jumpTypeUuid, jumpTypes.uuid),
+            )
+            .where(inArray(jumpsToJumpTypes.jumpUuid, jumpUuids))
+            .orderBy(jumpTypes.name),
+    ]);
 
+    const aircraftsByJump = new Map<string, string[]>();
+    for (const row of aircraftRows) {
+        const list = aircraftsByJump.get(row.jumpUuid) ?? [];
+        list.push(row.name);
+        aircraftsByJump.set(row.jumpUuid, list);
+    }
     const jumpTypesByJump = new Map<string, string[]>();
     for (const row of jumpTypeRows) {
         const list = jumpTypesByJump.get(row.jumpUuid) ?? [];
@@ -311,6 +342,7 @@ export async function getRecentJumpsForItem(config: {
 
     return jumpRows.map((jump) => ({
         ...jump,
+        aircraftNames: aircraftsByJump.get(jump.uuid) ?? [],
         jumpTypes: jumpTypesByJump.get(jump.uuid) ?? [],
         options: config.options,
     }));

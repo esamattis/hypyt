@@ -8,7 +8,7 @@ import { getRecentJumpsForItem } from "@/route-handlers/logbook/components/jump-
 import { ResourceSchema } from "@/route-handlers/logbook/components/resource";
 import { getFormString } from "@/utils";
 import * as routes from "@/routes";
-import { aircrafts, jumps } from "@/schema";
+import { aircrafts, jumpsToAircrafts } from "@/schema";
 
 export function register(app: App) {
     app.get(routes.logbook.aircraft.edit.route, (c) => getEditAircraft(c));
@@ -71,9 +71,9 @@ async function updateAircraft(c: AppRequestContext) {
     const formData = await c.req.formData();
     if (formData.get("action") === "delete") {
         const usedByJump = await app.db
-            .select({ uuid: jumps.uuid })
-            .from(jumps)
-            .where(eq(jumps.aircraftUuid, uuid))
+            .select({ jumpUuid: jumpsToAircrafts.jumpUuid })
+            .from(jumpsToAircrafts)
+            .where(eq(jumpsToAircrafts.aircraftUuid, uuid))
             .limit(1)
             .get();
         if (usedByJump) {
@@ -187,11 +187,23 @@ async function mergeAircraft(
     if (!source || !target) {
         return getEditAircraft(c, "Select a different aircraft to merge into.");
     }
+    const sourceRelations = await app.db
+        .select({ jumpUuid: jumpsToAircrafts.jumpUuid })
+        .from(jumpsToAircrafts)
+        .where(eq(jumpsToAircrafts.aircraftUuid, source.uuid));
     await app.db.batch([
         app.db
-            .update(jumps)
-            .set({ aircraftUuid: target.uuid })
-            .where(eq(jumps.aircraftUuid, source.uuid)),
+            .delete(jumpsToAircrafts)
+            .where(eq(jumpsToAircrafts.aircraftUuid, source.uuid)),
+        ...sourceRelations.map((relation) =>
+            app.db
+                .insert(jumpsToAircrafts)
+                .values({
+                    jumpUuid: relation.jumpUuid,
+                    aircraftUuid: target.uuid,
+                })
+                .onConflictDoNothing(),
+        ),
         app.db
             .update(aircrafts)
             .set({

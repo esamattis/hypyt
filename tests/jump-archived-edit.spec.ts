@@ -286,7 +286,7 @@ test("new jump form hides archived items and shows reveal button", async ({
 
     const aircraftDialog = await openJumpItemSelect(page, "Aircraft");
     await expect(
-        aircraftDialog.getByRole("radio", {
+        aircraftDialog.getByRole("checkbox", {
             name: "Active Plane",
             exact: true,
         }),

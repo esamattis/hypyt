@@ -9,7 +9,12 @@ import {
 } from "@/route-handlers/logbook/jumps/helpers";
 import { JumpFormPage } from "@/route-handlers/logbook/jumps/form";
 import * as routes from "@/routes";
-import { jumps, jumpsToGear, jumpsToJumpTypes } from "@/schema";
+import {
+    jumps,
+    jumpsToAircrafts,
+    jumpsToGear,
+    jumpsToJumpTypes,
+} from "@/schema";
 
 export async function renderEditJump(c: AppRequestContext) {
     const db = getAppContext(c).db;
@@ -23,7 +28,11 @@ export async function renderEditJump(c: AppRequestContext) {
         .where(and(eq(jumps.uuid, uuid), eq(jumps.userUuid, userUuid)))
         .get();
     if (!jump) return c.notFound();
-    const [gearRows, jumpTypeRows] = await Promise.all([
+    const [aircraftRows, gearRows, jumpTypeRows] = await Promise.all([
+        db
+            .select({ aircraftUuid: jumpsToAircrafts.aircraftUuid })
+            .from(jumpsToAircrafts)
+            .where(eq(jumpsToAircrafts.jumpUuid, uuid)),
         db
             .select({ gearUuid: jumpsToGear.gearUuid })
             .from(jumpsToGear)
@@ -40,7 +49,7 @@ export async function renderEditJump(c: AppRequestContext) {
             confirmationTitle="Edit Jump"
             values={{
                 locationUuid: jump.locationUuid,
-                aircraftUuid: jump.aircraftUuid,
+                aircraftUuids: aircraftRows.map((item) => item.aircraftUuid),
                 jumpNumber: String(jump.jumpNumber),
                 jumpDate: jump.jumpDate,
                 exitAltitude: altitudeInputValue(
@@ -125,7 +134,6 @@ export async function handleEditJump(c: AppRequestContext) {
             .update(jumps)
             .set({
                 locationUuid: parsed.resolved.locationUuid,
-                aircraftUuid: parsed.resolved.aircraftUuid,
                 jumpNumber: parsed.data.jumpNumber,
                 jumpDate: parsed.data.jumpDate,
                 exitAltitude: altitudeToMeters(
@@ -141,7 +149,13 @@ export async function handleEditJump(c: AppRequestContext) {
             })
             .where(eq(jumps.uuid, uuid)),
         db.delete(jumpsToGear).where(eq(jumpsToGear.jumpUuid, uuid)),
+        db.delete(jumpsToAircrafts).where(eq(jumpsToAircrafts.jumpUuid, uuid)),
         db.delete(jumpsToJumpTypes).where(eq(jumpsToJumpTypes.jumpUuid, uuid)),
+        ...parsed.resolved.aircraftUuids.map((aircraftUuid) =>
+            db
+                .insert(jumpsToAircrafts)
+                .values({ jumpUuid: uuid, aircraftUuid }),
+        ),
         ...parsed.resolved.gearUuids.map((gearUuid) =>
             db.insert(jumpsToGear).values({ jumpUuid: uuid, gearUuid }),
         ),

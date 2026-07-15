@@ -76,9 +76,9 @@ export function TransferFormatHelp() {
                     aircraft, and jump types by name.
                 </p>
                 <p>
-                    Multiple gear or jump types on one jump are separated by{" "}
-                    <code>; </code>. A semicolon inside a name is written as{" "}
-                    <code>;;</code>.
+                    Multiple aircraft, gear, or jump types on one jump are
+                    separated by <code>; </code>. A semicolon inside a name is
+                    written as <code>;;</code>.
                 </p>
                 <p>
                     For example, this file imports an aircraft, gear, jump type,

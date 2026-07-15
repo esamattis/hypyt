@@ -13,7 +13,12 @@ import {
     type JumpFormValues,
 } from "@/route-handlers/logbook/jumps/form";
 import * as routes from "@/routes";
-import { jumps, jumpsToGear, jumpsToJumpTypes } from "@/schema";
+import {
+    jumps,
+    jumpsToAircrafts,
+    jumpsToGear,
+    jumpsToJumpTypes,
+} from "@/schema";
 
 function existingJumpNumberNotice(jumpNumber: number, existingUuid: string) {
     return (
@@ -50,7 +55,6 @@ function applyJumpQueryPrefill(
         "openingAltitude",
         "freefallTime",
         "locationUuid",
-        "aircraftUuid",
         "description",
         "locationName",
         "aircraftName",
@@ -64,6 +68,10 @@ function applyJumpQueryPrefill(
     const gearUuids = splitQueryList(query.gearUuids);
     if (gearUuids.length > 0) {
         next.gearUuids = gearUuids;
+    }
+    const aircraftUuids = splitQueryList(query.aircraftUuids);
+    if (aircraftUuids.length > 0) {
+        next.aircraftUuids = aircraftUuids;
     }
     const jumpTypeUuids = splitQueryList(query.jumpTypeUuids);
     if (jumpTypeUuids.length > 0) {
@@ -84,7 +92,7 @@ export async function renderNewJump(c: AppRequestContext) {
         query.openingAltitude ||
         query.freefallTime ||
         query.locationUuid ||
-        query.aircraftUuid ||
+        query.aircraftUuids ||
         query.gearUuids ||
         query.jumpTypeUuids ||
         query.locationName ||
@@ -119,7 +127,11 @@ export async function renderNewJump(c: AppRequestContext) {
             )
             .get();
         if (jump) {
-            const [gearRows, jumpTypeRows] = await Promise.all([
+            const [aircraftRows, gearRows, jumpTypeRows] = await Promise.all([
+                db
+                    .select({ aircraftUuid: jumpsToAircrafts.aircraftUuid })
+                    .from(jumpsToAircrafts)
+                    .where(eq(jumpsToAircrafts.jumpUuid, jump.uuid)),
                 db
                     .select({ gearUuid: jumpsToGear.gearUuid })
                     .from(jumpsToGear)
@@ -133,7 +145,7 @@ export async function renderNewJump(c: AppRequestContext) {
                 ...values,
                 jumpDate: jump.jumpDate,
                 locationUuid: jump.locationUuid,
-                aircraftUuid: jump.aircraftUuid,
+                aircraftUuids: aircraftRows.map((item) => item.aircraftUuid),
                 exitAltitude: altitudeInputValue(
                     jump.exitAltitude,
                     altitudeUnits,
@@ -235,7 +247,6 @@ export async function handleNewJump(c: AppRequestContext) {
             uuid: jumpUuid,
             userUuid,
             locationUuid: parsed.resolved.locationUuid,
-            aircraftUuid: parsed.resolved.aircraftUuid,
             jumpNumber: parsed.data.jumpNumber,
             jumpDate: parsed.data.jumpDate,
             exitAltitude: altitudeToMeters(
@@ -249,6 +260,9 @@ export async function handleNewJump(c: AppRequestContext) {
             freefallTime: parsed.data.freefallTime,
             description: parsed.data.description || null,
         }),
+        ...parsed.resolved.aircraftUuids.map((aircraftUuid) =>
+            db.insert(jumpsToAircrafts).values({ jumpUuid, aircraftUuid }),
+        ),
         ...parsed.resolved.gearUuids.map((gearUuid) =>
             db.insert(jumpsToGear).values({ jumpUuid, gearUuid }),
         ),

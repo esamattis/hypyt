@@ -21,7 +21,7 @@ function isValidJumpDate(value: string): boolean {
 
 const JumpSchema = z.object({
     locationUuid: z.string().optional().default(""),
-    aircraftUuid: z.string().optional().default(""),
+    aircraftUuids: z.array(z.string()).default([]),
     jumpNumber: z.coerce
         .number()
         .int("Jump number must be a whole number")
@@ -109,14 +109,16 @@ function ownsJumpResources(
     resources: JumpFormResources,
     data: {
         locationUuid: string;
-        aircraftUuid: string;
+        aircraftUuids: string[];
         gearUuids: string[];
         jumpTypeUuids: string[];
     },
 ) {
     return (
         resources.locations.some((item) => item.uuid === data.locationUuid) &&
-        resources.aircrafts.some((item) => item.uuid === data.aircraftUuid) &&
+        data.aircraftUuids.every((uuid) =>
+            resources.aircrafts.some((item) => item.uuid === uuid),
+        ) &&
         data.gearUuids.every((uuid) =>
             resources.gear.some((item) => item.uuid === uuid),
         ) &&
@@ -137,18 +139,17 @@ function selectedJumpItemsAreOwned(
         data.jumpTypeUuids.every((uuid) =>
             resources.jumpTypes.some((item) => item.uuid === uuid),
         ) &&
+        data.aircraftUuids.every((uuid) =>
+            resources.aircrafts.some((item) => item.uuid === uuid),
+        ) &&
         (!data.locationUuid ||
-            resources.locations.some(
-                (item) => item.uuid === data.locationUuid,
-            )) &&
-        (!data.aircraftUuid ||
-            resources.aircrafts.some((item) => item.uuid === data.aircraftUuid))
+            resources.locations.some((item) => item.uuid === data.locationUuid))
     );
 }
 
 type ResolvedJumpResources = {
     locationUuid: string;
-    aircraftUuid: string;
+    aircraftUuids: string[];
     gearUuids: string[];
     jumpTypeUuids: string[];
 };
@@ -264,7 +265,7 @@ async function resolveJumpResources(
     | {
           ok: true;
           locationUuid: string;
-          aircraftUuid: string;
+          aircraftUuids: string[];
           gearUuids: string[];
           jumpTypeUuids: string[];
       }
@@ -300,30 +301,31 @@ async function resolveJumpResources(
         return { ok: false, error: "Location is required" };
     }
 
-    let aircraftUuid = data.aircraftUuid;
-    if (data.aircraftName) {
-        aircraftUuid = await resolveJumpItemUuid({
+    const aircraftUuids = new Set(data.aircraftUuids);
+    for (const name of splitJumpItemNames(data.aircraftName)) {
+        const uuid = await resolveJumpItemUuid({
             resources: resources.aircrafts,
-            name: data.aircraftName,
-            create: async (name) => {
+            name,
+            create: async (itemName) => {
                 const uuid = crypto.randomUUID();
                 await db.insert(aircrafts).values({
                     uuid,
                     userUuid,
-                    name,
+                    name: itemName,
                     previousJumpCount: 0,
                 });
                 resources.aircrafts.push({
                     uuid,
-                    name,
+                    name: itemName,
                     archived: false,
                     description: null,
                 });
                 return uuid;
             },
         });
+        aircraftUuids.add(uuid);
     }
-    if (!aircraftUuid) {
+    if (aircraftUuids.size === 0) {
         return { ok: false, error: "Aircraft is required" };
     }
 
@@ -380,7 +382,7 @@ async function resolveJumpResources(
     return {
         ok: true,
         locationUuid,
-        aircraftUuid,
+        aircraftUuids: [...aircraftUuids],
         gearUuids: [...gearUuids],
         jumpTypeUuids: [...jumpTypeUuids],
     };

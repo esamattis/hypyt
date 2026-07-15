@@ -22,7 +22,7 @@ export type JumpPrefillQuery = {
     openingAltitude?: string;
     freefallTime?: string;
     locationUuid?: string;
-    aircraftUuid?: string;
+    aircraftUuids?: string;
     gearUuids?: string;
     jumpTypeUuids?: string;
     locationName?: string;

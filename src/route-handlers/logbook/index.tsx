@@ -5,6 +5,7 @@ import {
     aircrafts,
     gear,
     jumps,
+    jumpsToAircrafts,
     jumpsToGear,
     jumpTypes,
     jumpsToJumpTypes,
@@ -347,11 +348,9 @@ export async function getLogbookJumps(
             freefallTime: jumps.freefallTime,
             description: jumps.description,
             locationName: locations.name,
-            aircraftName: aircrafts.name,
         })
         .from(jumps)
         .innerJoin(locations, eq(jumps.locationUuid, locations.uuid))
-        .innerJoin(aircrafts, eq(jumps.aircraftUuid, aircrafts.uuid))
         .where(and(...conditions))
         .orderBy(desc(jumps.jumpNumber))
         .limit(JUMPS_PER_PAGE + 1);
@@ -409,6 +408,31 @@ export async function getJumpTypesByJump(
     return jumpTypesByJump;
 }
 
+export async function getAircraftsByJump(
+    c: AppRequestContext,
+    jumpUuids: string[],
+) {
+    if (jumpUuids.length === 0) {
+        return new Map<string, string[]>();
+    }
+    const rows = await getAppContext(c)
+        .db.select({
+            jumpUuid: jumpsToAircrafts.jumpUuid,
+            name: aircrafts.name,
+        })
+        .from(jumpsToAircrafts)
+        .innerJoin(aircrafts, eq(jumpsToAircrafts.aircraftUuid, aircrafts.uuid))
+        .where(inArray(jumpsToAircrafts.jumpUuid, jumpUuids))
+        .orderBy(aircrafts.name);
+    const aircraftsByJump = new Map<string, string[]>();
+    for (const row of rows) {
+        const list = aircraftsByJump.get(row.jumpUuid) ?? [];
+        list.push(row.name);
+        aircraftsByJump.set(row.jumpUuid, list);
+    }
+    return aircraftsByJump;
+}
+
 export function JumpList(props: {
     jumps: JumpListItem[];
     filters: LogbookFilters;
@@ -447,12 +471,14 @@ async function renderLogbook(c: AppRequestContext) {
         getLogbookStats(c, filters),
         getLogbookJumps(c, filters),
     ]);
-    const jumpTypesByJump = await getJumpTypesByJump(
-        c,
-        jumpRows.map((jump) => jump.uuid),
-    );
+    const jumpUuids = jumpRows.map((jump) => jump.uuid);
+    const [aircraftsByJump, jumpTypesByJump] = await Promise.all([
+        getAircraftsByJump(c, jumpUuids),
+        getJumpTypesByJump(c, jumpUuids),
+    ]);
     const jumpCards = jumpRows.map((jump) => ({
         ...jump,
+        aircraftNames: aircraftsByJump.get(jump.uuid) ?? [],
         jumpTypes: jumpTypesByJump.get(jump.uuid) ?? [],
         options,
     }));
