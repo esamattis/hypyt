@@ -12,6 +12,18 @@ import {
     SystemThemeIcon,
 } from "@/components/icons";
 import {
+    AdminIcon,
+    AircraftIcon,
+    GearIcon,
+    InstallIcon,
+    JumpTypeIcon,
+    LocationIcon,
+    LogoutIcon,
+    PreferencesIcon,
+    StatisticsIcon,
+    TransferIcon,
+} from "@/components/menu-icons";
+import {
     DropdownMenu,
     MenuDivider,
     menuItemClassName,
@@ -19,6 +31,9 @@ import {
 import * as routes from "@/routes";
 import { $assertElement } from "@/utils";
 import { useId } from "hono/jsx";
+
+const menuIconClassName =
+    "h-4 w-4 flex-none text-slate-400 dark:text-slate-500";
 
 function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
     return (
@@ -35,24 +50,28 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
                 href={routes.logbook.aircraft.index({})}
                 className={menuItemClassName}
             >
+                <AircraftIcon className={menuIconClassName} />
                 Manage aircraft
             </a>
             <a
                 href={routes.logbook.gear.index({})}
                 className={menuItemClassName}
             >
+                <GearIcon className={menuIconClassName} />
                 Manage gear
             </a>
             <a
                 href={routes.logbook.jumpTypes.index({})}
                 className={menuItemClassName}
             >
+                <JumpTypeIcon className={menuIconClassName} />
                 Manage jump types
             </a>
             <a
                 href={routes.logbook.locations.index({})}
                 className={menuItemClassName}
             >
+                <LocationIcon className={menuIconClassName} />
                 Manage locations
             </a>
             <MenuDivider />
@@ -60,28 +79,34 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
                 href={routes.logbook.statistics.index({})}
                 className={menuItemClassName}
             >
+                <StatisticsIcon className={menuIconClassName} />
                 Statistics
             </a>
             <a
                 href={routes.logbook.transfer.index({})}
                 className={menuItemClassName}
             >
+                <TransferIcon className={menuIconClassName} />
                 Import or export
             </a>
             <MenuDivider />
             {props.isAdmin && (
                 <a href={routes.admin.index({})} className={menuItemClassName}>
+                    <AdminIcon className={menuIconClassName} />
                     Admin
                 </a>
             )}
             <a href={routes.preferences({})} className={menuItemClassName}>
+                <PreferencesIcon className={menuIconClassName} />
                 Preferences
             </a>
             <a href={routes.install({})} className={menuItemClassName}>
+                <InstallIcon className={menuIconClassName} />
                 Install app
             </a>
             <form method="post" action={routes.auth.logout({})}>
                 <button type="submit" className={menuItemClassName}>
+                    <LogoutIcon className={menuIconClassName} />
                     Log out
                 </button>
             </form>
@@ -132,14 +157,14 @@ function LogbookActions(props: { pathname: string }) {
                 variant={
                     props.pathname === fromImagePath ? "primary" : "secondary"
                 }
-                aria-label="From image"
+                aria-label="Read image"
                 aria-current={
                     props.pathname === fromImagePath ? "page" : undefined
                 }
                 data-tooltip="Create jump from image using AI image recognition"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
-                <span className="hidden sm:inline">From image</span>
+                <span className="hidden sm:inline">Read image</span>
             </ButtonLink>
         </nav>
     );

@@ -325,7 +325,7 @@ function JumpFromImagePage(props: {
     usageRows: AiUsageRow[];
 }) {
     return (
-        <LogbookPage title="Add jump from image">
+        <LogbookPage title="Read jump from image">
             <div className="space-y-6">
                 <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <div>

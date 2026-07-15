@@ -44,7 +44,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await page.getByRole("button", { name: "Save preferences" }).click();
     await expect(page).toHaveURL("/logbook");
 
-    await page.getByRole("link", { name: "From image", exact: true }).click();
+    await page.getByRole("link", { name: "Read image", exact: true }).click();
     await expect(page).toHaveURL("/logbook/jumps/new/from-image");
     await expect(
         page.locator('textarea[name="additionalContext"]'),
@@ -133,7 +133,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
         "From image mock",
     );
 
-    await page.getByRole("link", { name: "From image", exact: true }).click();
+    await page.getByRole("link", { name: "Read image", exact: true }).click();
     await expect(page).toHaveURL("/logbook/jumps/new/from-image");
     const usageSection = page
         .locator("section")
@@ -176,7 +176,7 @@ test("from image form persists model and additional context after reload", async
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
 
-    await page.getByRole("link", { name: "From image", exact: true }).click();
+    await page.getByRole("link", { name: "Read image", exact: true }).click();
     await expect(page).toHaveURL("/logbook/jumps/new/from-image");
 
     await page.locator('select[name="model"]').selectOption("gpt-4o-mini");
@@ -203,7 +203,7 @@ test("from image form describes resized images", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
-    await page.getByRole("link", { name: "From image", exact: true }).click();
+    await page.getByRole("link", { name: "Read image", exact: true }).click();
 
     await page.evaluate(async () => {
         const canvas = document.createElement("canvas");
@@ -259,7 +259,7 @@ test("a skydiver can paste a jump image from the clipboard", async ({
     await page.getByRole("button", { name: "Save preferences" }).click();
     await expect(page).toHaveURL("/logbook");
 
-    await page.getByRole("link", { name: "From image", exact: true }).click();
+    await page.getByRole("link", { name: "Read image", exact: true }).click();
     await expect(page).toHaveURL("/logbook/jumps/new/from-image");
     await expect(
         page.getByRole("button", { name: "Paste from clipboard" }),
