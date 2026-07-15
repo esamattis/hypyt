@@ -1,0 +1,55 @@
+import { logOut, openMainMenu } from "./helpers";
+import { expect, test } from "./fixtures";
+
+test("bootstrap admin and require invitations for later users", async ({
+    page,
+}) => {
+    await page.goto("/register");
+    await expect(page.locator('input[name="invitationCode"]')).toHaveCount(0);
+    await page.locator('input[name="username"]').fill("test-admin");
+    await page.locator('input[name="displayName"]').fill("Test Admin");
+    await page.locator('input[name="email"]').fill("test-admin@example.test");
+    await page.locator('input[name="password"]').fill("test-admin-password");
+    await page
+        .locator('input[name="confirmPassword"]')
+        .fill("test-admin-password");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/logbook");
+
+    await openMainMenu(page);
+    await expect(
+        page.getByRole("link", { name: "Admin", exact: true }),
+    ).toBeVisible();
+    await page.goto("/admin/invitations/new");
+    await page.locator('input[name="code"]').fill("test-invite");
+    await page.locator('input[name="count"]').fill("1000000");
+    await page.getByRole("button", { name: "Create invitation" }).click();
+    await expect(page).toHaveURL("/admin");
+
+    await logOut(page);
+    await page.goto("/register");
+    const invitationInput = page.locator('input[name="invitationCode"]');
+    await expect(invitationInput).toHaveAttribute("required", "");
+    await page.locator('input[name="username"]').fill("invited-setup-user");
+    await page
+        .locator('input[name="email"]')
+        .fill("invited-setup-user@example.test");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await invitationInput.evaluate((element) => {
+        element.removeAttribute("required");
+    });
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/register");
+    await expect(page.getByText("Invitation code is required")).toBeVisible();
+
+    await invitationInput.fill("test-invite");
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/logbook");
+    await openMainMenu(page);
+    await expect(
+        page.getByRole("link", { name: "Admin", exact: true }),
+    ).toHaveCount(0);
+});

@@ -1,13 +1,13 @@
-import { and, eq, gt, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
-import { invitations, jumpTypes, users } from "@/schema";
+import { jumpTypes, users } from "@/schema";
 import { z } from "zod";
 import { AuthFormShell } from "@/components/auth";
 import { hashPassword } from "@/auth";
 import { Password, TextInput } from "@/route-handlers/auth/components";
 import { createSession } from "@/route-handlers/auth/sessions";
-import { DEFAULT_USER_OPTIONS_JSON } from "@/options";
 import * as routes from "@/routes";
+import { createRegistrationUser } from "@/route-handlers/auth/register/user";
 
 const DEFAULT_JUMP_TYPES = [
     "Cutaway",
@@ -20,7 +20,7 @@ const DEFAULT_JUMP_TYPES = [
 
 const RegisterFormSchema = z
     .object({
-        invitationCode: z.string().min(1, "Invitation code is required"),
+        invitationCode: z.string().optional(),
         username: z.string().min(1, "Username is required"),
         displayName: z.string().optional(),
         email: z
@@ -37,6 +37,7 @@ const RegisterFormSchema = z
 
 function RegisterForm(props: {
     errors?: string[];
+    invitationRequired: boolean;
     invitationCode?: string;
     username?: string;
     displayName?: string;
@@ -50,19 +51,22 @@ function RegisterForm(props: {
             alternateHref={routes.auth.login({})}
             alternateLabel="← Already have an account? Log in"
         >
-            <TextInput
-                name="invitationCode"
-                label="Invitation code:"
-                placeholder="Enter invitation code"
-                required
-                autofocus
-                value={props.invitationCode}
-            />
+            {props.invitationRequired && (
+                <TextInput
+                    name="invitationCode"
+                    label="Invitation code:"
+                    placeholder="Enter invitation code"
+                    required
+                    autofocus
+                    value={props.invitationCode}
+                />
+            )}
             <TextInput
                 name="username"
                 label="Username:"
                 placeholder="Choose username"
                 required
+                autofocus={!props.invitationRequired}
                 value={props.username}
             />
             <TextInput
@@ -99,7 +103,18 @@ async function renderRegisterForm(c: AppRequestContext) {
     if (getAppContext(c).user) {
         return c.redirect(routes.logbook.index({}));
     }
-    return c.render(<RegisterForm />);
+    return c.render(
+        <RegisterForm invitationRequired={await hasRegisteredUsers(c)} />,
+    );
+}
+
+async function hasRegisteredUsers(c: AppRequestContext): Promise<boolean> {
+    const user = await getAppContext(c)
+        .db.select({ uuid: users.uuid })
+        .from(users)
+        .limit(1)
+        .get();
+    return Boolean(user);
 }
 
 function formDataToStrings(formData: FormData): Record<string, string> {
@@ -127,10 +142,12 @@ function registerFormProps(raw: {
 async function handleRegister(c: AppRequestContext) {
     const raw = formDataToStrings(await c.req.formData());
     const result = RegisterFormSchema.safeParse(raw);
+    const invitationRequired = await hasRegisteredUsers(c);
     if (!result.success)
         return c.render(
             <RegisterForm
                 errors={result.error.issues.map((issue) => issue.message)}
+                invitationRequired={invitationRequired}
                 {...registerFormProps(raw)}
             />,
         );
@@ -144,18 +161,11 @@ async function handleRegister(c: AppRequestContext) {
         displayName,
         email,
     });
-    const invitation = await db
-        .select({ code: invitations.code, count: invitations.count })
-        .from(invitations)
-        .where(
-            and(eq(invitations.code, invitationCode), gt(invitations.count, 0)),
-        )
-        .limit(1)
-        .get();
-    if (!invitation)
+    if (invitationRequired && !invitationCode)
         return c.render(
             <RegisterForm
-                errors={["Invalid or exhausted invitation code"]}
+                errors={["Invitation code is required"]}
+                invitationRequired
                 {...formProps}
             />,
         );
@@ -170,6 +180,7 @@ async function handleRegister(c: AppRequestContext) {
         return c.render(
             <RegisterForm
                 errors={["Username is already in use"]}
+                invitationRequired={invitationRequired}
                 {...formProps}
             />,
         );
@@ -183,56 +194,37 @@ async function handleRegister(c: AppRequestContext) {
         return c.render(
             <RegisterForm
                 errors={["Email address is already in use"]}
+                invitationRequired={invitationRequired}
                 {...formProps}
             />,
         );
 
     const passwordHash = await hashPassword(password);
-    const consumed = await db
-        .update(invitations)
-        .set({ count: sql`${invitations.count} - 1` })
-        .where(
-            and(eq(invitations.code, invitationCode), gt(invitations.count, 0)),
-        )
-        .returning({ code: invitations.code })
-        .get();
-    if (!consumed)
+    const createdUser = await createRegistrationUser(
+        db,
+        {
+            username,
+            displayName,
+            email,
+            passwordHash,
+        },
+        invitationCode,
+    );
+    if ("error" in createdUser)
         return c.render(
             <RegisterForm
-                errors={["Invalid or exhausted invitation code"]}
+                errors={[createdUser.error]}
+                invitationRequired
                 {...formProps}
             />,
         );
 
-    await db
-        .insert(users)
-        .values({
-            username,
-            displayName: displayName || null,
-            email,
-            password: passwordHash,
-            invitationCode: consumed.code,
-            options: DEFAULT_USER_OPTIONS_JSON,
-        })
-        .run();
-    const newUser = await db
-        .select({ uuid: users.uuid })
-        .from(users)
-        .where(eq(users.username, username))
-        .limit(1)
-        .get();
-    if (!newUser)
-        return c.render(
-            <RegisterForm
-                errors={["User creation failed. Try again."]}
-                {...formProps}
-            />,
-        );
+    const newUserUuid = createdUser.uuid;
 
     const existingJumpTypes = await db
         .select({ uuid: jumpTypes.uuid })
         .from(jumpTypes)
-        .where(eq(jumpTypes.userUuid, newUser.uuid))
+        .where(eq(jumpTypes.userUuid, newUserUuid))
         .limit(1)
         .get();
     if (!existingJumpTypes) {
@@ -240,13 +232,13 @@ async function handleRegister(c: AppRequestContext) {
             .insert(jumpTypes)
             .values(
                 DEFAULT_JUMP_TYPES.map((name) => ({
-                    userUuid: newUser.uuid,
+                    userUuid: newUserUuid,
                     name,
                 })),
             )
             .run();
     }
-    await createSession(c, newUser.uuid);
+    await createSession(c, newUserUuid);
     return c.redirect(routes.logbook.index({}));
 }
 

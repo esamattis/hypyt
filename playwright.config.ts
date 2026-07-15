@@ -13,7 +13,15 @@ export default defineConfig({
     },
     projects: [
         {
+            name: "setup",
+            testMatch: /register-bootstrap\.setup\.ts/,
+            retries: 0,
+            use: { ...devices["Desktop Chrome"] },
+        },
+        {
             name: "chromium",
+            dependencies: ["setup"],
+            testIgnore: /.*\.setup\.ts/,
             use: { ...devices["Desktop Chrome"] },
         },
     ],
