@@ -7,12 +7,12 @@ import { $assertElement } from "@/utils";
 
 function $agentInstructions(uploadUrl: string, username: string): string {
     return `<loki-instructions>
-Migrate my attached logbook data file to Loki. Inspect the source file, infer its fields, and convert all usable records to a Loki supported UTF-8 CSV import file. You may use python or python3 for the conversion, but use only the Python standard library.
+Migrate my skydiving logbook data file to Loki. Inspect the source file, infer its fields, and convert all usable records to a Loki supported UTF-8 CSV import file. You may use python or python3 for the conversion, but use only the Python standard library.
 
 The required CSV header, including its order and capitalization, is:
 type,name,previousCount,jumpNumber,jumpDate,exitAltitude,openingAltitude,freefallTime,location,aircraft,gear,jumpTypes,description
 
-Write resource rows before jump rows. Resource row types are aircraft, gear, jumpType, and location. They require name and previousCount; use 0 when no previous count is known. Jump rows require jumpNumber, exitAltitude, openingAltitude, freefallTime, location, and at least one aircraft. jumpDate is optional and must be YYYY-MM-DD when present. gear and jumpTypes may be empty. Counts and altitude/time fields are whole numbers. Descriptions are optional and limited to 2000 characters.
+Write resource rows before jump rows. Resource row types are aircraft, gear, jumpType, and location. Every resource row must have non-empty type, name, and previousCount values; use 0 when no previous count is known. Every jump row must have non-empty type, jumpNumber, exitAltitude, openingAltitude, freefallTime, location, and aircraft values, with type set to jump and at least one aircraft. jumpDate is optional and must be YYYY-MM-DD when present. gear and jumpTypes may be empty. Counts, altitudes, and freefallTime must be whole numbers. jumpNumber and exitAltitude must be positive; previousCount, openingAltitude, and freefallTime must not be negative. freefallTime is in seconds. Loki stores altitudes in meters, so convert source altitudes in feet or any other unit to meters and round them to the nearest whole meter. Descriptions are optional and limited to 2000 characters.
 
 For aircraft, gear, or jumpTypes containing multiple values, join names with "; ". Escape a semicolon inside a name as ";;" before joining. Keep names consistent because jumps refer to resources by name. Unknown resources referenced by jumps are created automatically. Replace line breaks inside values with spaces because each CSV record must occupy one line. Use csv.DictWriter from the standard library so commas and quotes are escaped correctly.
 
