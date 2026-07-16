@@ -1,5 +1,20 @@
 type TemplateValue = string | Node;
 
+/**
+ * Clones a `<template>` into a container and fills its named
+ * `data-template-slot` elements with text or DOM nodes.
+ *
+ * Use this either to render repeatedly into a stable container, which preserves
+ * the existing root and updates only its slots, or with a detached container as
+ * a factory whose rendered root is moved into a list or document fragment.
+ * Templates must have exactly one HTML root, every slot must have one matching
+ * value, and slot names must be unique. Strings are inserted as text, not HTML.
+ *
+ * In an SSR component, generate the container and template IDs with `useId()`,
+ * assign them to the corresponding elements, and pass both IDs to `Script`
+ * through `$args`. The browser function should look up and assert the container
+ * before calling `$renderTemplate(container, templateId, values)`.
+ */
 export function $renderTemplate(
     container: HTMLElement,
     templateId: string,
