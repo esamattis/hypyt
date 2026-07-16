@@ -76,6 +76,11 @@ const ImportRecordSchema = z.discriminatedUnion("type", [
     }),
 ]);
 
+const JsonImportSchema = z.object({
+    csv: z.string(),
+    reset: z.boolean(),
+});
+
 type ImportRecord = z.infer<typeof ImportRecordSchema>;
 
 interface NamedResource {
@@ -84,6 +89,24 @@ interface NamedResource {
 }
 
 type ResourceType = Exclude<ImportRecord["type"], "jump">;
+
+interface ImportStatistics {
+    aircraft: number;
+    gear: number;
+    jumpTypes: number;
+    locations: number;
+    jumps: number;
+}
+
+const RESOURCE_STATISTIC: Record<
+    ResourceType,
+    Exclude<keyof ImportStatistics, "jumps">
+> = {
+    aircraft: "aircraft",
+    gear: "gear",
+    jumpType: "jumpTypes",
+    location: "locations",
+};
 
 type ImportDatabase = ReturnType<typeof getAppContext>["db"];
 
@@ -528,6 +551,13 @@ class ImportState {
     readonly userUuid: string;
     readonly resources: Record<ResourceType, Map<string, string>>;
     readonly jumpUuids: Map<number, string>;
+    readonly statistics: ImportStatistics = {
+        aircraft: 0,
+        gear: 0,
+        jumpTypes: 0,
+        locations: 0,
+        jumps: 0,
+    };
 
     private constructor(config: {
         db: ImportDatabase;
@@ -638,6 +668,7 @@ class ImportState {
     }): string {
         const uuid = crypto.randomUUID();
         this.resources[config.type].set(normalizeName(config.name), uuid);
+        this.statistics[RESOURCE_STATISTIC[config.type]]++;
         if (config.type === "aircraft") {
             this.queueQuery(
                 this.db.insert(aircrafts).values({
@@ -810,17 +841,15 @@ class ImportState {
         }
     }
 
-    /** Queues all jump records and returns their count. */
-    queueJumps(records: ImportRecord[]): number {
-        let importedJumps = 0;
+    /** Queues all jump records and records their count. */
+    queueJumps(records: ImportRecord[]) {
         for (const record of records) {
             if (record.type !== "jump") {
                 continue;
             }
             this.queueJump(record);
-            importedJumps++;
+            this.statistics.jumps++;
         }
-        return importedJumps;
     }
 }
 
@@ -840,10 +869,10 @@ async function importRecords(
         state.clearAllData();
     }
     state.queueListedResources(records);
-    const importedJumps = state.queueJumps(records);
+    state.queueJumps(records);
     const [firstQuery, ...remainingQueries] = state.queries;
     if (!firstQuery) {
-        return importedJumps;
+        return state.statistics;
     }
     try {
         await context.db.batch([firstQuery, ...remainingQueries]);
@@ -856,11 +885,57 @@ async function importRecords(
             "Could not complete the import. All changes were rolled back.",
         );
     }
-    return importedJumps;
+    return state.statistics;
+}
+
+function jsonImportErrors(error: z.ZodError): string[] {
+    return error.issues.map((issue) => {
+        const path = issue.path.join(".");
+        return path ? `${path}: ${issue.message}` : issue.message;
+    });
+}
+
+async function handleJsonTransfer(c: AppRequestContext) {
+    let body: unknown;
+    try {
+        body = await c.req.json();
+    } catch {
+        return c.json({ errors: ["Request body must be valid JSON"] }, 400);
+    }
+    const bodyResult = JsonImportSchema.safeParse(body);
+    if (!bodyResult.success) {
+        return c.json({ errors: jsonImportErrors(bodyResult.error) }, 400);
+    }
+    const importResult = parseCsvImport(bodyResult.data.csv);
+    if ("errors" in importResult) {
+        return c.json({ errors: importResult.errors }, 400);
+    }
+    try {
+        const statistics = await importRecords(
+            c,
+            importResult.records,
+            bodyResult.data.reset,
+        );
+        return c.json({ statistics });
+    } catch (error) {
+        return c.json(
+            {
+                errors: [
+                    error instanceof Error
+                        ? error.message
+                        : "Could not complete the import. All changes were rolled back.",
+                ],
+            },
+            400,
+        );
+    }
 }
 
 /** Handles an uploaded logbook import file. */
 async function handleTransfer(c: AppRequestContext) {
+    if (c.req.header("Content-Type")?.startsWith("application/json")) {
+        return handleJsonTransfer(c);
+    }
     const formData = await c.req.formData();
     const clearAll = formData.get("clearAll") === "true";
     const file = formData.get("file");
@@ -879,10 +954,10 @@ async function handleTransfer(c: AppRequestContext) {
         );
     }
     try {
-        const importedJumps = await importRecords(c, result.records, clearAll);
+        const statistics = await importRecords(c, result.records, clearAll);
         return c.render(
             <TransferPage
-                notice={`Imported ${importedJumps} ${importedJumps === 1 ? "jump" : "jumps"}`}
+                notice={`Imported ${statistics.jumps} ${statistics.jumps === 1 ? "jump" : "jumps"}`}
             />,
         );
     } catch (error) {

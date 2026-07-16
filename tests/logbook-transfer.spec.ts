@@ -471,6 +471,45 @@ test("the logbook can be exported with curl and HTTP Basic auth", async ({
     expect(csvBody).not.toMatch(/uuid/i);
 });
 
+test("a logbook can be imported with the JSON API", async ({
+    page,
+    request,
+}) => {
+    await registerUser(page, "json-import-skydiver");
+    const csv = await readFile(fixturePath, "utf8");
+    const response = await request.post("/logbook/transfer", {
+        headers: {
+            Authorization: basicAuthHeader("json-import-skydiver", "parachute"),
+        },
+        data: { csv, reset: true },
+    });
+
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toEqual({
+        statistics: {
+            aircraft: 1,
+            gear: 1,
+            jumpTypes: 1,
+            locations: 1,
+            jumps: 2,
+        },
+    });
+    await page.reload();
+    await expect(page.getByRole("link", { name: /#301/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /#302/ })).toBeVisible();
+
+    const invalidResponse = await request.post("/logbook/transfer", {
+        headers: {
+            Authorization: basicAuthHeader("json-import-skydiver", "parachute"),
+        },
+        data: { csv: "not,a,valid,csv", reset: false },
+    });
+    expect(invalidResponse.status()).toBe(400);
+    expect(await invalidResponse.json()).toEqual({
+        errors: [`CSV header must be: ${CSV_HEADER}`],
+    });
+});
+
 test("Basic auth works for protected routes", async ({ page, request }) => {
     await registerUser(page, "basic-skydiver");
 

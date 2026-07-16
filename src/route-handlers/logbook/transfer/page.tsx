@@ -7,6 +7,7 @@ import {
     ExportCurlHelp,
     TransferFormatHelp,
 } from "@/route-handlers/logbook/transfer/format-help";
+import { AgentMigrationCard } from "@/route-handlers/logbook/transfer/agent-migration";
 
 interface TransferPageProps {
     errors?: string[];
@@ -125,14 +126,17 @@ function ImportSection(props: TransferPageProps) {
 export function TransferPage(props: TransferPageProps) {
     return (
         <LogbookPage title="Import or export logbook">
-            <section className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <ExportSection />
-                <ImportSection
-                    errors={props.errors}
-                    notice={props.notice}
-                    clearAll={props.clearAll}
-                />
-            </section>
+            <div className="space-y-6">
+                <section className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <ExportSection />
+                    <ImportSection
+                        errors={props.errors}
+                        notice={props.notice}
+                        clearAll={props.clearAll}
+                    />
+                </section>
+                <AgentMigrationCard />
+            </div>
         </LogbookPage>
     );
 }

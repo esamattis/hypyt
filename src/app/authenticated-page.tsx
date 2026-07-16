@@ -114,6 +114,7 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
                 <AboutIcon className={menuIconClassName} />
                 About
             </a>
+            <MenuDivider />
             <form method="post" action={routes.auth.logout({})}>
                 <button type="submit" className={menuItemClassName}>
                     <LogoutIcon className={menuIconClassName} />
