@@ -1,7 +1,8 @@
-import { serve } from "@hono/node-server";
+import { createAdaptorServer, type ServerType } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { command, flag, number, option, run, string } from "cmd-ts";
 import { spawn } from "node:child_process";
+import type { AddressInfo } from "node:net";
 import { join, resolve } from "node:path";
 import { isSea } from "node:sea";
 import { app } from "@/app/app";
@@ -10,6 +11,9 @@ import { createSqliteDatabase, defaultSqliteDirectory } from "@/db-sqlite";
 import { migrateSqlite } from "@/migrate-sqlite";
 import { loadNodeNativeBinding, registerSeaStaticAssets } from "@/node-sea";
 import { buildTitle } from "@/build-info";
+
+const DEFAULT_PORT = 8787;
+const DEFAULT_PORT_RETRIES = 5;
 
 function registerStaticAssets(): void {
     if (registerSeaStaticAssets(app)) {
@@ -23,6 +27,7 @@ function registerStaticAssets(): void {
 }
 
 function openBrowser(url: string): void {
+    console.log(`Opening ${url} in the default browser`);
     const [command, args] =
         process.platform === "win32"
             ? ["cmd.exe", ["/c", "start", "", url]]
@@ -57,12 +62,78 @@ function hasGraphicalSession(): boolean {
     );
 }
 
-function startServer(args: {
+function hasExplicitPortArgument(argv: string[]): boolean {
+    return argv.some(
+        (argument) => argument === "--port" || argument.startsWith("--port="),
+    );
+}
+
+function listenOnPort(
+    server: ServerType,
+    hostname: string,
+    port: number,
+): Promise<AddressInfo> {
+    return new Promise((resolvePromise, rejectPromise) => {
+        function cleanup(): void {
+            server.removeListener("error", handleError);
+            server.removeListener("listening", handleListening);
+        }
+
+        function handleError(error: Error): void {
+            cleanup();
+            rejectPromise(error);
+        }
+
+        function handleListening(): void {
+            cleanup();
+            const address = server.address();
+            if (address === null || typeof address === "string") {
+                rejectPromise(new Error("Server has no TCP address"));
+                return;
+            }
+            resolvePromise(address);
+        }
+
+        server.once("error", handleError);
+        server.once("listening", handleListening);
+        server.listen(port, hostname);
+    });
+}
+
+async function listenOnAvailablePort(
+    server: ServerType,
+    options: { hostname: string; initialPort: number; retries: number },
+): Promise<AddressInfo> {
+    for (let attempt = 0; attempt <= options.retries; attempt += 1) {
+        try {
+            return await listenOnPort(
+                server,
+                options.hostname,
+                options.initialPort + attempt,
+            );
+        } catch (error) {
+            const canRetry =
+                error instanceof Error &&
+                "code" in error &&
+                error.code === "EADDRINUSE" &&
+                attempt < options.retries;
+            if (!canRetry) {
+                throw error;
+            }
+            console.log(
+                `Port ${String(options.initialPort + attempt)} is in use, trying ${String(options.initialPort + attempt + 1)}`,
+            );
+        }
+    }
+    throw new Error("Failed to find an available port");
+}
+
+async function startServer(args: {
     host: string;
     noOpen: boolean;
     port: number;
     sqliteDir: string;
-}): void {
+}): Promise<void> {
     registerRoutes(app);
 
     const { db, sqlite, path } = createSqliteDatabase(
@@ -73,29 +144,30 @@ function startServer(args: {
     migrateSqlite(sqlite);
     registerStaticAssets();
 
-    serve(
-        {
-            fetch(request, env) {
-                return app.fetch(request, {
-                    ...env,
-                    APP_DB: db,
-                    APP_SQLITE_PATH: selfContained ? path : undefined,
-                });
-            },
-            port: args.port,
-            hostname: args.host,
+    const retries = hasExplicitPortArgument(process.argv.slice(2))
+        ? 0
+        : DEFAULT_PORT_RETRIES;
+
+    const server = createAdaptorServer({
+        fetch(request, env) {
+            return app.fetch(request, {
+                ...env,
+                APP_DB: db,
+                APP_SQLITE_PATH: selfContained ? path : undefined,
+            });
         },
-        (info) => {
-            const url = `http://${info.address}:${info.port}`;
-            console.log(
-                `Self-hosted Loki - Skydiving Logbook listening on ${url}`,
-            );
-            console.log(`SQLite database: ${path}`);
-            if (selfContained && !args.noOpen && hasGraphicalSession()) {
-                openBrowser(url);
-            }
-        },
-    );
+    });
+    const info = await listenOnAvailablePort(server, {
+        hostname: args.host,
+        initialPort: args.port,
+        retries,
+    });
+    const url = `http://${info.address}:${info.port}`;
+    console.log(`Self-hosted Loki - Skydiving Logbook listening on ${url}`);
+    console.log(`SQLite database: ${path}`);
+    if (selfContained && !args.noOpen && hasGraphicalSession()) {
+        openBrowser(url);
+    }
 }
 
 const cli = command({
@@ -106,7 +178,7 @@ const cli = command({
         port: option({
             long: "port",
             type: number,
-            defaultValue: () => 8787,
+            defaultValue: () => DEFAULT_PORT,
             description: "HTTP port",
         }),
         host: option({
