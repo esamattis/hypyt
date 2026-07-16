@@ -171,6 +171,9 @@ test("a skydiver can register and record their first jump", async ({
     await expect(
         aircraftDialog.getByRole("link", { name: "Manage aircraft" }),
     ).toHaveAttribute("href", "/logbook/aircrafts");
+    await aircraftDialog.getByLabel("Cessna 182", { exact: true }).hover();
+    await expect(page.getByRole("tooltip")).toHaveText("Aircraft type");
+    await expect(page.getByRole("tooltip")).toBeVisible();
     await aircraftDialog.getByRole("button", { name: "OK" }).click();
     await selectJumpItems(page, "Aircraft", ["Cessna 182", "OH-DZF"]);
     await selectJumpItems(page, "Gear used", ["Main canopy"]);
@@ -298,7 +301,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("link", { name: "Manage gear" }).click();
     await page
         .getByRole("listitem")
-        .filter({ hasText: "Main canopy" })
+        .filter({ has: page.getByText("Main canopy", { exact: true }) })
         .getByRole("link", { name: "Edit" })
         .click();
     await page.locator('input[name="name"]').fill("Main canopy updated");

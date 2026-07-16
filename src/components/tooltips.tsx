@@ -8,8 +8,9 @@ function $initTooltips() {
             <div
                 id="tooltip"
                 role="tooltip"
+                popover="manual"
                 hidden
-                class="pointer-events-none fixed z-50 max-w-xs rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-slate-100 dark:text-slate-900"
+                class="pointer-events-none fixed inset-auto z-50 m-0 max-w-xs overflow-visible rounded-md border-0 bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-slate-100 dark:text-slate-900"
             >
                 <span data-tooltip-text></span>
                 <span
@@ -37,6 +38,7 @@ function $initTooltips() {
         activeTarget = target;
         tooltipText.textContent = target.dataset.tooltip!;
         tooltip.hidden = false;
+        if (!tooltip.matches(":popover-open")) tooltip.showPopover();
         const targetRect = target.getBoundingClientRect();
         const tooltipRect = tooltip.getBoundingClientRect();
         tooltip.style.left = `${Math.max(8, Math.min(targetRect.left + (targetRect.width - tooltipRect.width) / 2, window.innerWidth - tooltipRect.width - 8))}px`;
@@ -45,6 +47,7 @@ function $initTooltips() {
     function hideTooltip(target?: HTMLElement | null) {
         if (target && target !== activeTarget) return;
         activeTarget = null;
+        if (tooltip.matches(":popover-open")) tooltip.hidePopover();
         tooltip.hidden = true;
     }
     document.addEventListener(
