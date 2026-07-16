@@ -108,6 +108,17 @@ function deleteAccountButton(page: Page) {
         .getByRole("button");
 }
 
+function deleteLogbookDataButton(page: Page) {
+    return page
+        .locator("form")
+        .filter({
+            has: page.locator(
+                'input[name="action"][value="delete-logbook-data"]',
+            ),
+        })
+        .getByRole("button");
+}
+
 test("a skydiver can update preferences and account details", async ({
     page,
 }) => {
@@ -229,6 +240,44 @@ test("unit preferences apply throughout the logbook UI", async ({ page }) => {
         page.getByText("Highest freefall speed avg").locator(".."),
     ).toContainText("54,5 m/s");
     await expect(page.getByText("Jump #1 (01/01/2026)").first()).toBeVisible();
+});
+
+test("a skydiver can delete all logbook data without deleting their account", async ({
+    page,
+}) => {
+    const username = "delete-logbook-data-skydiver";
+    await registerUser(page, username, "Delete Logbook Data Skydiver");
+    const userUuid = await seedAccountData(username);
+
+    await openMainMenu(page);
+    await page.getByRole("link", { name: "Preferences", exact: true }).click();
+    const button = deleteLogbookDataButton(page);
+    await expect(button).toHaveText("Delete logbook data");
+    await button.click();
+    await expect(button).toHaveText("Confirm delete", { timeout: 1000 });
+    await button.click();
+
+    await expect(page).toHaveURL("/logbook");
+    await expect(page.getByRole("link", { name: /#1/ })).toHaveCount(0);
+    const counts = (
+        await queryPlaywrightDb(`
+            SELECT
+                (SELECT count(*) FROM users WHERE uuid = '${userUuid}') AS users,
+                (SELECT count(*) FROM jumps WHERE user_uuid = '${userUuid}') AS jumps,
+                (SELECT count(*) FROM gear WHERE user_uuid = '${userUuid}') AS gear,
+                (SELECT count(*) FROM jump_types WHERE user_uuid = '${userUuid}') AS jump_types,
+                (SELECT count(*) FROM aircrafts WHERE user_uuid = '${userUuid}') AS aircrafts,
+                (SELECT count(*) FROM locations WHERE user_uuid = '${userUuid}') AS locations,
+                (SELECT count(*) FROM ai_usage WHERE user_uuid = '${userUuid}') AS ai_usage;
+        `)
+    )[0];
+    expect(Number(counts?.users)).toBe(1);
+    expect(Number(counts?.jumps)).toBe(0);
+    expect(Number(counts?.gear)).toBe(0);
+    expect(Number(counts?.jump_types)).toBe(0);
+    expect(Number(counts?.aircrafts)).toBe(0);
+    expect(Number(counts?.locations)).toBe(0);
+    expect(Number(counts?.ai_usage)).toBe(1);
 });
 
 // eslint-disable-next-line max-lines-per-function

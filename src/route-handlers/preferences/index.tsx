@@ -22,7 +22,15 @@ import {
     type UserOptions,
 } from "@/options";
 import * as routes from "@/routes";
-import { aiUsage, users } from "@/schema";
+import {
+    aiUsage,
+    aircrafts,
+    gear,
+    jumps,
+    jumpTypes,
+    locations,
+    users,
+} from "@/schema";
 import { LogbookPage } from "@/app/authenticated-page";
 
 const PreferencesSchema = z
@@ -374,14 +382,27 @@ function optionsFromRawForm(
     return partial.success ? partial.data : current;
 }
 
-function DeleteAccountSection() {
+function DangerZoneSection() {
     return (
         <DangerZone>
-            <p className="mb-3 text-sm text-red-700/90 dark:text-red-300/90">
-                Permanently delete your account and all logbook data. This
-                cannot be undone.
-            </p>
-            <ConfirmDeleteButton label="Delete account" />
+            <div className="space-y-3">
+                <p className="text-sm text-red-700/90 dark:text-red-300/90">
+                    Permanently delete all jumps and jump items, including gear,
+                    locations, aircraft, and jump types. Your account and
+                    preferences will remain. This cannot be undone.
+                </p>
+                <ConfirmDeleteButton
+                    label="Delete logbook data"
+                    action="delete-logbook-data"
+                />
+            </div>
+            <div className="mt-5 space-y-3 border-t border-red-200 pt-5 dark:border-red-900/60">
+                <p className="text-sm text-red-700/90 dark:text-red-300/90">
+                    Permanently delete your account and all logbook data. This
+                    cannot be undone.
+                </p>
+                <ConfirmDeleteButton label="Delete account" />
+            </div>
         </DangerZone>
     );
 }
@@ -394,7 +415,7 @@ function renderPreferences(
     return c.render(
         <LogbookPage title="Preferences">
             <PreferencesForm values={values} errors={errors} />
-            <DeleteAccountSection />
+            <DangerZoneSection />
         </LogbookPage>,
     );
 }
@@ -423,10 +444,24 @@ async function handleDeleteAccount(c: AppRequestContext) {
     return c.redirect(routes.auth.login({}));
 }
 
+async function handleDeleteLogbookData(c: AppRequestContext) {
+    const ctx = getAppContext(c);
+    const userUuid = ctx.getUser().uuid;
+    await ctx.db.delete(jumps).where(eq(jumps.userUuid, userUuid));
+    await ctx.db.delete(gear).where(eq(gear.userUuid, userUuid));
+    await ctx.db.delete(jumpTypes).where(eq(jumpTypes.userUuid, userUuid));
+    await ctx.db.delete(aircrafts).where(eq(aircrafts.userUuid, userUuid));
+    await ctx.db.delete(locations).where(eq(locations.userUuid, userUuid));
+    return c.redirect(routes.logbook.index({}));
+}
+
 async function handlePreferences(c: AppRequestContext) {
     const formData = await c.req.formData();
     if (formData.get("action") === "delete") {
         return handleDeleteAccount(c);
+    }
+    if (formData.get("action") === "delete-logbook-data") {
+        return handleDeleteLogbookData(c);
     }
 
     const raw = getFormDataValues(formData);
