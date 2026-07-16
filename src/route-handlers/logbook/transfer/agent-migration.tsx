@@ -1,9 +1,35 @@
 import { useId } from "hono/jsx";
 import { useAppContext } from "@/app/app";
 import { Code } from "@/components/ui/code";
+import { Details } from "@/components/ui/details";
 import { Script } from "@/components/script";
 import * as routes from "@/routes";
 import { $assertElement } from "@/utils";
+
+const agentLinkClassName =
+    "font-medium text-indigo-600 underline decoration-indigo-300 underline-offset-2 hover:text-indigo-700 dark:text-indigo-400 dark:decoration-indigo-700 dark:hover:text-indigo-300";
+const agents = [
+    { name: "Aider", url: "https://aider.chat/" },
+    {
+        name: "Claude Code",
+        url: "https://www.anthropic.com/claude-code",
+    },
+    { name: "Cline", url: "https://cline.bot/" },
+    { name: "OpenAI Codex", url: "https://openai.com/codex/" },
+    { name: "OpenAI Codex CLI", url: "https://learn.chatgpt.com/docs/codex/cli" },
+    { name: "Command Code", url: "https://commandcode.ai/" },
+    { name: "Cursor", url: "https://cursor.com/" },
+    {
+        name: "Gemini CLI",
+        url: "https://github.com/google-gemini/gemini-cli",
+    },
+    {
+        name: "GitHub Copilot CLI",
+        url: "https://github.com/features/copilot/cli",
+    },
+    { name: "OpenCode", url: "https://opencode.ai/" },
+    { name: "Pi", url: "https://pi.dev/" },
+];
 
 function $agentInstructions(uploadUrl: string, username: string): string {
     return `<loki-instructions>
@@ -88,6 +114,24 @@ export function AgentMigrationCard() {
                         instructions below. Export native spreadsheet files as
                         CSV or TSV first.
                     </p>
+                    <Details
+                        summary="Common AI agents"
+                        className="mt-2 text-sm text-slate-500 dark:text-slate-400"
+                        summaryClassName="font-medium text-slate-700 dark:text-slate-300"
+                    >
+                        <ul className="mt-2 grid list-disc gap-x-6 gap-y-1 pl-9 sm:grid-cols-2">
+                            {agents.map((agent) => (
+                                <li>
+                                    <a
+                                        href={agent.url}
+                                        className={agentLinkClassName}
+                                    >
+                                        {agent.name}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </Details>
                 </div>
             </div>
             <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
