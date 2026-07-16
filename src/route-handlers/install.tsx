@@ -4,7 +4,21 @@ import { LogbookPage } from "@/app/authenticated-page";
 import { Button } from "@/components/form";
 import { Script } from "@/components/script";
 import * as routes from "@/routes";
-import { $assertElement, $showAndroidChromeHint } from "@/utils";
+import { $assertElement } from "@/utils";
+
+export function $showAndroidChromeHint(hint: HTMLParagraphElement) {
+    const ua = navigator.userAgent;
+    const notChrome =
+        Boolean(Reflect.get(navigator, "brave")) ||
+        /SamsungBrowser|Firefox|OPR\/|Opera/i.test(ua) ||
+        !/Chrome\//i.test(ua);
+    if (/Android/i.test(ua) && notChrome) {
+        hint.hidden = false;
+        hint.textContent =
+            "For the best experience on Android, install this app using Chrome. " +
+            "Chrome enables sharing images from other apps directly into Loki.";
+    }
+}
 
 function InstallApp() {
     const buttonId = useId();

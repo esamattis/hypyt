@@ -42,17 +42,3 @@ export function $assertElement<T>(
         );
     }
 }
-
-export function $showAndroidChromeHint(hint: HTMLParagraphElement) {
-    const ua = navigator.userAgent;
-    const notChrome =
-        Boolean(Reflect.get(navigator, "brave")) ||
-        /SamsungBrowser|Firefox|OPR\/|Opera/i.test(ua) ||
-        !/Chrome\//i.test(ua);
-    if (/Android/i.test(ua) && notChrome) {
-        hint.hidden = false;
-        hint.textContent =
-            "For the best experience on Android, install this app using Chrome. " +
-            "Chrome enables sharing images from other apps directly into Loki.";
-    }
-}
