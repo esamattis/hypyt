@@ -36,7 +36,7 @@ const agents = [
 
 function $agentInstructions(uploadUrl: string, username: string): string {
     return `<loki-instructions>
-Migrate my skydiving logbook data file to Loki. Inspect the source file, infer its fields, and convert all usable records to a Loki supported UTF-8 CSV import file. You may use python or python3 for the conversion, but use only the Python standard library.
+ Migrate my skydiving logbook data file or files to Loki. Inspect every source file, infer its fields, and combine all usable records into one Loki supported UTF-8 CSV import file. You may use python or python3 for the conversion, but use only the Python standard library.
 
 The required CSV header, including its order and capitalization, is:
 type,name,previousCount,jumpNumber,jumpDate,exitAltitude,openingAltitude,freefallTime,location,aircraft,gear,jumpTypes,description
@@ -45,7 +45,7 @@ Write resource rows before jump rows. Resource row types are aircraft, gear, jum
 
 For aircraft, gear, or jumpTypes containing multiple values, join names with "; ". Escape a semicolon inside a name as ";;" before joining. Keep names consistent because jumps refer to resources by name. Unknown resources referenced by jumps are created automatically. Replace line breaks inside values with spaces because each CSV record must occupy one line. Use csv.DictWriter from the standard library so commas and quotes are escaped correctly.
 
-If the input file flags jumps with a cutaway, create a jumpType resource named Cutaway and assign it to those jumps.
+If any input file flags jumps with a cutaway, create a jumpType resource named Cutaway and assign it to those jumps.
 
 After creating and checking the CSV, save the following as upload.py. Replace PASSWORD with the Loki password supplied in my prompt, then run it with python3 upload.py <converted.csv> (or python upload.py <converted.csv>). This is a full migration, so reset is true and all existing Loki logbook data will be deleted before importing the CSV.
 
@@ -89,7 +89,7 @@ Run the upload only after validating the converted CSV. Report the returned impo
 
 After uploading report the reply statistics.
 
-If the user did not provide the password or the data file path in the prompt, ask for them. If the provided file is a native spreadsheet format such as .xlsx, .xls, .xlsm, .ods, or .numbers, ask the user to provide a .csv or .tsv export instead.
+If the user did not provide the password or any data file paths in the prompt, ask for them. If any provided file is a native spreadsheet format such as .xlsx, .xls, .xlsm, .ods, or .numbers, ask the user to provide a .csv or .tsv export of that file instead.
 
 </loki-instructions>
 `;
@@ -114,8 +114,8 @@ export function AgentMigrationCard() {
                         AI Agent Import
                     </h2>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Import any existing data file with an AI agent. Give the
-                        agent your file, Loki password and paste the
+                        Import one or more existing data files with an AI agent.
+                        Give the agent your files, Loki password and paste the
                         instructions below. Export native spreadsheet files as
                         CSV or TSV first.
                     </p>
