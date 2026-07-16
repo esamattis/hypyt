@@ -77,6 +77,9 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await expect(
         page.getByRole("img", { name: "Image used to read jump values" }),
     ).toBeVisible();
+    await expect(
+        page.getByRole("link", { name: "Back to image reading" }),
+    ).toHaveAttribute("href", "/logbook/jumps/new/from-image");
     await expect(page.locator('form[data-dirty="true"]')).toHaveAttribute(
         "data-form-dirty",
         "true",

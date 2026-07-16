@@ -232,6 +232,7 @@ export async function renderNewJump(c: AppRequestContext) {
             notices={notices}
             resources={await getJumpFormResources(c)}
             sourceImageId={query.imageId}
+            isImagePrefill={isImagePrefill}
             dirty={isImagePrefill}
         />,
     );

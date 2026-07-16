@@ -818,6 +818,7 @@ export function JumpFormPage(props: {
     copyHref?: string;
     canDelete?: boolean;
     sourceImageId?: string;
+    isImagePrefill?: boolean;
     dirty?: boolean;
 }) {
     const formId = useId();
@@ -836,6 +837,14 @@ export function JumpFormPage(props: {
                 </Button>
             }
         >
+            {props.isImagePrefill && (
+                <ButtonLink
+                    href={routes.logbook.jumps.fromImage({})}
+                    variant="secondary"
+                >
+                    Back to image reading
+                </ButtonLink>
+            )}
             {props.sourceImageId && (
                 <JumpImageSource imageId={props.sourceImageId} />
             )}
