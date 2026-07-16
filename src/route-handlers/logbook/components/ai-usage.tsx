@@ -2,11 +2,12 @@ import type { LanguageModelUsage } from "ai";
 import { desc, eq, sql } from "drizzle-orm";
 import {
     getAppContext,
-    useAppContext,
+    useDateFormatter,
+    useNumberFormatter,
     type AppRequestContext,
 } from "@/app/app";
-import { formatCalendarDate, formatUnixDateTime } from "@/date-time";
-import { formatNumber, JUMP_IMAGE_MODELS, type UserOptions } from "@/options";
+import type { DateFormatter, NumberFormatter } from "@/format";
+import { JUMP_IMAGE_MODELS } from "@/options";
 import { aiUsage } from "@/schema";
 
 export type AiUsageRow = {
@@ -28,24 +29,19 @@ export type AiUsageTotals = {
 
 function formatTokenCount(
     value: number | null | undefined,
-    format: UserOptions["numberFormat"],
+    formatNumber: NumberFormatter,
 ): string {
     if (value == null) {
         return "—";
     }
-    return formatNumber(value, format);
+    return formatNumber(value);
 }
 
-function formatUsageTitle(
-    title: string,
-    format: UserOptions["dateTimeFormat"],
-): string {
+function formatUsageTitle(title: string, formatDate: DateFormatter): string {
     return title
         .split(" · ")
         .map((part) =>
-            /^\d{4}-\d{2}-\d{2}$/.test(part)
-                ? formatCalendarDate(part, format)
-                : part,
+            /^\d{4}-\d{2}-\d{2}$/.test(part) ? formatDate(part) : part,
         )
         .join(" · ");
 }
@@ -59,18 +55,15 @@ function formatModelLabel(model: string): string {
     return model;
 }
 
-function UsageCard(props: {
-    label: string;
-    value: number;
-    numberFormat: UserOptions["numberFormat"];
-}) {
+function UsageCard(props: { label: string; value: number }) {
+    const formatNumber = useNumberFormatter();
     return (
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {props.label}
             </p>
             <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-                {formatTokenCount(props.value, props.numberFormat)}
+                {formatTokenCount(props.value, formatNumber)}
             </p>
         </div>
     );
@@ -80,7 +73,8 @@ export function AiUsageSummary(props: {
     totals: AiUsageTotals;
     rows: AiUsageRow[];
 }) {
-    const options = useAppContext().getUser().options;
+    const formatDate = useDateFormatter();
+    const formatNumber = useNumberFormatter();
     return (
         <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div>
@@ -92,25 +86,18 @@ export function AiUsageSummary(props: {
                 </p>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <UsageCard
-                    label="Reads"
-                    value={props.totals.reads}
-                    numberFormat={options.numberFormat}
-                />
+                <UsageCard label="Reads" value={props.totals.reads} />
                 <UsageCard
                     label="Input tokens"
                     value={props.totals.inputTokens}
-                    numberFormat={options.numberFormat}
                 />
                 <UsageCard
                     label="Output tokens"
                     value={props.totals.outputTokens}
-                    numberFormat={options.numberFormat}
                 />
                 <UsageCard
                     label="Total tokens"
                     value={props.totals.totalTokens}
-                    numberFormat={options.numberFormat}
                 />
             </div>
             {props.rows.length === 0 ? (
@@ -169,16 +156,13 @@ export function AiUsageSummary(props: {
                                                 row.createdAt * 1000,
                                             ).toISOString()}
                                         >
-                                            {formatUnixDateTime(
-                                                row.createdAt,
-                                                options.dateTimeFormat,
-                                            )}
+                                            {formatDate(row.createdAt)}
                                         </time>
                                     </td>
                                     <td className="w-full min-w-64 px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                                         {formatUsageTitle(
                                             row.title,
-                                            options.dateTimeFormat,
+                                            formatDate,
                                         )}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-400">
@@ -187,19 +171,19 @@ export function AiUsageSummary(props: {
                                     <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-400">
                                         {formatTokenCount(
                                             row.inputTokens,
-                                            options.numberFormat,
+                                            formatNumber,
                                         )}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-400">
                                         {formatTokenCount(
                                             row.outputTokens,
-                                            options.numberFormat,
+                                            formatNumber,
                                         )}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                         {formatTokenCount(
                                             row.totalTokens,
-                                            options.numberFormat,
+                                            formatNumber,
                                         )}
                                     </td>
                                 </tr>

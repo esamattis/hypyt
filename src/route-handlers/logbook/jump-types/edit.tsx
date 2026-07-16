@@ -43,7 +43,6 @@ async function getEditJumpType(c: AppRequestContext, dangerError?: string) {
     const recentJumps = await getRecentJumpsForItem({
         c,
         userUuid: app.getUser().uuid,
-        options: app.getUser().options,
         itemUuid: item.uuid,
         relation: "jumpType",
     });
@@ -119,7 +118,6 @@ async function updateJumpType(c: AppRequestContext) {
         const recentJumps = await getRecentJumpsForItem({
             c,
             userUuid: app.getUser().uuid,
-            options: app.getUser().options,
             itemUuid: uuid,
             relation: "jumpType",
         });

@@ -1,5 +1,4 @@
-import { useAppContext } from "@/app/app";
-import { formatNumber } from "@/options";
+import { useNumberFormatter } from "@/app/app";
 
 interface JumpIssueListItem {
     key: string;
@@ -13,10 +12,10 @@ export function JumpIssueList(props: {
     description: string;
     items: JumpIssueListItem[];
 }) {
+    const formatNumber = useNumberFormatter();
     if (props.items.length === 0) {
         return null;
     }
-    const numberFormat = useAppContext().getUser().options.numberFormat;
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -25,8 +24,7 @@ export function JumpIssueList(props: {
                     {props.title}
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {formatNumber(props.items.length, numberFormat)}{" "}
-                    {props.countLabel}
+                    {formatNumber(props.items.length)} {props.countLabel}
                 </p>
             </div>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">

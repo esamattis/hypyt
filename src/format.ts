@@ -1,0 +1,56 @@
+import { formatCalendarDate, formatUnixDateTime } from "@/date-time";
+import {
+    formatAltitude,
+    formatNumber,
+    formatSpeed,
+    type UserOptions,
+} from "@/options";
+
+export type NumberFormatter = (
+    value: number,
+    options?: Intl.NumberFormatOptions,
+) => string;
+
+export type AltitudeFormatter = (meters: number) => string;
+export type SpeedFormatter = (metersPerSecond: number) => string;
+
+export interface DateFormatter {
+    (value: string): string;
+    (unixSeconds: number): string;
+}
+
+export function createNumberFormatter(
+    numberFormat: UserOptions["numberFormat"],
+): NumberFormatter {
+    return function numberFormatter(value, options) {
+        return formatNumber(value, numberFormat, options);
+    };
+}
+
+export function createAltitudeFormatter(
+    altitudeUnits: UserOptions["altitudeUnits"],
+    numberFormat: UserOptions["numberFormat"],
+): AltitudeFormatter {
+    return function altitudeFormatter(meters) {
+        return formatAltitude(meters, altitudeUnits, numberFormat);
+    };
+}
+
+export function createSpeedFormatter(
+    speedUnits: UserOptions["speedUnits"],
+    numberFormat: UserOptions["numberFormat"],
+): SpeedFormatter {
+    return function speedFormatter(metersPerSecond) {
+        return formatSpeed(metersPerSecond, speedUnits, numberFormat);
+    };
+}
+
+export function createDateFormatter(
+    dateTimeFormat: UserOptions["dateTimeFormat"],
+): DateFormatter {
+    return function dateFormatter(value: string | number): string {
+        return typeof value === "number"
+            ? formatUnixDateTime(value, dateTimeFormat)
+            : formatCalendarDate(value, dateTimeFormat);
+    };
+}

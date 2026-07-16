@@ -38,7 +38,6 @@ async function getEditGear(c: AppRequestContext, dangerError?: string) {
     const recentJumps = await getRecentJumpsForItem({
         c,
         userUuid: app.getUser().uuid,
-        options: app.getUser().options,
         itemUuid: item.uuid,
         relation: "gear",
     });
@@ -142,7 +141,6 @@ async function updateGear(c: AppRequestContext) {
         const recentJumps = await getRecentJumpsForItem({
             c,
             userUuid: app.getUser().uuid,
-            options: app.getUser().options,
             itemUuid: uuid,
             relation: "gear",
         });

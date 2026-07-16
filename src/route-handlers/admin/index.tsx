@@ -1,11 +1,10 @@
 import { asc, desc, eq } from "drizzle-orm";
 import {
     getAppContext,
-    useAppContext,
+    useDateFormatter,
     type App,
     type AppRequestContext,
 } from "@/app/app";
-import { formatUnixDateTime } from "@/date-time";
 import { Button, ButtonLink } from "@/components/form";
 import { LogbookPage } from "@/app/authenticated-page";
 import { requireAdmin } from "@/route-handlers/admin/helpers";
@@ -125,7 +124,7 @@ interface AdminSessionRow {
 
 function AdminSessionsSection(props: { sessions: AdminSessionRow[] }) {
     const now = Math.floor(Date.now() / 1000);
-    const dateTimeFormat = useAppContext().getUser().options.dateTimeFormat;
+    const formatDate = useDateFormatter();
     return (
         <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -164,24 +163,15 @@ function AdminSessionsSection(props: { sessions: AdminSessionRow[] }) {
                                     <div className="text-right text-sm text-slate-500 dark:text-slate-400">
                                         <p>
                                             Created{" "}
-                                            {formatUnixDateTime(
-                                                session.createdAt,
-                                                dateTimeFormat,
-                                            )}
+                                            {formatDate(session.createdAt)}
                                         </p>
                                         <p className="mt-1">
                                             Last used{" "}
-                                            {formatUnixDateTime(
-                                                session.lastUsedAt,
-                                                dateTimeFormat,
-                                            )}
+                                            {formatDate(session.lastUsedAt)}
                                         </p>
                                         <p className="mt-1">
                                             Expires{" "}
-                                            {formatUnixDateTime(
-                                                session.expiresAt,
-                                                dateTimeFormat,
-                                            )}
+                                            {formatDate(session.expiresAt)}
                                         </p>
                                     </div>
                                 </div>

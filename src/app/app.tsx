@@ -34,6 +34,16 @@ import {
 } from "@/auth";
 import { createD1Database, type AppDatabase } from "@/db";
 import { $assertElement } from "@/utils";
+import {
+    createAltitudeFormatter,
+    createDateFormatter,
+    createNumberFormatter,
+    createSpeedFormatter,
+    type AltitudeFormatter,
+    type DateFormatter,
+    type NumberFormatter,
+    type SpeedFormatter,
+} from "@/format";
 
 export type App = Hono<Env>;
 
@@ -46,6 +56,10 @@ export interface AppContext {
     requestContext: AppRequestContext;
     cssDupCache: Set<string>;
     jsDupCache: Set<(...args: any[]) => any>;
+    altitudeFormatter(): AltitudeFormatter;
+    dateFormatter(): DateFormatter;
+    numberFormatter(): NumberFormatter;
+    speedFormatter(): SpeedFormatter;
     url(): URL;
 }
 
@@ -117,6 +131,22 @@ export function getAppContext(c: AppRequestContext): AppContext {
 export function useAppContext(): AppContext {
     const c = useRequestContext<Env>();
     return getAppContext(c);
+}
+
+export function useAltitudeFormatter(): AltitudeFormatter {
+    return useAppContext().altitudeFormatter();
+}
+
+export function useDateFormatter(): DateFormatter {
+    return useAppContext().dateFormatter();
+}
+
+export function useNumberFormatter(): NumberFormatter {
+    return useAppContext().numberFormatter();
+}
+
+export function useSpeedFormatter(): SpeedFormatter {
+    return useAppContext().speedFormatter();
 }
 
 export function $restoreFormScrollPosition() {
@@ -678,6 +708,26 @@ async function setAppContextMiddleware(
         requestContext: c,
         cssDupCache: new Set(),
         jsDupCache: new Set(),
+        altitudeFormatter() {
+            const options = this.getUser().options;
+            return createAltitudeFormatter(
+                options.altitudeUnits,
+                options.numberFormat,
+            );
+        },
+        dateFormatter() {
+            return createDateFormatter(this.getUser().options.dateTimeFormat);
+        },
+        numberFormatter() {
+            return createNumberFormatter(this.getUser().options.numberFormat);
+        },
+        speedFormatter() {
+            const options = this.getUser().options;
+            return createSpeedFormatter(
+                options.speedUnits,
+                options.numberFormat,
+            );
+        },
         url() {
             // Use the request URL as provided by the runtime (Cloudflare
             // validates Host). Do not rebuild from the Host header.

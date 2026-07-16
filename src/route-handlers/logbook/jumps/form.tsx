@@ -1,5 +1,5 @@
 import { useId, type Child } from "hono/jsx";
-import { useAppContext } from "@/app/app";
+import { useAppContext, useSpeedFormatter } from "@/app/app";
 import {
     Button,
     ButtonLink,
@@ -25,7 +25,6 @@ import * as routes from "@/routes";
 import { LogbookPage } from "@/app/authenticated-page";
 import {
     altitudeUnitLabel,
-    formatSpeed,
     numberFormatLocale,
     speedConversionFactor,
     speedInputValue,
@@ -160,10 +159,9 @@ function FreefallTimeField(props: {
     exitAltitudeId: string;
     openingAltitudeId: string;
     value: string;
-    altitudeUnits: UserOptions["altitudeUnits"];
-    speedUnits: UserOptions["speedUnits"];
-    numberFormat: UserOptions["numberFormat"];
 }) {
+    const options = useAppContext().getUser().options;
+    const formatSpeed = useSpeedFormatter();
     const estimateButtonId = useId();
     const estimateDialogId = useId();
     const customSpeedId = useId();
@@ -206,46 +204,38 @@ function FreefallTimeField(props: {
                 <div className="grid gap-2">
                     <button
                         type="button"
-                        data-speed={speedInputValue(50, props.speedUnits)}
+                        data-speed={speedInputValue(50, options.speedUnits)}
                         className={DIALOG_OPTION_CLASS}
                     >
-                        Belly ·{" "}
-                        {formatSpeed(50, props.speedUnits, props.numberFormat)}
+                        Belly · {formatSpeed(50)}
                     </button>
                     <button
                         type="button"
                         data-speed={speedInputValue(
                             240 / 3.6,
-                            props.speedUnits,
+                            options.speedUnits,
                         )}
                         className={DIALOG_OPTION_CLASS}
                     >
-                        Freefly ·{" "}
-                        {formatSpeed(
-                            240 / 3.6,
-                            props.speedUnits,
-                            props.numberFormat,
-                        )}
+                        Freefly · {formatSpeed(240 / 3.6)}
                     </button>
                     <button
                         type="button"
-                        data-speed={speedInputValue(80 / 3.6, props.speedUnits)}
+                        data-speed={speedInputValue(
+                            80 / 3.6,
+                            options.speedUnits,
+                        )}
                         className={DIALOG_OPTION_CLASS}
                     >
-                        Wingsuit ·{" "}
-                        {formatSpeed(
-                            80 / 3.6,
-                            props.speedUnits,
-                            props.numberFormat,
-                        )}
+                        Wingsuit · {formatSpeed(80 / 3.6)}
                     </button>
                     <div className="mt-2 space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700">
                         <NumberInput
                             id={customSpeedId}
-                            label={`Custom speed (${speedUnitLabel(props.speedUnits)})`}
+                            label={`Custom speed (${speedUnitLabel(options.speedUnits)})`}
                             min="1"
-                            value={speedInputValue(50, props.speedUnits)}
-                            persist={`freefall-speed-estimate-${props.speedUnits}`}
+                            value={speedInputValue(50, options.speedUnits)}
+                            persist={`freefall-speed-estimate-${options.speedUnits}`}
                         />
                         <button
                             id={customSpeedButtonId}
@@ -264,9 +254,9 @@ function FreefallTimeField(props: {
                 estimateDialogId={estimateDialogId}
                 customSpeedId={customSpeedId}
                 customSpeedButtonId={customSpeedButtonId}
-                altitudeUnits={props.altitudeUnits}
+                altitudeUnits={options.altitudeUnits}
                 speedConversionFactor={String(
-                    speedConversionFactor(props.speedUnits),
+                    speedConversionFactor(options.speedUnits),
                 )}
             />
         </div>
@@ -331,9 +321,6 @@ function AvgSpeed(props: { values: JumpFormValues }) {
                 exitAltitudeId={exitAltitudeId}
                 openingAltitudeId={openingAltitudeId}
                 value={props.values.freefallTime ?? ""}
-                altitudeUnits={options.altitudeUnits}
-                speedUnits={options.speedUnits}
-                numberFormat={options.numberFormat}
             />
             <div className="col-span-full grid grid-cols-2 gap-5 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
                 <CalculatedValue

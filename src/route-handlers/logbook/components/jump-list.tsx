@@ -2,15 +2,12 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
     getAppContext,
     useAppContext,
+    useAltitudeFormatter,
+    useDateFormatter,
+    useNumberFormatter,
+    useSpeedFormatter,
     type AppRequestContext,
 } from "@/app/app";
-import {
-    formatAltitude,
-    formatNumber,
-    formatSpeed,
-    type UserOptions,
-} from "@/options";
-import { formatCalendarDate } from "@/date-time";
 import * as routes from "@/routes";
 import {
     aircrafts,
@@ -22,46 +19,25 @@ import {
     locations,
 } from "@/schema";
 
-function formatDistance(
-    meters: number,
-    units: UserOptions["altitudeUnits"],
-    numberFormat: UserOptions["numberFormat"],
-): string {
-    if (units === "feet") {
-        const feet = Math.round(meters / 0.3048);
-        return `${formatNumber(feet, numberFormat)} ft`;
-    }
-    const kilometers = meters / 1000;
-    const formatted = formatNumber(kilometers, numberFormat, {
-        maximumFractionDigits: 1,
-    });
-    return `${formatted} km`;
-}
-
 export function Distance(props: { meters: number }) {
-    const options = useAppContext().getUser().options;
+    const altitudeUnits = useAppContext().getUser().options.altitudeUnits;
+    const formatNumber = useNumberFormatter();
+    if (altitudeUnits === "feet") {
+        return <>{formatNumber(Math.round(props.meters / 0.3048))} ft</>;
+    }
     return (
         <>
-            {formatDistance(
-                props.meters,
-                options.altitudeUnits,
-                options.numberFormat,
-            )}
+            {formatNumber(props.meters / 1000, {
+                maximumFractionDigits: 1,
+            })}{" "}
+            km
         </>
     );
 }
 
 export function Altitude(props: { meters: number }) {
-    const options = useAppContext().getUser().options;
-    return (
-        <>
-            {formatAltitude(
-                props.meters,
-                options.altitudeUnits,
-                options.numberFormat,
-            )}
-        </>
-    );
+    const formatAltitude = useAltitudeFormatter();
+    return <>{formatAltitude(props.meters)}</>;
 }
 
 export function formatDuration(totalSeconds: number): string {
@@ -84,16 +60,8 @@ export function formatDuration(totalSeconds: number): string {
 }
 
 export function Speed(props: { metersPerSecond: number }) {
-    const options = useAppContext().getUser().options;
-    return (
-        <>
-            {formatSpeed(
-                props.metersPerSecond,
-                options.speedUnits,
-                options.numberFormat,
-            )}
-        </>
-    );
+    const formatSpeed = useSpeedFormatter();
+    return <>{formatSpeed(props.metersPerSecond)}</>;
 }
 
 function jumpFreefallDistance(jump: {
@@ -137,7 +105,6 @@ export interface JumpListItem {
     freefallTime: number;
     description: string | null;
     jumpTypes: string[];
-    options: UserOptions;
 }
 
 function JumpStat(props: { label: string; children: any }) {
@@ -154,7 +121,7 @@ function JumpStat(props: { label: string; children: any }) {
 }
 
 export function JumpCard(props: JumpListItem) {
-    const dateTimeFormat = useAppContext().getUser().options.dateTimeFormat;
+    const formatDate = useDateFormatter();
     return (
         <li>
             <a
@@ -170,7 +137,7 @@ export function JumpCard(props: JumpListItem) {
                             dateTime={props.jumpDate}
                             className="text-sm text-slate-500 tabular-nums dark:text-slate-400"
                         >
-                            {formatCalendarDate(props.jumpDate, dateTimeFormat)}
+                            {formatDate(props.jumpDate)}
                         </time>
                         <span className="text-base font-semibold text-slate-900 dark:text-slate-100">
                             {props.locationName} /{" "}
@@ -271,7 +238,6 @@ const RECENT_JUMPS_LIMIT = 50;
 export async function getRecentJumpsForItem(config: {
     c: AppRequestContext;
     userUuid: string;
-    options: UserOptions;
     itemUuid: string;
     relation: JumpItemRelation;
 }): Promise<JumpListItem[]> {
@@ -376,6 +342,5 @@ export async function getRecentJumpsForItem(config: {
         ...jump,
         aircraftNames: aircraftsByJump.get(jump.uuid) ?? [],
         jumpTypes: jumpTypesByJump.get(jump.uuid) ?? [],
-        options: config.options,
     }));
 }

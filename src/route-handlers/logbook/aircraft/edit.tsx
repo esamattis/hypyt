@@ -43,7 +43,6 @@ async function getEditAircraft(c: AppRequestContext, dangerError?: string) {
     const recentJumps = await getRecentJumpsForItem({
         c,
         userUuid: app.getUser().uuid,
-        options: app.getUser().options,
         itemUuid: aircraft.uuid,
         relation: "aircraft",
     });
@@ -121,7 +120,6 @@ async function updateAircraft(c: AppRequestContext) {
         const recentJumps = await getRecentJumpsForItem({
             c,
             userUuid: app.getUser().uuid,
-            options: app.getUser().options,
             itemUuid: uuid,
             relation: "aircraft",
         });

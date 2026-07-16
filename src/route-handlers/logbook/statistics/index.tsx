@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { useId } from "hono/jsx";
 import {
     getAppContext,
-    useAppContext,
+    useNumberFormatter,
     type App,
     type AppRequestContext,
 } from "@/app/app";
@@ -19,7 +19,6 @@ import {
 import { $assertElement } from "@/utils";
 import { LogbookPage } from "@/app/authenticated-page";
 import { JumpIssueList } from "@/route-handlers/logbook/statistics/jump-issue-list";
-import { formatNumber } from "@/options";
 
 function formatDate(date: Date): string {
     return date.toISOString().slice(0, 10);
@@ -142,7 +141,7 @@ function YearlyJumpsHistogram(props: {
     }
     const maxCount = Math.max(...fullData.map((entry) => entry.count), 1);
     const maxBarHeight = 160;
-    const numberFormat = useAppContext().getUser().options.numberFormat;
+    const formatNumber = useNumberFormatter();
     const toggleId = useId();
     const containerId = useId();
     return (
@@ -179,7 +178,7 @@ function YearlyJumpsHistogram(props: {
                             )}
                         >
                             <span className="mb-1 text-xs font-medium tabular-nums text-slate-600 dark:text-slate-300">
-                                {formatNumber(entry.count, numberFormat)}
+                                {formatNumber(entry.count)}
                             </span>
                             <div
                                 className={clsx(
@@ -230,7 +229,8 @@ function YearlyJumpsHistogram(props: {
 }
 
 async function renderStatistics(c: AppRequestContext) {
-    const user = getAppContext(c).getUser();
+    const app = getAppContext(c);
+    const user = app.getUser();
     const userUuid = user.uuid;
     const startOfCurrentYear = getStartOfCurrentYear();
     const startOfCurrentMonth = getStartOfCurrentMonth();
@@ -262,8 +262,8 @@ async function renderStatistics(c: AppRequestContext) {
     );
     const [[stats], yearlyRows, jumpNumberRows, insufficientDataJumps] =
         await Promise.all([
-            getAppContext(c)
-                .db.select({
+            app.db
+                .select({
                     totalJumps: sql<number>`count(*) + ${user.options.previousJumpCount}`,
                     currentYearJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfCurrentYear} then 1 else 0 end), 0)`,
                     lastTwelveMonthsJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${twelveMonthsAgo} then 1 else 0 end), 0)`,
@@ -272,8 +272,8 @@ async function renderStatistics(c: AppRequestContext) {
                 })
                 .from(jumps)
                 .where(eq(jumps.userUuid, userUuid)),
-            getAppContext(c)
-                .db.select({
+            app.db
+                .select({
                     year: sql<string>`substr(${jumps.jumpDate}, 1, 4)`,
                     count: sql<number>`count(*)`,
                 })
@@ -281,13 +281,13 @@ async function renderStatistics(c: AppRequestContext) {
                 .where(eq(jumps.userUuid, userUuid))
                 .groupBy(sql`substr(${jumps.jumpDate}, 1, 4)`)
                 .orderBy(sql`substr(${jumps.jumpDate}, 1, 4)`),
-            getAppContext(c)
-                .db.select({ jumpNumber: jumps.jumpNumber })
+            app.db
+                .select({ jumpNumber: jumps.jumpNumber })
                 .from(jumps)
                 .where(eq(jumps.userUuid, userUuid))
                 .orderBy(asc(jumps.jumpNumber)),
-            getAppContext(c)
-                .db.select({
+            app.db
+                .select({
                     uuid: jumps.uuid,
                     jumpNumber: jumps.jumpNumber,
                 })
@@ -308,7 +308,7 @@ async function renderStatistics(c: AppRequestContext) {
         lastMonthJumps: 0,
         totalFreefallTime: 0,
     };
-    const numberFormat = user.options.numberFormat;
+    const formatNumber = app.numberFormatter();
 
     const yearlyData = yearlyRows
         .map((row) => ({
@@ -326,22 +326,19 @@ async function renderStatistics(c: AppRequestContext) {
             <dl className="grid gap-4 sm:grid-cols-2">
                 <SummaryCard
                     label="Total jumps"
-                    value={formatNumber(values.totalJumps, numberFormat)}
+                    value={formatNumber(values.totalJumps)}
                 />
                 <SummaryCard
                     label="Jumps this year"
-                    value={formatNumber(values.currentYearJumps, numberFormat)}
+                    value={formatNumber(values.currentYearJumps)}
                 />
                 <SummaryCard
                     label="Jumps in the last 12 months"
-                    value={formatNumber(
-                        values.lastTwelveMonthsJumps,
-                        numberFormat,
-                    )}
+                    value={formatNumber(values.lastTwelveMonthsJumps)}
                 />
                 <SummaryCard
                     label="Jumps last month"
-                    value={formatNumber(values.lastMonthJumps, numberFormat)}
+                    value={formatNumber(values.lastMonthJumps)}
                 />
                 <SummaryCard
                     label="Total freefall time"

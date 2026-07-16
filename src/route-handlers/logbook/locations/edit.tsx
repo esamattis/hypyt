@@ -43,7 +43,6 @@ async function getEditLocation(c: AppRequestContext, dangerError?: string) {
     const recentJumps = await getRecentJumpsForItem({
         c,
         userUuid: app.getUser().uuid,
-        options: app.getUser().options,
         itemUuid: item.uuid,
         relation: "location",
     });
@@ -119,7 +118,6 @@ async function updateLocation(c: AppRequestContext) {
         const recentJumps = await getRecentJumpsForItem({
             c,
             userUuid: app.getUser().uuid,
-            options: app.getUser().options,
             itemUuid: uuid,
             relation: "location",
         });

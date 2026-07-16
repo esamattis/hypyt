@@ -1,7 +1,8 @@
 import { and, asc, desc, eq, gt, gte, lt, sql } from "drizzle-orm";
 import {
     getAppContext,
-    useAppContext,
+    useDateFormatter,
+    useNumberFormatter,
     type App,
     type AppRequestContext,
 } from "@/app/app";
@@ -18,13 +19,8 @@ import {
     locations,
 } from "@/schema";
 import { LogbookPage } from "@/app/authenticated-page";
-import {
-    formatAltitude,
-    formatNumber,
-    formatSpeed,
-    type UserOptions,
-} from "@/options";
-import { formatCalendarDate } from "@/date-time";
+import { type UserOptions } from "@/options";
+import type { NumberFormatter } from "@/format";
 
 function formatDuration(totalSeconds: number): string {
     const days = Math.floor(totalSeconds / 86_400);
@@ -45,15 +41,16 @@ function formatDuration(totalSeconds: number): string {
     return parts.join(" ");
 }
 
-function formatDistance(
-    meters: number,
+function createDistanceFormatter(
     units: UserOptions["altitudeUnits"],
-    numberFormat: UserOptions["numberFormat"],
-): string {
-    if (units === "feet") {
-        return `${formatNumber(Math.round(meters / 0.3048), numberFormat)} ft`;
-    }
-    return `${formatNumber(meters / 1000, numberFormat, { maximumFractionDigits: 1 })} km`;
+    formatNumber: NumberFormatter,
+): (meters: number) => string {
+    return function formatDistance(meters) {
+        if (units === "feet") {
+            return `${formatNumber(Math.round(meters / 0.3048))} ft`;
+        }
+        return `${formatNumber(meters / 1000, { maximumFractionDigits: 1 })} km`;
+    };
 }
 
 interface RecordJump {
@@ -66,7 +63,7 @@ interface RecordJump {
 function RecordJumps(props: {
     records: Array<{ label: string; jump: RecordJump | undefined }>;
 }) {
-    const dateTimeFormat = useAppContext().getUser().options.dateTimeFormat;
+    const formatDate = useDateFormatter();
     return (
         <section className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -94,11 +91,7 @@ function RecordJumps(props: {
                                     {record.jump.value}{" "}
                                     <span className="text-sm text-slate-500 dark:text-slate-400">
                                         Jump #{record.jump.jumpNumber} (
-                                        {formatCalendarDate(
-                                            record.jump.jumpDate,
-                                            dateTimeFormat,
-                                        )}
-                                        )
+                                        {formatDate(record.jump.jumpDate)})
                                     </span>
                                 </a>
                             ) : (
@@ -268,7 +261,7 @@ function StatisticsSection(props: {
     items: StatisticsItem[];
     filteredByYear: boolean;
 }) {
-    const numberFormat = useAppContext().getUser().options.numberFormat;
+    const formatNumber = useNumberFormatter();
     return (
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-baseline justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -326,16 +319,12 @@ function StatisticsSection(props: {
                                         )}
                                     </td>
                                     <td className="px-5 py-3.5 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                                        {formatNumber(
-                                            item.recordedJumpCount,
-                                            numberFormat,
-                                        )}
+                                        {formatNumber(item.recordedJumpCount)}
                                     </td>
                                     {!props.filteredByYear && (
                                         <td className="px-5 py-3.5 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                             {formatNumber(
                                                 getTotalJumpCount(item),
-                                                numberFormat,
                                             )}
                                         </td>
                                     )}
@@ -623,8 +612,16 @@ async function fetchDetailedStatistics(
     c: AppRequestContext,
     year: number | undefined,
 ): Promise<DetailedStatisticsResult> {
-    const db = getAppContext(c).db;
-    const user = getAppContext(c).getUser();
+    const app = getAppContext(c);
+    const db = app.db;
+    const user = app.getUser();
+    const formatNumber = app.numberFormatter();
+    const formatAltitude = app.altitudeFormatter();
+    const formatSpeed = app.speedFormatter();
+    const formatDistance = createDistanceFormatter(
+        user.options.altitudeUnits,
+        formatNumber,
+    );
     const userUuid = user.uuid;
     const yearCondition = year
         ? and(
@@ -684,58 +681,44 @@ async function fetchDetailedStatistics(
         longestFreefallDistance: longestFreefallDistanceRows[0]
             ? {
                   ...longestFreefallDistanceRows[0],
-                  value: formatDistance(
-                      longestFreefallDistanceRows[0].value,
-                      user.options.altitudeUnits,
-                      user.options.numberFormat,
-                  ),
+                  value: formatDistance(longestFreefallDistanceRows[0].value),
               }
             : undefined,
         highestExit: highestExitRows[0]
             ? {
                   ...highestExitRows[0],
-                  value: formatAltitude(
-                      highestExitRows[0].value,
-                      user.options.altitudeUnits,
-                      user.options.numberFormat,
-                  ),
+                  value: formatAltitude(highestExitRows[0].value),
               }
             : undefined,
         highestOpening: highestOpeningRows[0]
             ? {
                   ...highestOpeningRows[0],
-                  value: formatAltitude(
-                      highestOpeningRows[0].value,
-                      user.options.altitudeUnits,
-                      user.options.numberFormat,
-                  ),
+                  value: formatAltitude(highestOpeningRows[0].value),
               }
             : undefined,
         lowestOpening: lowestOpeningRows[0]
             ? {
                   ...lowestOpeningRows[0],
-                  value: formatAltitude(
-                      lowestOpeningRows[0].value,
-                      user.options.altitudeUnits,
-                      user.options.numberFormat,
-                  ),
+                  value: formatAltitude(lowestOpeningRows[0].value),
               }
             : undefined,
         highestAverageSpeed: highestAverageSpeedRows[0]
             ? {
                   ...highestAverageSpeedRows[0],
-                  value: formatSpeed(
-                      highestAverageSpeedRows[0].value,
-                      user.options.speedUnits,
-                      user.options.numberFormat,
-                  ),
+                  value: formatSpeed(highestAverageSpeedRows[0].value),
               }
             : undefined,
     };
 }
 
 async function renderDetailedStatistics(c: AppRequestContext) {
-    const options = getAppContext(c).getUser().options;
+    const app = getAppContext(c);
+    const options = app.getUser().options;
+    const formatNumber = app.numberFormatter();
+    const formatDistance = createDistanceFormatter(
+        options.altitudeUnits,
+        formatNumber,
+    );
     const { year: rawYear } = routes.logbook.statistics.detailed.query(c);
     const year = parseYear(rawYear);
     const filteredByYear = year !== undefined;
@@ -801,7 +784,7 @@ async function renderDetailedStatistics(c: AppRequestContext) {
             <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <SummaryCard
                     label="Total jumps"
-                    value={formatNumber(totalJumps, options.numberFormat)}
+                    value={formatNumber(totalJumps)}
                 />
                 <SummaryCard
                     label="Total freefall time"
@@ -809,11 +792,7 @@ async function renderDetailedStatistics(c: AppRequestContext) {
                 />
                 <SummaryCard
                     label="Total freefall distance"
-                    value={formatDistance(
-                        totalFreefallDistance,
-                        options.altitudeUnits,
-                        options.numberFormat,
-                    )}
+                    value={formatDistance(totalFreefallDistance)}
                 />
             </dl>
             <div className="space-y-6">
