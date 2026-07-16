@@ -6,7 +6,6 @@ import {
     useNumberFormatter,
     type AppRequestContext,
 } from "@/app/app";
-import type { DateFormatter, NumberFormatter } from "@/format";
 import { JUMP_IMAGE_MODELS } from "@/options";
 import { aiUsage } from "@/schema";
 
@@ -27,43 +26,39 @@ export type AiUsageTotals = {
     totalTokens: number;
 };
 
-function formatTokenCount(
-    value: number | null | undefined,
-    formatNumber: NumberFormatter,
-): string {
-    if (value == null) {
-        return "—";
-    }
-    return formatNumber(value);
+function TokenCount(props: { value: number | null | undefined }) {
+    const formatNumber = useNumberFormatter();
+    return <>{props.value == null ? "—" : formatNumber(props.value)}</>;
 }
 
-function formatUsageTitle(title: string, formatDate: DateFormatter): string {
-    return title
+function UsageTitle(props: { title: string }) {
+    const formatDate = useDateFormatter();
+    const title = props.title
         .split(" · ")
         .map((part) =>
             /^\d{4}-\d{2}-\d{2}$/.test(part) ? formatDate(part) : part,
         )
         .join(" · ");
+    return <>{title}</>;
 }
 
-function formatModelLabel(model: string): string {
+function ModelLabel(props: { model: string }) {
     for (const entry of JUMP_IMAGE_MODELS) {
-        if (entry.id === model) {
-            return entry.label;
+        if (entry.id === props.model) {
+            return <>{entry.label}</>;
         }
     }
-    return model;
+    return <>{props.model}</>;
 }
 
 function UsageCard(props: { label: string; value: number }) {
-    const formatNumber = useNumberFormatter();
     return (
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {props.label}
             </p>
             <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-                {formatTokenCount(props.value, formatNumber)}
+                <TokenCount value={props.value} />
             </p>
         </div>
     );
@@ -74,7 +69,6 @@ export function AiUsageSummary(props: {
     rows: AiUsageRow[];
 }) {
     const formatDate = useDateFormatter();
-    const formatNumber = useNumberFormatter();
     return (
         <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div>
@@ -160,31 +154,19 @@ export function AiUsageSummary(props: {
                                         </time>
                                     </td>
                                     <td className="w-full min-w-64 px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
-                                        {formatUsageTitle(
-                                            row.title,
-                                            formatDate,
-                                        )}
+                                        <UsageTitle title={row.title} />
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-400">
-                                        {formatModelLabel(row.model)}
+                                        <ModelLabel model={row.model} />
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                                        {formatTokenCount(
-                                            row.inputTokens,
-                                            formatNumber,
-                                        )}
+                                        <TokenCount value={row.inputTokens} />
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                                        {formatTokenCount(
-                                            row.outputTokens,
-                                            formatNumber,
-                                        )}
+                                        <TokenCount value={row.outputTokens} />
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
-                                        {formatTokenCount(
-                                            row.totalTokens,
-                                            formatNumber,
-                                        )}
+                                        <TokenCount value={row.totalTokens} />
                                     </td>
                                 </tr>
                             ))}
