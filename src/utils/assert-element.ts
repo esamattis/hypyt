@@ -1,17 +1,3 @@
-export function getFormString(formData: FormData, name: string): string {
-    const value = formData.get(name);
-    return typeof value === "string" ? value : "";
-}
-
-export function assertNotNullish<T>(
-    value: T,
-    message?: string,
-): asserts value is NonNullable<T> {
-    if (value == null) {
-        throw new Error(message || "Value is null or undefined");
-    }
-}
-
 type ElementConstructor<T> = abstract new (...args: any[]) => T;
 
 /**
