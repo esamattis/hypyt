@@ -109,11 +109,11 @@ export function AgentMigrationCard() {
                 </span>
                 <div>
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                        AI Agent migration
+                        AI Agent Import
                     </h2>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Migrate from any existing data file with an AI agent.
-                        Give the agent your file, Loki password and paste the
+                        Import any existing data file with an AI agent. Give the
+                        agent your file, Loki password and paste the
                         instructions below. Export native spreadsheet files as
                         CSV or TSV first.
                     </p>
@@ -140,9 +140,9 @@ export function AgentMigrationCard() {
             <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
                 <p className="font-semibold">Warning</p>
                 <p className="mt-1">
-                    An AI agent may destroy your existing logbook data or leak
-                    your Loki password. Only use an agent you trust and keep a
-                    backup of your logbook.
+                    An AI agent may destroy your existing logbook data, leak
+                    your Loki password or even destroy all your data, not just
+                    your logbook. Proceed with caution.
                 </p>
             </div>
             <div className="mt-5 space-y-2">
