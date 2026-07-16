@@ -18,7 +18,7 @@
         "db:migrate:remote": "$npm_execpath run db:export:remote && node scripts/migrate-remote.ts",
         "db:export:remote": "mkdir -p backups && wrangler d1 export loki --remote --output \"backups/loki-$(date +%Y%m%d-%H%M%S).sql\"",
         "db:import:remote": "node scripts/import-remote.ts",
-        "db:reset": "rm -rf .wrangler && $npm_execpath run db:migrate && node scripts/insert-dev-user.ts",
+        "db:reset": "rm -rf .wrangler && $npm_execpath run db:migrate",
         "db:dev-user": "node scripts/insert-dev-user.ts",
         "db:dev-user:sqlite": "node scripts/insert-dev-user-sqlite.ts",
         "db:list-users": "node scripts/list-users.ts",
