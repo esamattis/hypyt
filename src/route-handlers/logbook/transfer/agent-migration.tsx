@@ -56,6 +56,8 @@ except urllib.error.HTTPError as error:
 
 Run the upload only after validating the converted CSV. Report the returned import statistics. If Loki returns HTTP 400, fix the reported CSV errors and upload it again. Do not use third-party Python packages.
 
+After uploading report the reply statistics.
+
 If the user did not provide the password or the data file path in the prompt, ask for them. If the provided file is a native spreadsheet format such as .xlsx, .xls, .xlsm, .ods, or .numbers, ask the user to provide a .csv or .tsv export instead.
 
 </loki-instructions>
