@@ -154,7 +154,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await expect(
         page.getByRole("status", { name: "Freefall distance" }),
-    ).toHaveText("3,000 m");
+    ).toHaveText(/3\s000 m/);
     await page.locator('input[name="freefallTime"]').fill("55");
     await selectJumpItems(page, "Location", ["Skydive Test Center"]);
     const aircraftDialog = await openJumpItemSelect(page, "Aircraft");
@@ -190,8 +190,8 @@ test("a skydiver can register and record their first jump", async ({
         "Skydive Test Center / Cessna 182, OH-DZF",
     );
     await expect(page.getByText("First test jump")).toBeVisible();
-    await expect(page.getByText("4000 m", { exact: true })).toBeVisible();
-    await expect(page.getByText("1000 m", { exact: true })).toBeVisible();
+    await expect(page.getByText(/4\s000 m/, { exact: true })).toBeVisible();
+    await expect(page.getByText(/1\s000 m/, { exact: true })).toBeVisible();
     await expect(
         page
             .getByRole("link", { name: /#1/ })
@@ -857,7 +857,7 @@ test("freefall time estimate respects feet altitude units", async ({
     await page.locator('input[name="openingAltitude"]').fill("3281");
     await expect(
         page.getByRole("status", { name: "Freefall distance" }),
-    ).toHaveText("9,842 ft");
+    ).toHaveText(/9\s842 ft/);
 
     await page.getByRole("button", { name: "Estimate" }).click();
     await page.getByRole("button", { name: "Belly · 50 m/s" }).click();
@@ -868,11 +868,11 @@ test("freefall time estimate respects feet altitude units", async ({
     ).toHaveText("50 m/s");
 
     await page.getByRole("button", { name: "Estimate" }).click();
-    await page.getByRole("button", { name: "Freefly · 66.7 m/s" }).click();
+    await page.getByRole("button", { name: "Freefly · 66,7 m/s" }).click();
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("45");
     await expect(
         page.getByRole("status", { name: "Average speed" }),
-    ).toHaveText("66.7 m/s");
+    ).toHaveText("66,7 m/s");
 
     await page.getByRole("button", { name: "Estimate" }).click();
     await page.getByLabel("Custom speed (m/s)").fill("40");

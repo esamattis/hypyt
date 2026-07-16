@@ -26,6 +26,7 @@ import { LogbookPage } from "@/app/authenticated-page";
 import {
     altitudeUnitLabel,
     formatSpeed,
+    numberFormatLocale,
     speedConversionFactor,
     speedInputValue,
     speedUnitLabel,
@@ -161,6 +162,7 @@ function FreefallTimeField(props: {
     value: string;
     altitudeUnits: UserOptions["altitudeUnits"];
     speedUnits: UserOptions["speedUnits"];
+    numberFormat: UserOptions["numberFormat"];
 }) {
     const estimateButtonId = useId();
     const estimateDialogId = useId();
@@ -207,7 +209,8 @@ function FreefallTimeField(props: {
                         data-speed={speedInputValue(50, props.speedUnits)}
                         className={DIALOG_OPTION_CLASS}
                     >
-                        Belly · {formatSpeed(50, props.speedUnits)}
+                        Belly ·{" "}
+                        {formatSpeed(50, props.speedUnits, props.numberFormat)}
                     </button>
                     <button
                         type="button"
@@ -217,14 +220,24 @@ function FreefallTimeField(props: {
                         )}
                         className={DIALOG_OPTION_CLASS}
                     >
-                        Freefly · {formatSpeed(240 / 3.6, props.speedUnits)}
+                        Freefly ·{" "}
+                        {formatSpeed(
+                            240 / 3.6,
+                            props.speedUnits,
+                            props.numberFormat,
+                        )}
                     </button>
                     <button
                         type="button"
                         data-speed={speedInputValue(80 / 3.6, props.speedUnits)}
                         className={DIALOG_OPTION_CLASS}
                     >
-                        Wingsuit · {formatSpeed(80 / 3.6, props.speedUnits)}
+                        Wingsuit ·{" "}
+                        {formatSpeed(
+                            80 / 3.6,
+                            props.speedUnits,
+                            props.numberFormat,
+                        )}
                     </button>
                     <div className="mt-2 space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700">
                         <NumberInput
@@ -320,6 +333,7 @@ function AvgSpeed(props: { values: JumpFormValues }) {
                 value={props.values.freefallTime ?? ""}
                 altitudeUnits={options.altitudeUnits}
                 speedUnits={options.speedUnits}
+                numberFormat={options.numberFormat}
             />
             <div className="col-span-full grid grid-cols-2 gap-5 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
                 <CalculatedValue
@@ -347,6 +361,7 @@ function AvgSpeed(props: { values: JumpFormValues }) {
                             speedConversionFactor(options.speedUnits),
                         ),
                         speedUnitLabel: speedUnitLabel(options.speedUnits),
+                        numberLocale: numberFormatLocale(options.numberFormat),
                     },
                 ]}
                 $exec={(config) => {
@@ -396,8 +411,8 @@ function AvgSpeed(props: { values: JumpFormValues }) {
                             (config.altitudeUnits === "feet" ? 0.3048 : 1);
                         freefallDistance.textContent =
                             config.altitudeUnits === "feet"
-                                ? `${Math.round(distanceMeters / 0.3048).toLocaleString("en-US")} ft`
-                                : `${Math.round(distanceMeters).toLocaleString("en-US")} m`;
+                                ? `${Math.round(distanceMeters / 0.3048).toLocaleString(config.numberLocale)} ft`
+                                : `${Math.round(distanceMeters).toLocaleString(config.numberLocale)} m`;
 
                         const time = Number(freefallTime.value);
                         if (
@@ -411,10 +426,13 @@ function AvgSpeed(props: { values: JumpFormValues }) {
                         const metersPerSecond = distanceMeters / time;
                         const convertedSpeed =
                             metersPerSecond * conversionFactor;
-                        const formatted =
-                            conversionFactor === 1
-                                ? convertedSpeed.toFixed(1).replace(/\.0$/, "")
-                                : String(Math.round(convertedSpeed));
+                        const formatted = convertedSpeed.toLocaleString(
+                            config.numberLocale,
+                            {
+                                maximumFractionDigits:
+                                    conversionFactor === 1 ? 1 : 0,
+                            },
+                        );
                         avgSpeed.textContent = `${formatted} ${config.speedUnitLabel}`;
                     }
 

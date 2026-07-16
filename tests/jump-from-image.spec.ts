@@ -148,15 +148,15 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await expect(
         usageRow.getByRole("cell", { name: "GPT-5.6 Luna" }),
     ).toBeVisible();
-    await expect(usageRow.getByRole("cell", { name: "1,200" })).toBeVisible();
+    await expect(usageRow.getByRole("cell", { name: /1\s200/ })).toBeVisible();
     await expect(usageRow.getByRole("cell", { name: "180" })).toBeVisible();
-    await expect(usageRow.getByRole("cell", { name: "1,380" })).toBeVisible();
+    await expect(usageRow.getByRole("cell", { name: /1\s380/ })).toBeVisible();
     await expect(
         usageSection
             .locator("p")
             .filter({ hasText: "Input tokens" })
             .locator("..")
-            .getByText("1,200"),
+            .getByText(/1\s200/),
     ).toBeVisible();
 });
 

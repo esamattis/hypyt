@@ -1,3 +1,6 @@
+import { useAppContext } from "@/app/app";
+import { formatNumber } from "@/options";
+
 interface JumpIssueListItem {
     key: string;
     jumpNumber: number;
@@ -13,6 +16,7 @@ export function JumpIssueList(props: {
     if (props.items.length === 0) {
         return null;
     }
+    const numberFormat = useAppContext().getUser().options.numberFormat;
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -21,7 +25,7 @@ export function JumpIssueList(props: {
                     {props.title}
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {props.items.length.toLocaleString("en-US")}{" "}
+                    {formatNumber(props.items.length, numberFormat)}{" "}
                     {props.countLabel}
                 </p>
             </div>

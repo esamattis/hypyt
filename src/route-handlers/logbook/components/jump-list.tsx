@@ -4,7 +4,12 @@ import {
     useAppContext,
     type AppRequestContext,
 } from "@/app/app";
-import { formatAltitude, formatSpeed, type UserOptions } from "@/options";
+import {
+    formatAltitude,
+    formatNumber,
+    formatSpeed,
+    type UserOptions,
+} from "@/options";
 import { formatCalendarDate } from "@/date-time";
 import * as routes from "@/routes";
 import {
@@ -20,24 +25,43 @@ import {
 function formatDistance(
     meters: number,
     units: UserOptions["altitudeUnits"],
+    numberFormat: UserOptions["numberFormat"],
 ): string {
     if (units === "feet") {
         const feet = Math.round(meters / 0.3048);
-        return `${feet.toLocaleString("en-US")} ft`;
+        return `${formatNumber(feet, numberFormat)} ft`;
     }
     const kilometers = meters / 1000;
-    const formatted = kilometers.toFixed(1).replace(/\.0$/, "");
+    const formatted = formatNumber(kilometers, numberFormat, {
+        maximumFractionDigits: 1,
+    });
     return `${formatted} km`;
 }
 
 export function Distance(props: { meters: number }) {
-    const units = useAppContext().getUser().options.altitudeUnits;
-    return <>{formatDistance(props.meters, units)}</>;
+    const options = useAppContext().getUser().options;
+    return (
+        <>
+            {formatDistance(
+                props.meters,
+                options.altitudeUnits,
+                options.numberFormat,
+            )}
+        </>
+    );
 }
 
 export function Altitude(props: { meters: number }) {
-    const units = useAppContext().getUser().options.altitudeUnits;
-    return <>{formatAltitude(props.meters, units)}</>;
+    const options = useAppContext().getUser().options;
+    return (
+        <>
+            {formatAltitude(
+                props.meters,
+                options.altitudeUnits,
+                options.numberFormat,
+            )}
+        </>
+    );
 }
 
 export function formatDuration(totalSeconds: number): string {
@@ -60,8 +84,16 @@ export function formatDuration(totalSeconds: number): string {
 }
 
 export function Speed(props: { metersPerSecond: number }) {
-    const units = useAppContext().getUser().options.speedUnits;
-    return <>{formatSpeed(props.metersPerSecond, units)}</>;
+    const options = useAppContext().getUser().options;
+    return (
+        <>
+            {formatSpeed(
+                props.metersPerSecond,
+                options.speedUnits,
+                options.numberFormat,
+            )}
+        </>
+    );
 }
 
 function jumpFreefallDistance(jump: {

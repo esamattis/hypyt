@@ -38,6 +38,7 @@ const PreferencesSchema = z
         altitudeUnits: UserOptionsSchema.shape.altitudeUnits,
         speedUnits: UserOptionsSchema.shape.speedUnits,
         dateTimeFormat: UserOptionsSchema.shape.dateTimeFormat,
+        numberFormat: UserOptionsSchema.shape.numberFormat,
         previousJumpCount: UserOptionsSchema.shape.previousJumpCount,
         openaiApiKey: z.string(),
         jumpImagePrompt: z.string(),
@@ -159,10 +160,10 @@ function DateTimeSection(props: { options: UserOptions }) {
         <section className="space-y-5 border-t border-slate-200 pt-8 dark:border-slate-800">
             <div>
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    Date and time
+                    Formatting
                 </h2>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    Choose how dates and UTC timestamps are displayed.
+                    Choose how dates, UTC timestamps, and numbers are displayed.
                 </p>
             </div>
             <Select name="dateTimeFormat" label="Date and time format">
@@ -170,25 +171,45 @@ function DateTimeSection(props: { options: UserOptions }) {
                     value="finnish"
                     selected={props.options.dateTimeFormat === "finnish"}
                 >
-                    Finnish (14.7.2026 klo 16.05.30)
+                    Day.month.year, 24-hour (14.7.2026 klo 16.05.30)
                 </option>
                 <option
                     value="european"
                     selected={props.options.dateTimeFormat === "european"}
                 >
-                    European (14/07/2026, 16:05:30)
+                    Day/month/year, 24-hour (14/07/2026, 16:05:30)
                 </option>
                 <option
                     value="american"
                     selected={props.options.dateTimeFormat === "american"}
                 >
-                    American (07/14/2026, 4:05:30 PM)
+                    Month/day/year, 12-hour (07/14/2026, 4:05:30 PM)
                 </option>
                 <option
                     value="iso"
                     selected={props.options.dateTimeFormat === "iso"}
                 >
-                    ISO (2026-07-14 16:05:30 UTC)
+                    Year-month-day, 24-hour (2026-07-14 16:05:30 UTC)
+                </option>
+            </Select>
+            <Select name="numberFormat" label="Number format">
+                <option
+                    value="space-comma"
+                    selected={props.options.numberFormat === "space-comma"}
+                >
+                    Space and comma (12 345,67)
+                </option>
+                <option
+                    value="period-comma"
+                    selected={props.options.numberFormat === "period-comma"}
+                >
+                    Period and comma (12.345,67)
+                </option>
+                <option
+                    value="comma-period"
+                    selected={props.options.numberFormat === "comma-period"}
+                >
+                    Comma and period (12,345.67)
                 </option>
             </Select>
         </section>
@@ -344,6 +365,7 @@ function optionsFromRawForm(
         altitudeUnits: raw.altitudeUnits ?? current.altitudeUnits,
         speedUnits: raw.speedUnits ?? current.speedUnits,
         dateTimeFormat: raw.dateTimeFormat ?? current.dateTimeFormat,
+        numberFormat: raw.numberFormat ?? current.numberFormat,
         previousJumpCount: raw.previousJumpCount ?? current.previousJumpCount,
         openaiApiKey: raw.openaiApiKey ?? current.openaiApiKey,
         jumpImagePrompt: raw.jumpImagePrompt ?? current.jumpImagePrompt,
@@ -438,6 +460,7 @@ async function handlePreferences(c: AppRequestContext) {
         altitudeUnits: result.data.altitudeUnits,
         speedUnits: result.data.speedUnits,
         dateTimeFormat: result.data.dateTimeFormat,
+        numberFormat: result.data.numberFormat,
         previousJumpCount: result.data.previousJumpCount,
         openaiApiKey: result.data.openaiApiKey.trim(),
         jumpImagePrompt:

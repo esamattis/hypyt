@@ -18,7 +18,12 @@ import {
     locations,
 } from "@/schema";
 import { LogbookPage } from "@/app/authenticated-page";
-import { formatAltitude, formatSpeed, type UserOptions } from "@/options";
+import {
+    formatAltitude,
+    formatNumber,
+    formatSpeed,
+    type UserOptions,
+} from "@/options";
 import { formatCalendarDate } from "@/date-time";
 
 function formatDuration(totalSeconds: number): string {
@@ -43,11 +48,12 @@ function formatDuration(totalSeconds: number): string {
 function formatDistance(
     meters: number,
     units: UserOptions["altitudeUnits"],
+    numberFormat: UserOptions["numberFormat"],
 ): string {
     if (units === "feet") {
-        return `${Math.round(meters / 0.3048).toLocaleString("en-US")} ft`;
+        return `${formatNumber(Math.round(meters / 0.3048), numberFormat)} ft`;
     }
-    return `${(meters / 1000).toFixed(1).replace(/\.0$/, "")} km`;
+    return `${formatNumber(meters / 1000, numberFormat, { maximumFractionDigits: 1 })} km`;
 }
 
 interface RecordJump {
@@ -262,6 +268,7 @@ function StatisticsSection(props: {
     items: StatisticsItem[];
     filteredByYear: boolean;
 }) {
+    const numberFormat = useAppContext().getUser().options.numberFormat;
     return (
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-baseline justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -319,15 +326,17 @@ function StatisticsSection(props: {
                                         )}
                                     </td>
                                     <td className="px-5 py-3.5 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                                        {item.recordedJumpCount.toLocaleString(
-                                            "en-US",
+                                        {formatNumber(
+                                            item.recordedJumpCount,
+                                            numberFormat,
                                         )}
                                     </td>
                                     {!props.filteredByYear && (
                                         <td className="px-5 py-3.5 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
-                                            {getTotalJumpCount(
-                                                item,
-                                            ).toLocaleString("en-US")}
+                                            {formatNumber(
+                                                getTotalJumpCount(item),
+                                                numberFormat,
+                                            )}
                                         </td>
                                     )}
                                 </tr>
@@ -677,7 +686,8 @@ async function fetchDetailedStatistics(
                   ...longestFreefallDistanceRows[0],
                   value: formatDistance(
                       longestFreefallDistanceRows[0].value,
-                      getAppContext(c).getUser().options.altitudeUnits,
+                      user.options.altitudeUnits,
+                      user.options.numberFormat,
                   ),
               }
             : undefined,
@@ -686,7 +696,8 @@ async function fetchDetailedStatistics(
                   ...highestExitRows[0],
                   value: formatAltitude(
                       highestExitRows[0].value,
-                      getAppContext(c).getUser().options.altitudeUnits,
+                      user.options.altitudeUnits,
+                      user.options.numberFormat,
                   ),
               }
             : undefined,
@@ -695,7 +706,8 @@ async function fetchDetailedStatistics(
                   ...highestOpeningRows[0],
                   value: formatAltitude(
                       highestOpeningRows[0].value,
-                      getAppContext(c).getUser().options.altitudeUnits,
+                      user.options.altitudeUnits,
+                      user.options.numberFormat,
                   ),
               }
             : undefined,
@@ -704,7 +716,8 @@ async function fetchDetailedStatistics(
                   ...lowestOpeningRows[0],
                   value: formatAltitude(
                       lowestOpeningRows[0].value,
-                      getAppContext(c).getUser().options.altitudeUnits,
+                      user.options.altitudeUnits,
+                      user.options.numberFormat,
                   ),
               }
             : undefined,
@@ -713,7 +726,8 @@ async function fetchDetailedStatistics(
                   ...highestAverageSpeedRows[0],
                   value: formatSpeed(
                       highestAverageSpeedRows[0].value,
-                      getAppContext(c).getUser().options.speedUnits,
+                      user.options.speedUnits,
+                      user.options.numberFormat,
                   ),
               }
             : undefined,
@@ -721,6 +735,7 @@ async function fetchDetailedStatistics(
 }
 
 async function renderDetailedStatistics(c: AppRequestContext) {
+    const options = getAppContext(c).getUser().options;
     const { year: rawYear } = routes.logbook.statistics.detailed.query(c);
     const year = parseYear(rawYear);
     const filteredByYear = year !== undefined;
@@ -786,7 +801,7 @@ async function renderDetailedStatistics(c: AppRequestContext) {
             <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <SummaryCard
                     label="Total jumps"
-                    value={totalJumps.toLocaleString("en-US")}
+                    value={formatNumber(totalJumps, options.numberFormat)}
                 />
                 <SummaryCard
                     label="Total freefall time"
@@ -796,7 +811,8 @@ async function renderDetailedStatistics(c: AppRequestContext) {
                     label="Total freefall distance"
                     value={formatDistance(
                         totalFreefallDistance,
-                        getAppContext(c).getUser().options.altitudeUnits,
+                        options.altitudeUnits,
+                        options.numberFormat,
                     )}
                 />
             </dl>

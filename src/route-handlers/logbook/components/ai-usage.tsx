@@ -6,7 +6,7 @@ import {
     type AppRequestContext,
 } from "@/app/app";
 import { formatCalendarDate, formatUnixDateTime } from "@/date-time";
-import { JUMP_IMAGE_MODELS, type UserOptions } from "@/options";
+import { formatNumber, JUMP_IMAGE_MODELS, type UserOptions } from "@/options";
 import { aiUsage } from "@/schema";
 
 export type AiUsageRow = {
@@ -26,11 +26,14 @@ export type AiUsageTotals = {
     totalTokens: number;
 };
 
-function formatTokenCount(value: number | null | undefined): string {
+function formatTokenCount(
+    value: number | null | undefined,
+    format: UserOptions["numberFormat"],
+): string {
     if (value == null) {
         return "—";
     }
-    return value.toLocaleString("en-US");
+    return formatNumber(value, format);
 }
 
 function formatUsageTitle(
@@ -56,11 +59,28 @@ function formatModelLabel(model: string): string {
     return model;
 }
 
+function UsageCard(props: {
+    label: string;
+    value: number;
+    numberFormat: UserOptions["numberFormat"];
+}) {
+    return (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                {props.label}
+            </p>
+            <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                {formatTokenCount(props.value, props.numberFormat)}
+            </p>
+        </div>
+    );
+}
+
 export function AiUsageSummary(props: {
     totals: AiUsageTotals;
     rows: AiUsageRow[];
 }) {
-    const dateTimeFormat = useAppContext().getUser().options.dateTimeFormat;
+    const options = useAppContext().getUser().options;
     return (
         <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div>
@@ -72,38 +92,26 @@ export function AiUsageSummary(props: {
                 </p>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Reads
-                    </p>
-                    <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-                        {formatTokenCount(props.totals.reads)}
-                    </p>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Input tokens
-                    </p>
-                    <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-                        {formatTokenCount(props.totals.inputTokens)}
-                    </p>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Output tokens
-                    </p>
-                    <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-                        {formatTokenCount(props.totals.outputTokens)}
-                    </p>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                        Total tokens
-                    </p>
-                    <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-                        {formatTokenCount(props.totals.totalTokens)}
-                    </p>
-                </div>
+                <UsageCard
+                    label="Reads"
+                    value={props.totals.reads}
+                    numberFormat={options.numberFormat}
+                />
+                <UsageCard
+                    label="Input tokens"
+                    value={props.totals.inputTokens}
+                    numberFormat={options.numberFormat}
+                />
+                <UsageCard
+                    label="Output tokens"
+                    value={props.totals.outputTokens}
+                    numberFormat={options.numberFormat}
+                />
+                <UsageCard
+                    label="Total tokens"
+                    value={props.totals.totalTokens}
+                    numberFormat={options.numberFormat}
+                />
             </div>
             {props.rows.length === 0 ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -163,27 +171,36 @@ export function AiUsageSummary(props: {
                                         >
                                             {formatUnixDateTime(
                                                 row.createdAt,
-                                                dateTimeFormat,
+                                                options.dateTimeFormat,
                                             )}
                                         </time>
                                     </td>
                                     <td className="w-full min-w-64 px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
                                         {formatUsageTitle(
                                             row.title,
-                                            dateTimeFormat,
+                                            options.dateTimeFormat,
                                         )}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-400">
                                         {formatModelLabel(row.model)}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                                        {formatTokenCount(row.inputTokens)}
+                                        {formatTokenCount(
+                                            row.inputTokens,
+                                            options.numberFormat,
+                                        )}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                                        {formatTokenCount(row.outputTokens)}
+                                        {formatTokenCount(
+                                            row.outputTokens,
+                                            options.numberFormat,
+                                        )}
                                     </td>
                                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
-                                        {formatTokenCount(row.totalTokens)}
+                                        {formatTokenCount(
+                                            row.totalTokens,
+                                            options.numberFormat,
+                                        )}
                                     </td>
                                 </tr>
                             ))}

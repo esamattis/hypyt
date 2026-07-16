@@ -125,6 +125,9 @@ test("a skydiver can update preferences and account details", async ({
     await page
         .locator('select[name="dateTimeFormat"]')
         .selectOption("american");
+    await page
+        .locator('select[name="numberFormat"]')
+        .selectOption("period-comma");
     await page.locator('input[name="password"]').fill("new-parachute");
     await page.locator('input[name="confirmPassword"]').fill("new-parachute");
     await page.getByRole("button", { name: "Save preferences" }).click();
@@ -154,6 +157,9 @@ test("a skydiver can update preferences and account details", async ({
     await expect(page.locator('select[name="dateTimeFormat"]')).toHaveValue(
         "american",
     );
+    await expect(page.locator('select[name="numberFormat"]')).toHaveValue(
+        "period-comma",
+    );
 
     await logOut(page);
     await expect(page).toHaveURL("/login");
@@ -179,16 +185,19 @@ test("unit preferences apply throughout the logbook UI", async ({ page }) => {
     await page
         .locator('select[name="dateTimeFormat"]')
         .selectOption("american");
+    await page
+        .locator('select[name="numberFormat"]')
+        .selectOption("period-comma");
     await page.getByRole("button", { name: "Save preferences" }).click();
 
     const jump = page.getByRole("link", { name: /#1/ });
-    await expect(jump).toContainText("13123 ft");
-    await expect(jump).toContainText("3281 ft");
-    await expect(jump).toContainText("54.5 m/s");
+    await expect(jump).toContainText("13.123 ft");
+    await expect(jump).toContainText("3.281 ft");
+    await expect(jump).toContainText("54,5 m/s");
     await expect(jump).toContainText("01/01/2026");
     await expect(
         page.getByText("Total freefall", { exact: true }).locator(".."),
-    ).toContainText("9,843 ft");
+    ).toContainText("9.843 ft");
 
     await page.getByLabel("Search jumps").fill("13123");
     await page.getByLabel("Search jumps").press("Enter");
@@ -209,16 +218,16 @@ test("unit preferences apply throughout the logbook UI", async ({ page }) => {
     await page.getByRole("link", { name: "View detailed statistics" }).click();
     await expect(
         page.getByText("Total freefall distance").locator(".."),
-    ).toContainText("9,843 ft");
+    ).toContainText("9.843 ft");
     await expect(
         page.getByText("Longest freefall distance").locator(".."),
-    ).toContainText("9,843 ft");
+    ).toContainText("9.843 ft");
     await expect(
         page.getByText("Highest jump altitude").locator(".."),
-    ).toContainText("13123 ft");
+    ).toContainText("13.123 ft");
     await expect(
         page.getByText("Highest freefall speed avg").locator(".."),
-    ).toContainText("54.5 m/s");
+    ).toContainText("54,5 m/s");
     await expect(page.getByText("Jump #1 (01/01/2026)").first()).toBeVisible();
 });
 

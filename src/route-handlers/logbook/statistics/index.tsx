@@ -1,7 +1,12 @@
 import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
 import clsx from "clsx";
 import { useId } from "hono/jsx";
-import { getAppContext, type App, type AppRequestContext } from "@/app/app";
+import {
+    getAppContext,
+    useAppContext,
+    type App,
+    type AppRequestContext,
+} from "@/app/app";
 import { ButtonLink } from "@/components/form";
 import { Script } from "@/components/script";
 import * as routes from "@/routes";
@@ -14,6 +19,7 @@ import {
 import { $assertElement } from "@/utils";
 import { LogbookPage } from "@/app/authenticated-page";
 import { JumpIssueList } from "@/route-handlers/logbook/statistics/jump-issue-list";
+import { formatNumber } from "@/options";
 
 function formatDate(date: Date): string {
     return date.toISOString().slice(0, 10);
@@ -136,6 +142,7 @@ function YearlyJumpsHistogram(props: {
     }
     const maxCount = Math.max(...fullData.map((entry) => entry.count), 1);
     const maxBarHeight = 160;
+    const numberFormat = useAppContext().getUser().options.numberFormat;
     const toggleId = useId();
     const containerId = useId();
     return (
@@ -172,7 +179,7 @@ function YearlyJumpsHistogram(props: {
                             )}
                         >
                             <span className="mb-1 text-xs font-medium tabular-nums text-slate-600 dark:text-slate-300">
-                                {entry.count}
+                                {formatNumber(entry.count, numberFormat)}
                             </span>
                             <div
                                 className={clsx(
@@ -301,6 +308,7 @@ async function renderStatistics(c: AppRequestContext) {
         lastMonthJumps: 0,
         totalFreefallTime: 0,
     };
+    const numberFormat = user.options.numberFormat;
 
     const yearlyData = yearlyRows
         .map((row) => ({
@@ -318,19 +326,22 @@ async function renderStatistics(c: AppRequestContext) {
             <dl className="grid gap-4 sm:grid-cols-2">
                 <SummaryCard
                     label="Total jumps"
-                    value={values.totalJumps.toLocaleString("en-US")}
+                    value={formatNumber(values.totalJumps, numberFormat)}
                 />
                 <SummaryCard
                     label="Jumps this year"
-                    value={values.currentYearJumps.toLocaleString("en-US")}
+                    value={formatNumber(values.currentYearJumps, numberFormat)}
                 />
                 <SummaryCard
                     label="Jumps in the last 12 months"
-                    value={values.lastTwelveMonthsJumps.toLocaleString("en-US")}
+                    value={formatNumber(
+                        values.lastTwelveMonthsJumps,
+                        numberFormat,
+                    )}
                 />
                 <SummaryCard
                     label="Jumps last month"
-                    value={values.lastMonthJumps.toLocaleString("en-US")}
+                    value={formatNumber(values.lastMonthJumps, numberFormat)}
                 />
                 <SummaryCard
                     label="Total freefall time"

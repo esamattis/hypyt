@@ -77,6 +77,7 @@ export const DEFAULT_USER_OPTIONS = {
     altitudeUnits: "meters",
     speedUnits: "kilometers-per-hour",
     dateTimeFormat: "iso",
+    numberFormat: "space-comma",
     previousJumpCount: 0,
     openaiApiKey: "",
     jumpImagePrompt: DEFAULT_JUMP_IMAGE_PROMPT,
@@ -91,6 +92,9 @@ export const UserOptionsSchema = z.object({
     dateTimeFormat: z
         .enum(["finnish", "european", "american", "iso"])
         .default("iso"),
+    numberFormat: z
+        .enum(["space-comma", "period-comma", "comma-period"])
+        .default("space-comma"),
     previousJumpCount: z.coerce.number().int().nonnegative().default(0),
     openaiApiKey: z.string().default(""),
     jumpImagePrompt: z.string().default(DEFAULT_JUMP_IMAGE_PROMPT),
@@ -104,6 +108,26 @@ export type UserOptions = z.output<typeof UserOptionsSchema>;
 export const DEFAULT_USER_OPTIONS_JSON = JSON.stringify(DEFAULT_USER_OPTIONS);
 
 const METERS_PER_FOOT = 0.3048;
+
+export function numberFormatLocale(
+    format: UserOptions["numberFormat"],
+): string {
+    if (format === "space-comma") {
+        return "fi-FI";
+    }
+    if (format === "period-comma") {
+        return "de-DE";
+    }
+    return "en-US";
+}
+
+export function formatNumber(
+    value: number,
+    format: UserOptions["numberFormat"],
+    options?: Intl.NumberFormatOptions,
+): string {
+    return value.toLocaleString(numberFormatLocale(format), options);
+}
 
 export function parseUserOptions(value: string | null): UserOptions {
     if (!value) {
@@ -122,11 +146,12 @@ export function parseUserOptions(value: string | null): UserOptions {
 export function formatAltitude(
     meters: number,
     units: UserOptions["altitudeUnits"],
+    numberFormat: UserOptions["numberFormat"],
 ): string {
     if (units === "feet") {
-        return `${Math.round(meters / METERS_PER_FOOT)} ft`;
+        return `${formatNumber(Math.round(meters / METERS_PER_FOOT), numberFormat)} ft`;
     }
-    return `${meters} m`;
+    return `${formatNumber(meters, numberFormat)} m`;
 }
 
 export function altitudeInputValue(
@@ -156,11 +181,12 @@ export function altitudeUnitLabel(units: UserOptions["altitudeUnits"]): string {
 export function formatSpeed(
     metersPerSecond: number,
     units: UserOptions["speedUnits"],
+    numberFormat: UserOptions["numberFormat"],
 ): string {
     if (units === "meters-per-second") {
-        return `${metersPerSecond.toFixed(1).replace(/\.0$/, "")} m/s`;
+        return `${formatNumber(metersPerSecond, numberFormat, { maximumFractionDigits: 1 })} m/s`;
     }
-    return `${Math.round(metersPerSecond * speedConversionFactor(units))} ${speedUnitLabel(units)}`;
+    return `${formatNumber(Math.round(metersPerSecond * speedConversionFactor(units)), numberFormat)} ${speedUnitLabel(units)}`;
 }
 
 export function speedConversionFactor(
