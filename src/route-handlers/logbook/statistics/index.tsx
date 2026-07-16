@@ -48,25 +48,6 @@ function getTwelveMonthsAgo(): string {
     return formatDate(date);
 }
 
-function formatDuration(totalSeconds: number): string {
-    const days = Math.floor(totalSeconds / 86_400);
-    const hours = Math.floor((totalSeconds % 86_400) / 3_600);
-    const minutes = Math.floor((totalSeconds % 3_600) / 60);
-    const seconds = totalSeconds % 60;
-    const parts = [];
-    if (days > 0) {
-        parts.push(`${days} d`);
-    }
-    if (hours > 0 || days > 0) {
-        parts.push(`${hours} h`);
-    }
-    if (minutes > 0 || hours > 0 || days > 0) {
-        parts.push(`${minutes} min`);
-    }
-    parts.push(`${seconds} s`);
-    return parts.join(" ");
-}
-
 function SummaryCard(props: { label: string; value: string }) {
     return (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -268,7 +249,6 @@ async function renderStatistics(c: AppRequestContext) {
                     currentYearJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfCurrentYear} then 1 else 0 end), 0)`,
                     lastTwelveMonthsJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${twelveMonthsAgo} then 1 else 0 end), 0)`,
                     lastMonthJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfPreviousMonth} and ${jumps.jumpDate} < ${startOfCurrentMonth} then 1 else 0 end), 0)`,
-                    totalFreefallTime: sql<number>`coalesce(sum(${jumps.freefallTime}), 0)`,
                 })
                 .from(jumps)
                 .where(eq(jumps.userUuid, userUuid)),
@@ -306,7 +286,6 @@ async function renderStatistics(c: AppRequestContext) {
         currentYearJumps: 0,
         lastTwelveMonthsJumps: 0,
         lastMonthJumps: 0,
-        totalFreefallTime: 0,
     };
     const formatNumber = app.numberFormatter();
 
@@ -339,10 +318,6 @@ async function renderStatistics(c: AppRequestContext) {
                 <SummaryCard
                     label="Jumps last month"
                     value={formatNumber(values.lastMonthJumps)}
-                />
-                <SummaryCard
-                    label="Total freefall time"
-                    value={formatDuration(values.totalFreefallTime)}
                 />
             </dl>
             <YearlyJumpsHistogram data={yearlyData} />

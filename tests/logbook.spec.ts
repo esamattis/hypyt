@@ -198,7 +198,7 @@ test("a skydiver can register and record their first jump", async ({
     await expect(
         page
             .getByRole("link", { name: /#1/ })
-            .getByText("55 s", { exact: true }),
+            .getByText("55s", { exact: true }),
     ).toBeVisible();
     await expect(
         page.getByText("Total freefall", { exact: true }),

@@ -37,10 +37,12 @@ import { $assertElement } from "@/utils";
 import {
     createAltitudeFormatter,
     createDateFormatter,
+    createDistanceFormatter,
     createNumberFormatter,
     createSpeedFormatter,
     type AltitudeFormatter,
     type DateFormatter,
+    type DistanceFormatter,
     type NumberFormatter,
     type SpeedFormatter,
 } from "@/format";
@@ -59,6 +61,7 @@ export interface AppContext {
     jsDupCache: Set<(...args: any[]) => any>;
     altitudeFormatter(): AltitudeFormatter;
     dateFormatter(): DateFormatter;
+    distanceFormatter(): DistanceFormatter;
     numberFormatter(): NumberFormatter;
     speedFormatter(): SpeedFormatter;
     url(): URL;
@@ -721,6 +724,13 @@ async function setAppContextMiddleware(
         },
         dateFormatter() {
             return createDateFormatter(this.getUser().options.dateTimeFormat);
+        },
+        distanceFormatter() {
+            const options = this.getUser().options;
+            return createDistanceFormatter(
+                options.altitudeUnits,
+                this.numberFormatter(),
+            );
         },
         numberFormatter() {
             return createNumberFormatter(this.getUser().options.numberFormat);

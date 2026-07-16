@@ -19,39 +19,7 @@ import {
     locations,
 } from "@/schema";
 import { LogbookPage } from "@/app/authenticated-page";
-import { type UserOptions } from "@/options";
-import type { NumberFormatter } from "@/format";
-
-function formatDuration(totalSeconds: number): string {
-    const days = Math.floor(totalSeconds / 86_400);
-    const hours = Math.floor((totalSeconds % 86_400) / 3_600);
-    const minutes = Math.floor((totalSeconds % 3_600) / 60);
-    const seconds = totalSeconds % 60;
-    const parts = [];
-    if (days > 0) {
-        parts.push(`${days} d`);
-    }
-    if (hours > 0 || days > 0) {
-        parts.push(`${hours} h`);
-    }
-    if (minutes > 0 || hours > 0 || days > 0) {
-        parts.push(`${minutes} min`);
-    }
-    parts.push(`${seconds} s`);
-    return parts.join(" ");
-}
-
-function createDistanceFormatter(
-    units: UserOptions["altitudeUnits"],
-    formatNumber: NumberFormatter,
-): (meters: number) => string {
-    return function formatDistance(meters) {
-        if (units === "feet") {
-            return `${formatNumber(Math.round(meters / 0.3048))} ft`;
-        }
-        return `${formatNumber(meters / 1000, { maximumFractionDigits: 1 })} km`;
-    };
-}
+import { formatDuration } from "@/utils/format-duration";
 
 interface RecordJump {
     uuid: string;
@@ -615,13 +583,9 @@ async function fetchDetailedStatistics(
     const app = getAppContext(c);
     const db = app.db;
     const user = app.getUser();
-    const formatNumber = app.numberFormatter();
     const formatAltitude = app.altitudeFormatter();
     const formatSpeed = app.speedFormatter();
-    const formatDistance = createDistanceFormatter(
-        user.options.altitudeUnits,
-        formatNumber,
-    );
+    const formatDistance = app.distanceFormatter();
     const userUuid = user.uuid;
     const yearCondition = year
         ? and(
@@ -713,12 +677,8 @@ async function fetchDetailedStatistics(
 
 async function renderDetailedStatistics(c: AppRequestContext) {
     const app = getAppContext(c);
-    const options = app.getUser().options;
     const formatNumber = app.numberFormatter();
-    const formatDistance = createDistanceFormatter(
-        options.altitudeUnits,
-        formatNumber,
-    );
+    const formatDistance = app.distanceFormatter();
     const { year: rawYear } = routes.logbook.statistics.detailed.query(c);
     const year = parseYear(rawYear);
     const filteredByYear = year !== undefined;
@@ -770,6 +730,9 @@ async function renderDetailedStatistics(c: AppRequestContext) {
             >
                 ← Back to statistics
             </a>
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                {year ?? "All Years"}
+            </h2>
             <YearNavigationBar
                 year={year}
                 availableYears={availableYears}

@@ -12,6 +12,7 @@ export type NumberFormatter = (
 ) => string;
 
 export type AltitudeFormatter = (meters: number) => string;
+export type DistanceFormatter = (meters: number) => string;
 export type SpeedFormatter = (metersPerSecond: number) => string;
 
 export interface DateFormatter {
@@ -33,6 +34,18 @@ export function createAltitudeFormatter(
 ): AltitudeFormatter {
     return function altitudeFormatter(meters) {
         return formatAltitude(meters, altitudeUnits, numberFormat);
+    };
+}
+
+export function createDistanceFormatter(
+    altitudeUnits: UserOptions["altitudeUnits"],
+    formatNumber: NumberFormatter,
+): DistanceFormatter {
+    return function distanceFormatter(meters) {
+        if (altitudeUnits === "feet") {
+            return `${formatNumber(meters / 1609.344, { maximumFractionDigits: 1 })} mi`;
+        }
+        return `${formatNumber(meters / 1000, { maximumFractionDigits: 1 })} km`;
     };
 }
 

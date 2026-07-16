@@ -100,7 +100,6 @@ test("statistics show recorded and total jump counts for every item", async ({
     await expect(
         page.getByText("Jumps last month").locator(".."),
     ).toContainText("0");
-    await expect(page.getByText("1 min 43 s", { exact: true })).toBeVisible();
     await page.getByRole("link", { name: "View detailed statistics" }).click();
 
     await expect(page).toHaveURL("/logbook/statistics/detailed");
@@ -108,8 +107,11 @@ test("statistics show recorded and total jump counts for every item", async ({
         page.getByRole("heading", { name: "Detailed statistics" }),
     ).toBeVisible();
     await expect(
+        page.getByRole("heading", { name: "All Years", exact: true }),
+    ).toBeVisible();
+    await expect(
         page.getByText("Total freefall time").locator(".."),
-    ).toContainText("1 min 43 s");
+    ).toContainText("1min 43s");
     await expect(
         page.getByText("Total freefall distance").locator(".."),
     ).toContainText("6 km");
@@ -131,6 +133,16 @@ test("statistics show recorded and total jump counts for every item", async ({
     await expect(
         page.getByRole("row").filter({ hasText: "Formation skydiving" }),
     ).toContainText("20");
+    const currentYear = new Date().getUTCFullYear();
+    await page
+        .getByRole("link", { name: String(currentYear), exact: true })
+        .click();
+    await expect(page).toHaveURL(
+        `/logbook/statistics/detailed?year=${currentYear}`,
+    );
+    await expect(
+        page.getByRole("heading", { name: String(currentYear), exact: true }),
+    ).toBeVisible();
 });
 
 test("a CSV jump can omit optional measurements and jump items", async ({

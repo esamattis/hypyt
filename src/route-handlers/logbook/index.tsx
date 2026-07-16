@@ -17,12 +17,12 @@ import { Details } from "@/components/ui/details";
 import { LogbookPage } from "@/app/authenticated-page";
 import {
     Distance,
-    formatDuration,
     JumpCard,
     type JumpListItem,
 } from "@/route-handlers/logbook/components/jump-list";
 import { JumpSearch } from "@/route-handlers/logbook/components/search";
 import { JumpItemSelect } from "@/components/jump-item-select";
+import { formatDuration } from "@/utils/format-duration";
 
 function LogbookStatsCard(props: { label: string; value: any }) {
     return (
