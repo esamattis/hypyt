@@ -64,22 +64,22 @@ export function ImageGallery(props: {
             />
             <template id={galleryItemTemplateId}>
                 <div className="group relative min-w-0">
-                    <button type="button" data-select-image>
+                    <button type="button" data-loki-select-image>
                         <img className="h-36 w-full rounded object-contain sm:h-44" />
                         <span
-                            data-read-image
+                            data-loki-read-image
                             className="absolute left-2 top-2 hidden rounded-full bg-emerald-700 px-2 py-1 text-xs font-semibold text-white shadow"
                         >
                             Read once
                         </span>
                         <span
-                            data-template-slot="meta"
+                            data-loki-template-slot="meta"
                             className="block truncate px-1 py-1 text-xs text-slate-600 dark:text-slate-300"
                         ></span>
                     </button>
                     <button
                         type="button"
-                        data-delete-image
+                        data-loki-delete-image
                         className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-950/75 text-sm font-bold text-white shadow hover:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
                     >
                         X
@@ -401,38 +401,38 @@ export function $renderJumpImageGallery(options: {
         });
         const item = container.firstElementChild;
         $assertElement(item, HTMLElement);
-        const selectButton = item.querySelector("[data-select-image]");
+        const selectButton = item.querySelector("[data-loki-select-image]");
         const image = item.querySelector("img");
-        const deleteButton = item.querySelector("[data-delete-image]");
-        const readIndicator = item.querySelector("[data-read-image]");
+        const deleteButton = item.querySelector("[data-loki-delete-image]");
+        const readIndicator = item.querySelector("[data-loki-read-image]");
         $assertElement(selectButton, HTMLButtonElement);
         $assertElement(image, HTMLImageElement);
         $assertElement(deleteButton, HTMLButtonElement);
         $assertElement(readIndicator, HTMLElement);
         selectButton.className = selectClass;
-        selectButton.dataset.selectImage = draft.id;
+        selectButton.dataset.lokiSelectImage = draft.id;
         selectButton.setAttribute("aria-label", `Select ${draft.file.name}`);
         image.src = url;
         image.alt = alt;
         readIndicator.classList.toggle("hidden", !draft.read);
-        deleteButton.dataset.deleteImage = draft.id;
+        deleteButton.dataset.lokiDeleteImage = draft.id;
         deleteButton.setAttribute("aria-label", `Delete ${draft.file.name}`);
         options.gallery.appendChild(item);
     }
     for (const button of options.gallery.querySelectorAll(
-        "[data-select-image]",
+        "[data-loki-select-image]",
     )) {
         $assertElement(button, HTMLButtonElement);
         button.addEventListener("click", () => {
-            options.selectDraft(button.dataset.selectImage ?? "");
+            options.selectDraft(button.dataset.lokiSelectImage ?? "");
         });
     }
     for (const button of options.gallery.querySelectorAll(
-        "[data-delete-image]",
+        "[data-loki-delete-image]",
     )) {
         $assertElement(button, HTMLButtonElement);
         button.addEventListener("click", () => {
-            options.deleteDraft(button.dataset.deleteImage ?? "");
+            options.deleteDraft(button.dataset.lokiDeleteImage ?? "");
         });
     }
     options.gallery.classList.toggle("hidden", options.drafts.length === 0);

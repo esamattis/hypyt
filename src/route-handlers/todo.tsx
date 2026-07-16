@@ -34,19 +34,19 @@ function $initTodoApp(config: {
                 text: todo.text,
             });
             const item = container.firstElementChild;
-            const checkbox = item?.querySelector("[data-todo-toggle]");
-            const text = item?.querySelector("[data-todo-text]");
-            const remove = item?.querySelector("[data-todo-delete]");
+            const checkbox = item?.querySelector("[data-loki-todo-toggle]");
+            const text = item?.querySelector("[data-loki-todo-text]");
+            const remove = item?.querySelector("[data-loki-todo-delete]");
             $assertElement(item, HTMLLIElement);
             $assertElement(checkbox, HTMLInputElement);
             $assertElement(text, HTMLSpanElement);
             $assertElement(remove, HTMLButtonElement);
             checkbox.checked = todo.completed;
-            checkbox.dataset.todoToggle = String(todo.id);
+            checkbox.dataset.lokiTodoToggle = String(todo.id);
             text.className = todo.completed
                 ? "truncate text-slate-400 line-through"
                 : "truncate text-slate-800 dark:text-slate-200";
-            remove.dataset.todoDelete = String(todo.id);
+            remove.dataset.lokiTodoDelete = String(todo.id);
             remove.setAttribute("aria-label", `Delete ${todo.text}`);
             items.appendChild(item);
         }
@@ -58,7 +58,7 @@ function $initTodoApp(config: {
     render();
     const inputEl = document.getElementById(config.inputId);
     const listEl = document.getElementById(config.listId);
-    const addEl = host.querySelector("[data-add-todo]");
+    const addEl = host.querySelector("[data-loki-add-todo]");
     $assertElement(inputEl, HTMLInputElement);
     $assertElement(listEl, HTMLUListElement);
     $assertElement(addEl, HTMLButtonElement);
@@ -84,7 +84,7 @@ function $initTodoApp(config: {
     list.addEventListener("change", (event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        const id = Number(target.dataset.todoToggle);
+        const id = Number(target.dataset.lokiTodoToggle);
         const todo = todos.find((item) => item.id === id);
         if (!todo) return;
         todo.completed = target.checked;
@@ -93,9 +93,9 @@ function $initTodoApp(config: {
     list.addEventListener("click", (event) => {
         const target = event.target;
         if (!(target instanceof Element)) return;
-        const button = target.closest("[data-todo-delete]");
+        const button = target.closest("[data-loki-todo-delete]");
         if (!(button instanceof HTMLButtonElement)) return;
-        const id = Number(button.dataset.todoDelete);
+        const id = Number(button.dataset.lokiTodoDelete);
         const index = todos.findIndex((item) => item.id === id);
         if (index === -1) return;
         todos.splice(index, 1);
@@ -135,20 +135,20 @@ function TodoPage() {
                         />
                         <button
                             type="button"
-                            data-add-todo
+                            data-loki-add-todo
                             className={buttonClassName({})}
                         >
                             Add
                         </button>
                     </div>
                     <p
-                        data-template-slot="summary"
+                        data-loki-template-slot="summary"
                         aria-live="polite"
                         className="mt-4 text-sm font-medium text-slate-500 dark:text-slate-400"
                     ></p>
                     <ul
                         id={listId}
-                        data-template-slot="items"
+                        data-loki-template-slot="items"
                         className="mt-2"
                     ></ul>
                 </section>
@@ -158,14 +158,17 @@ function TodoPage() {
                     <label className="flex min-w-0 flex-1 items-center gap-3">
                         <input
                             type="checkbox"
-                            data-todo-toggle
+                            data-loki-todo-toggle
                             className="size-4 rounded border-slate-300"
                         />
-                        <span data-todo-text data-template-slot="text"></span>
+                        <span
+                            data-loki-todo-text
+                            data-loki-template-slot="text"
+                        ></span>
                     </label>
                     <button
                         type="button"
-                        data-todo-delete
+                        data-loki-todo-delete
                         className="rounded-md px-2 py-1 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
                     >
                         Delete

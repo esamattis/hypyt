@@ -193,11 +193,11 @@ these exported declarations. Remove this block and the now-unused `Button` and
 const UNSAVED_CHANGES_DIALOG_ID = "unsaved-changes-dialog";
 
 function $isFormDirty(): boolean {
-    return document.documentElement.dataset.formDirty === "true";
+    return document.documentElement.dataset.lokiFormDirty === "true";
 }
 
 function $clearFormDirty(): void {
-    delete document.documentElement.dataset.formDirty;
+    delete document.documentElement.dataset.lokiFormDirty;
 }
 
 function $markFormDirtyFromEvent(event: Event): void {
@@ -222,7 +222,7 @@ function $markFormDirtyFromEvent(event: Event): void {
     if (target instanceof HTMLInputElement && target.type === "hidden") {
         return;
     }
-    document.documentElement.dataset.formDirty = "true";
+    document.documentElement.dataset.lokiFormDirty = "true";
 }
 
 function $navigationHrefFromClick(event: MouseEvent): string | null {
@@ -446,14 +446,14 @@ export function UpdateToast() {
             </span>
             <button
                 type="button"
-                data-update-toast-reload
+                data-loki-update-toast-reload
                 className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
                 Reload
             </button>
             <button
                 type="button"
-                data-update-toast-dismiss
+                data-loki-update-toast-dismiss
                 className="rounded-lg px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
                 Dismiss
@@ -465,14 +465,14 @@ export function UpdateToast() {
                     const toast = document.getElementById(toastId);
                     $assertElement(toast, HTMLDivElement);
                     const reload = toast.querySelector(
-                        "[data-update-toast-reload]",
+                        "[data-loki-update-toast-reload]",
                     );
                     $assertElement(reload, HTMLButtonElement);
                     reload.addEventListener("click", () => {
                         window.location.reload();
                     });
                     const dismiss = toast.querySelector(
-                        "[data-update-toast-dismiss]",
+                        "[data-loki-update-toast-dismiss]",
                     );
                     $assertElement(dismiss, HTMLButtonElement);
                     dismiss.addEventListener("click", () => {

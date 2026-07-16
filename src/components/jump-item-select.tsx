@@ -33,8 +33,8 @@ function JumpItemOption(props: {
     return (
         <label
             hidden={props.item.archived && !props.selected}
-            data-archived={props.item.archived ? "true" : undefined}
-            data-tooltip={props.item.description || undefined}
+            data-loki-archived={props.item.archived ? "true" : undefined}
+            data-loki-tooltip={props.item.description || undefined}
             className={OPTION_CLASS_NAME}
         >
             <input
@@ -42,9 +42,9 @@ function JumpItemOption(props: {
                 type={props.multiple ? "checkbox" : "radio"}
                 value={props.item.uuid}
                 checked={props.selected}
-                data-jump-item-input
-                data-label={props.item.name}
-                data-description={props.item.description || undefined}
+                data-loki-jump-item-input
+                data-loki-label={props.item.name}
+                data-loki-description={props.item.description || undefined}
                 className={clsx(
                     "h-4 w-4 border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40",
                     props.multiple && "rounded",
@@ -67,13 +67,13 @@ function JumpItemSelectScript(props: {
         <>
             <template id={props.emptyTemplateId}>
                 <span
-                    data-template-slot="emptyText"
+                    data-loki-template-slot="emptyText"
                     class="text-slate-500 dark:text-slate-400"
                 ></span>
             </template>
             <template id={props.itemTemplateId}>
                 <span
-                    data-template-slot="label"
+                    data-loki-template-slot="label"
                     class="rounded-md bg-indigo-50 px-2 py-1 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-200"
                 ></span>
             </template>
@@ -90,7 +90,9 @@ function JumpItemSelectScript(props: {
 
                     function selectedInputs() {
                         return Array.from(
-                            options.querySelectorAll("[data-jump-item-input]"),
+                            options.querySelectorAll(
+                                "[data-loki-jump-item-input]",
+                            ),
                         ).filter(
                             (element) =>
                                 element instanceof HTMLInputElement &&
@@ -115,16 +117,18 @@ function JumpItemSelectScript(props: {
                                     config.itemTemplateId,
                                     {
                                         label:
-                                            input.getAttribute("data-label") ??
-                                            "",
+                                            input.getAttribute(
+                                                "data-loki-label",
+                                            ) ?? "",
                                     },
                                 );
                                 const item = container.firstElementChild;
                                 $assertElement(item, HTMLElement);
-                                const description =
-                                    input.getAttribute("data-description");
+                                const description = input.getAttribute(
+                                    "data-loki-description",
+                                );
                                 if (description)
-                                    item.dataset.tooltip = description;
+                                    item.dataset.lokiTooltip = description;
                                 return item;
                             }),
                         );
@@ -133,7 +137,7 @@ function JumpItemSelectScript(props: {
                     function setArchivedItemsVisible(visible: boolean) {
                         let hasSelectedArchivedItem = false;
                         for (const element of options.querySelectorAll(
-                            '[data-archived="true"]',
+                            '[data-loki-archived="true"]',
                         )) {
                             if (!(element instanceof HTMLLabelElement))
                                 continue;
@@ -145,7 +149,7 @@ function JumpItemSelectScript(props: {
                             element.hidden = !(visible || selected);
                         }
                         const archivedSection = options.querySelector(
-                            "[data-archived-section]",
+                            "[data-loki-archived-section]",
                         );
                         if (archivedSection instanceof HTMLElement) {
                             archivedSection.hidden = !(
@@ -157,7 +161,7 @@ function JumpItemSelectScript(props: {
                             config.archivedButtonId,
                         );
                         $assertElement(button, HTMLButtonElement);
-                        button.dataset.showingArchived = visible
+                        button.dataset.lokiShowingArchived = visible
                             ? "true"
                             : "false";
                         button.textContent = visible
@@ -173,7 +177,7 @@ function JumpItemSelectScript(props: {
                         );
                         $assertElement(button, HTMLButtonElement);
                         setArchivedItemsVisible(
-                            button.dataset.showingArchived === "true",
+                            button.dataset.lokiShowingArchived === "true",
                         );
                     });
                     if (config.archivedButtonId !== "") {
@@ -183,7 +187,7 @@ function JumpItemSelectScript(props: {
                         $assertElement(button, HTMLButtonElement);
                         button.addEventListener("click", () => {
                             setArchivedItemsVisible(
-                                button.dataset.showingArchived !== "true",
+                                button.dataset.lokiShowingArchived !== "true",
                             );
                         });
                     }
@@ -246,7 +250,9 @@ export function JumpItemSelect(props: JumpItemSelectProps) {
                     ) : (
                         selectedItems.map((item) => (
                             <span
-                                data-tooltip={item.description || undefined}
+                                data-loki-tooltip={
+                                    item.description || undefined
+                                }
                                 className="rounded-md bg-indigo-50 px-2 py-1 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-200"
                             >
                                 {item.name}
@@ -284,7 +290,7 @@ export function JumpItemSelect(props: JumpItemSelectProps) {
                                         type="radio"
                                         value=""
                                         checked={selectedItems.length === 0}
-                                        data-jump-item-input
+                                        data-loki-jump-item-input
                                         className="h-4 w-4 border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-600 dark:text-indigo-500 dark:focus:ring-indigo-400/40"
                                     />
                                     None
@@ -303,7 +309,7 @@ export function JumpItemSelect(props: JumpItemSelectProps) {
                     {archivedItems.length > 0 && (
                         <section
                             hidden={!hasSelectedArchivedItems}
-                            data-archived-section
+                            data-loki-archived-section
                             className="border-t border-slate-200 pt-4 dark:border-slate-700"
                         >
                             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -327,7 +333,7 @@ export function JumpItemSelect(props: JumpItemSelectProps) {
                         <button
                             id={archivedButtonId}
                             type="button"
-                            data-showing-archived="false"
+                            data-loki-showing-archived="false"
                             className="text-sm font-medium text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                         >
                             Show archived items

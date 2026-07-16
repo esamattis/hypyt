@@ -5,10 +5,10 @@ const UPDATE_TOAST_ID = "update-toast";
 function $initUpdateToast(toastId: string) {
     const toast = document.getElementById(toastId);
     $assertElement(toast, HTMLDivElement);
-    const reload = toast.querySelector("[data-update-toast-reload]");
+    const reload = toast.querySelector("[data-loki-update-toast-reload]");
     $assertElement(reload, HTMLButtonElement);
     reload.addEventListener("click", () => window.location.reload());
-    const dismiss = toast.querySelector("[data-update-toast-dismiss]");
+    const dismiss = toast.querySelector("[data-loki-update-toast-dismiss]");
     $assertElement(dismiss, HTMLButtonElement);
     dismiss.addEventListener("click", () => {
         toast.hidden = true;
@@ -28,14 +28,14 @@ export function UpdateToast() {
             </span>
             <button
                 type="button"
-                data-update-toast-reload
+                data-loki-update-toast-reload
                 className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
                 Reload
             </button>
             <button
                 type="button"
-                data-update-toast-dismiss
+                data-loki-update-toast-dismiss
                 className="rounded-lg px-2 py-1 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
                 Dismiss

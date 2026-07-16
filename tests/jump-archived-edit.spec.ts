@@ -110,7 +110,7 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
         "Archived Freefly",
     );
     await expect(
-        page.locator('[data-archived="true"]', {
+        page.locator('[data-loki-archived="true"]', {
             hasText: "Unused Archived Gear",
         }),
     ).toBeHidden();
@@ -119,11 +119,13 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
         gearDialog.getByRole("heading", { name: "Archived" }),
     ).toBeVisible();
     await expect(
-        gearDialog.locator('label[data-tooltip="Archived canopy description"]'),
+        gearDialog.locator(
+            'label[data-loki-tooltip="Archived canopy description"]',
+        ),
     ).toContainText("Archived Canopy");
     await expect(
         jumpItemSummary(page, "Gear used").locator(
-            '[data-tooltip="Archived canopy description"]',
+            '[data-loki-tooltip="Archived canopy description"]',
         ),
     ).toContainText("Archived Canopy");
     await expect(gearDialog.getByRole("button", { name: "OK" })).toBeVisible();
@@ -145,7 +147,7 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
         .getByRole("button", { name: "Hide archived items" })
         .click();
     await expect(
-        page.locator('[data-archived="true"]', {
+        page.locator('[data-loki-archived="true"]', {
             hasText: "Unused Archived Gear",
         }),
     ).toBeHidden();
@@ -278,7 +280,7 @@ test("new jump form hides archived items and shows reveal button", async ({
         }),
     ).toBeVisible();
     await expect(
-        locationDialog.locator('label[data-archived="true"][hidden]', {
+        locationDialog.locator('label[data-loki-archived="true"][hidden]', {
             hasText: "Hidden Dropzone",
         }),
     ).toBeAttached();
@@ -292,7 +294,7 @@ test("new jump form hides archived items and shows reveal button", async ({
         }),
     ).toBeVisible();
     await expect(
-        aircraftDialog.locator('label[data-archived="true"][hidden]', {
+        aircraftDialog.locator('label[data-loki-archived="true"][hidden]', {
             hasText: "Hidden Plane",
         }),
     ).toBeAttached();
@@ -306,7 +308,7 @@ test("new jump form hides archived items and shows reveal button", async ({
         }),
     ).toBeVisible();
     await expect(
-        gearDialog.locator('label[data-archived="true"][hidden]', {
+        gearDialog.locator('label[data-loki-archived="true"][hidden]', {
             hasText: "Hidden Canopy",
         }),
     ).toBeAttached();
@@ -314,7 +316,7 @@ test("new jump form hides archived items and shows reveal button", async ({
         gearDialog.getByRole("heading", { name: "Archived" }),
     ).toBeHidden();
     await expect(
-        page.locator('label[data-archived="true"][hidden]', {
+        page.locator('label[data-loki-archived="true"][hidden]', {
             hasText: "Hidden Freefly",
         }),
     ).toBeAttached();
@@ -338,7 +340,7 @@ test("new jump form hides archived items and shows reveal button", async ({
         .getByRole("button", { name: "Hide archived items" })
         .click();
     await expect(
-        page.locator('label[data-archived="true"][hidden]', {
+        page.locator('label[data-loki-archived="true"][hidden]', {
             hasText: "Hidden Canopy",
         }),
     ).toBeAttached();

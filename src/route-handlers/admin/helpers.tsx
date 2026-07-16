@@ -39,7 +39,7 @@ export function InvitationForm(props: {
     return (
         <form
             method="post"
-            data-confirm={
+            data-loki-confirm={
                 props.codeReadOnly ? "Edit Invitation" : "Add Invitation"
             }
             className="max-w-xl space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"

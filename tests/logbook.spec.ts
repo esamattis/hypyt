@@ -149,7 +149,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await page.locator('input[name="jumpNumber"]').fill("1");
-    await page.locator("[data-jump-date-input]").fill("2024-06-15");
+    await page.locator("[data-loki-jump-date-input]").fill("2024-06-15");
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await expect(
@@ -229,20 +229,20 @@ test("a skydiver can register and record their first jump", async ({
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?from=/);
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("2");
-    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
+    await expect(page.locator("[data-loki-jump-date-input]")).toHaveValue(
         "2024-06-15",
     );
-    const datePicker = page.locator("[data-jump-date-picker]");
+    const datePicker = page.locator("[data-loki-jump-date-picker]");
     await datePicker.evaluate((element) => {
         if (!(element instanceof HTMLInputElement)) {
             throw new Error("Expected date input");
         }
         element.showPicker = () => {
-            element.dataset.opened = "true";
+            element.dataset.lokiOpened = "true";
         };
     });
     await page.getByRole("button", { name: "Choose jump date" }).click();
-    await expect(datePicker).toHaveAttribute("data-opened", "true");
+    await expect(datePicker).toHaveAttribute("data-loki-opened", "true");
     await datePicker.evaluate((element) => {
         if (!(element instanceof HTMLInputElement)) {
             throw new Error("Expected date input");
@@ -250,7 +250,7 @@ test("a skydiver can register and record their first jump", async ({
         element.value = "2024-06-16";
         element.dispatchEvent(new Event("change", { bubbles: true }));
     });
-    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
+    await expect(page.locator("[data-loki-jump-date-input]")).toHaveValue(
         "2024-06-16",
     );
     await page.getByRole("button", { name: "Today" }).click();
@@ -260,10 +260,10 @@ test("a skydiver can register and record their first jump", async ({
         String(today.getMonth() + 1).padStart(2, "0"),
         String(today.getDate()).padStart(2, "0"),
     ].join("-");
-    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
+    await expect(page.locator("[data-loki-jump-date-input]")).toHaveValue(
         todayValue,
     );
-    await page.locator("[data-jump-date-input]").fill("2024-06-15");
+    await page.locator("[data-loki-jump-date-input]").fill("2024-06-15");
     await expect(page.locator('input[name="exitAltitude"]')).toHaveValue(
         "4000",
     );
@@ -294,7 +294,7 @@ test("a skydiver can register and record their first jump", async ({
 
     await expect(page).toHaveURL("/logbook/jumps/new");
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("3");
-    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
+    await expect(page.locator("[data-loki-jump-date-input]")).toHaveValue(
         "2024-06-15",
     );
     await expect(page.locator('input[name="exitAltitude"]')).toHaveValue(
@@ -670,7 +670,7 @@ test("a skydiver can create jump items from the add jump form", async ({
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await page.locator('input[name="jumpNumber"]').fill("1");
-    await page.locator("[data-jump-date-input]").fill("2024-07-01");
+    await page.locator("[data-loki-jump-date-input]").fill("2024-07-01");
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
@@ -786,7 +786,7 @@ test("next jump number button restores max plus one", async ({ page }) => {
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("6");
     await expect(page.locator('input[name="jumpNumber"]')).toHaveAttribute(
-        "data-next-jump-number",
+        "data-loki-next-jump-number",
         "6",
     );
 

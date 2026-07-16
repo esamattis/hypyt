@@ -19,7 +19,7 @@ export function BuildInfo() {
             <a
                 href={commitUrl}
                 className={linkClassName}
-                data-tooltip="View commit on GitHub this version was built from"
+                data-loki-tooltip="View commit on GitHub this version was built from"
             >
                 {shortGitRevision}
             </a>

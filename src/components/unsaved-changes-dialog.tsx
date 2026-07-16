@@ -5,18 +5,20 @@ import { Dialog } from "@/components/ui/dialog";
 
 const UNSAVED_CHANGES_DIALOG_ID = "unsaved-changes-dialog";
 function $isFormDirty() {
-    return document.documentElement.dataset.formDirty === "true";
+    return document.documentElement.dataset.lokiFormDirty === "true";
 }
 function $clearFormDirty() {
-    delete document.documentElement.dataset.formDirty;
-    document.querySelectorAll("form[data-form-dirty]").forEach((form) => {
-        if (form instanceof HTMLFormElement) delete form.dataset.formDirty;
+    delete document.documentElement.dataset.lokiFormDirty;
+    document.querySelectorAll("form[data-loki-form-dirty]").forEach((form) => {
+        if (form instanceof HTMLFormElement) {
+            delete form.dataset.lokiFormDirty;
+        }
     });
 }
 function $markFormDirtyFromEvent(event: Event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const form = target.closest("form[data-confirm]");
+    const form = target.closest("form[data-loki-confirm]");
     if (
         !(form instanceof HTMLFormElement) ||
         form.method.toLowerCase() !== "post" ||
@@ -28,8 +30,8 @@ function $markFormDirtyFromEvent(event: Event) {
         (target instanceof HTMLInputElement && target.type === "hidden")
     )
         return;
-    document.documentElement.dataset.formDirty = "true";
-    form.dataset.formDirty = "true";
+    document.documentElement.dataset.lokiFormDirty = "true";
+    form.dataset.lokiFormDirty = "true";
 }
 function $navigationHrefFromClick(event: MouseEvent): string | null {
     if (
@@ -70,11 +72,11 @@ function $guardUnsavedFormChanges(dialogId: string) {
     let pendingHref: string | null = null;
     let pendingForm: HTMLFormElement | null = null;
     const initiallyDirtyForm = document.querySelector(
-        'form[data-dirty="true"]',
+        'form[data-loki-dirty="true"]',
     );
     if (initiallyDirtyForm instanceof HTMLFormElement) {
-        document.documentElement.dataset.formDirty = "true";
-        initiallyDirtyForm.dataset.formDirty = "true";
+        document.documentElement.dataset.lokiFormDirty = "true";
+        initiallyDirtyForm.dataset.lokiFormDirty = "true";
     }
     document.addEventListener("input", $markFormDirtyFromEvent, true);
     document.addEventListener("change", $markFormDirtyFromEvent, true);
@@ -128,12 +130,12 @@ function $guardUnsavedFormChanges(dialogId: string) {
             event.preventDefault();
             event.stopImmediatePropagation();
             pendingHref = href;
-            const form = document.querySelector("form[data-form-dirty]");
+            const form = document.querySelector("form[data-loki-form-dirty]");
             $assertElement(form, HTMLFormElement);
             pendingForm = form;
             const title = dialog.querySelector("h2");
             $assertElement(title, HTMLHeadingElement);
-            title.textContent = form.dataset.confirm ?? "";
+            title.textContent = form.dataset.lokiConfirm ?? "";
             dialog.showModal();
         },
         true,

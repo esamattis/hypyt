@@ -128,7 +128,7 @@ function LogbookActions(props: { pathname: string }) {
                 aria-current={
                     props.pathname === logbookPath ? "page" : undefined
                 }
-                data-tooltip="Show jump list"
+                data-loki-tooltip="Show jump list"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
                 <span className="hidden sm:inline">Logbook</span>
@@ -143,7 +143,7 @@ function LogbookActions(props: { pathname: string }) {
                 aria-current={
                     props.pathname === newJumpPath ? "page" : undefined
                 }
-                data-tooltip="Add jump"
+                data-loki-tooltip="Add jump"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
                 <span className="hidden sm:inline">Add jump</span>
@@ -158,7 +158,7 @@ function LogbookActions(props: { pathname: string }) {
                 aria-current={
                     props.pathname === fromImagePath ? "page" : undefined
                 }
-                data-tooltip="Create jump from image using AI image recognition"
+                data-loki-tooltip="Create jump from image using AI image recognition"
                 className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
             >
                 <span className="hidden sm:inline">Read image</span>
@@ -225,7 +225,7 @@ function $initThemeToggle(ids: {
         darkIcon.classList.toggle("hidden", theme !== "dark");
         systemIcon.classList.toggle("hidden", theme !== "system");
         button.setAttribute("aria-label", labels[theme]);
-        button.dataset.tooltip = labels[theme];
+        button.dataset.lokiTooltip = labels[theme];
     }
 
     function setTheme(theme: "light" | "dark" | "system") {
@@ -266,7 +266,7 @@ function ThemeToggle() {
                 type="button"
                 variant="secondary"
                 aria-label="Toggle theme"
-                data-tooltip="Toggle theme"
+                data-loki-tooltip="Toggle theme"
                 className="px-3 py-2 text-sm"
             >
                 <LightThemeIcon id={lightIconId} className="hidden h-4 w-4" />

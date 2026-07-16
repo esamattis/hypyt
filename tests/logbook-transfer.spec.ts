@@ -367,7 +367,7 @@ test("a Skydiving Logbook XML file can be imported", async ({ page }) => {
     await expect(importedJump).toContainText("Skydive XML / Caravan");
     await expect(importedJump).toContainText("2024-06-15");
     await importedJump.click();
-    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
+    await expect(page.locator("[data-loki-jump-date-input]")).toHaveValue(
         "2024-06-15",
     );
     await expect(page.locator('textarea[name="description"]')).toHaveValue(

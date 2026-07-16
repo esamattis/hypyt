@@ -33,7 +33,7 @@ export function ExportCurlHelp() {
                 </p>
                 <Code
                     codeId={csvId}
-                    codeProps={{ "data-export-path": csvPath }}
+                    codeProps={{ "data-loki-export-path": csvPath }}
                 >
                     {`curl -OJ -u ${username}:<password> '${csvPath}'`}
                 </Code>
@@ -53,7 +53,7 @@ export function ExportCurlHelp() {
                         const code = document.getElementById(csvId);
                         $assertElement(code, HTMLElement);
                         const exportPath =
-                            code.getAttribute("data-export-path") ?? "";
+                            code.getAttribute("data-loki-export-path") ?? "";
                         code.textContent = `curl -OJ -u ${username}:<password> '${origin}${exportPath}'`;
                     }}
                 />

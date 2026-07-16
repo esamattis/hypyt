@@ -54,7 +54,7 @@ export function Button(props: {
     hidden?: boolean;
     disabled?: boolean;
     title?: string;
-    "data-tooltip"?: string;
+    "data-loki-tooltip"?: string;
     "aria-label"?: string;
     "aria-controls"?: string;
     "aria-expanded"?: string;
@@ -69,7 +69,7 @@ export function Button(props: {
             hidden={props.hidden}
             disabled={props.disabled}
             title={props.title}
-            data-tooltip={props["data-tooltip"]}
+            data-loki-tooltip={props["data-loki-tooltip"]}
             aria-label={props["aria-label"]}
             aria-controls={props["aria-controls"]}
             aria-expanded={props["aria-expanded"]}
@@ -91,7 +91,7 @@ export function ButtonLink(props: {
     size?: ButtonSize;
     className?: string;
     title?: string;
-    "data-tooltip"?: string;
+    "data-loki-tooltip"?: string;
     "aria-label"?: string;
     "aria-current"?: "page";
     "aria-disabled"?: boolean;
@@ -101,7 +101,7 @@ export function ButtonLink(props: {
         <a
             href={props.href}
             title={props.title}
-            data-tooltip={props["data-tooltip"]}
+            data-loki-tooltip={props["data-loki-tooltip"]}
             aria-label={props["aria-label"]}
             aria-current={props["aria-current"]}
             aria-disabled={props["aria-disabled"]}
@@ -311,7 +311,7 @@ export function Checkbox(props: {
     checked?: boolean;
     className?: string;
     hidden?: boolean;
-    "data-archived"?: string;
+    "data-loki-archived"?: string;
 }) {
     return (
         <label
@@ -320,7 +320,7 @@ export function Checkbox(props: {
                 props.className,
             )}
             hidden={props.hidden}
-            data-archived={props["data-archived"]}
+            data-loki-archived={props["data-loki-archived"]}
         >
             <input
                 name={props.name}

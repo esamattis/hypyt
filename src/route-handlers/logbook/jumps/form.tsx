@@ -135,12 +135,12 @@ function FreefallEstimateScript(props: {
                     if (!(target instanceof Element)) {
                         return;
                     }
-                    const speedButton = target.closest("[data-speed]");
+                    const speedButton = target.closest("[data-loki-speed]");
                     if (!(speedButton instanceof HTMLButtonElement)) {
                         return;
                     }
                     const speed = Number(
-                        speedButton.getAttribute("data-speed"),
+                        speedButton.getAttribute("data-loki-speed"),
                     );
                     estimateFreefallTime(speed);
                     estimateDialog.close();
@@ -189,7 +189,7 @@ function FreefallTimeField(props: {
                     id={estimateButtonId}
                     type="button"
                     variant="secondary"
-                    data-tooltip="Estimate freefall time based on exit and opening altitude"
+                    data-loki-tooltip="Estimate freefall time based on exit and opening altitude"
                     className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Estimate
@@ -204,14 +204,17 @@ function FreefallTimeField(props: {
                 <div className="grid gap-2">
                     <button
                         type="button"
-                        data-speed={speedInputValue(50, options.speedUnits)}
+                        data-loki-speed={speedInputValue(
+                            50,
+                            options.speedUnits,
+                        )}
                         className={DIALOG_OPTION_CLASS}
                     >
                         Belly · {formatSpeed(50)}
                     </button>
                     <button
                         type="button"
-                        data-speed={speedInputValue(
+                        data-loki-speed={speedInputValue(
                             240 / 3.6,
                             options.speedUnits,
                         )}
@@ -221,7 +224,7 @@ function FreefallTimeField(props: {
                     </button>
                     <button
                         type="button"
-                        data-speed={speedInputValue(
+                        data-loki-speed={speedInputValue(
                             80 / 3.6,
                             options.speedUnits,
                         )}
@@ -548,7 +551,7 @@ function JumpDateField(props: { value: string }) {
                     id={inputId}
                     type="text"
                     inputMode="numeric"
-                    data-jump-date-input
+                    data-loki-jump-date-input
                     placeholder={placeholder}
                     required
                     value={formatCalendarDate(props.value, dateTimeFormat)}
@@ -563,7 +566,7 @@ function JumpDateField(props: { value: string }) {
                 <input
                     id={pickerId}
                     type="date"
-                    data-jump-date-picker
+                    data-loki-jump-date-picker
                     value={props.value}
                     tabIndex={-1}
                     aria-hidden="true"
@@ -574,7 +577,7 @@ function JumpDateField(props: { value: string }) {
                     type="button"
                     variant="secondary"
                     aria-label="Choose jump date"
-                    data-tooltip="Choose jump date"
+                    data-loki-tooltip="Choose jump date"
                     className="shrink-0 px-3.5 py-2.5"
                 >
                     <CalendarIcon className="h-5 w-5" />
@@ -583,7 +586,7 @@ function JumpDateField(props: { value: string }) {
                     id={buttonId}
                     type="button"
                     variant="secondary"
-                    data-tooltip="Set jump date to today"
+                    data-loki-tooltip="Set jump date to today"
                     className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Today
@@ -633,14 +636,14 @@ function JumpNumberField(props: { value: string; nextJumpNumber?: string }) {
                     min="1"
                     required
                     value={props.value}
-                    data-next-jump-number={props.nextJumpNumber}
+                    data-loki-next-jump-number={props.nextJumpNumber}
                     className={FIELD_INPUT_CLASS}
                 />
                 <Button
                     id={buttonId}
                     type="button"
                     variant="secondary"
-                    data-tooltip="Set number to the next jump number. Ie. latest jump number + 1"
+                    data-loki-tooltip="Set number to the next jump number. Ie. latest jump number + 1"
                     className="shrink-0 px-3.5 py-2.5 text-sm"
                 >
                     Next
@@ -656,7 +659,8 @@ function JumpNumberField(props: { value: string; nextJumpNumber?: string }) {
                     $assertElement(button, HTMLButtonElement);
                     button.addEventListener("click", () => {
                         input.value =
-                            input.getAttribute("data-next-jump-number") ?? "";
+                            input.getAttribute("data-loki-next-jump-number") ??
+                            "";
                     });
                 }}
             />
@@ -871,8 +875,8 @@ function JumpForm(props: {
         <form
             id={props.formId}
             method="post"
-            data-confirm={props.confirmationTitle}
-            data-dirty={props.dirty ? "true" : undefined}
+            data-loki-confirm={props.confirmationTitle}
+            data-loki-dirty={props.dirty ? "true" : undefined}
             className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
             <ErrorList

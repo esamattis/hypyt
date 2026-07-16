@@ -41,7 +41,7 @@ test("render template validates before replacing slots", async ({ page }) => {
 
         const rootTemplate = document.createElement("template");
         rootTemplate.id = "root-slot-template";
-        rootTemplate.innerHTML = '<p data-template-slot="text"></p>';
+        rootTemplate.innerHTML = '<p data-loki-template-slot="text"></p>';
         document.body.appendChild(rootTemplate);
         const rootContainer = document.createElement("div");
         renderTemplate(rootContainer, rootTemplate.id, { text: "first" });
@@ -51,7 +51,7 @@ test("render template validates before replacing slots", async ({ page }) => {
         const stableTemplate = document.createElement("template");
         stableTemplate.id = "stable-template";
         stableTemplate.innerHTML =
-            '<div><span data-template-slot="first"></span><span data-template-slot="second"></span></div>';
+            '<div><span data-loki-template-slot="first"></span><span data-loki-template-slot="second"></span></div>';
         document.body.appendChild(stableTemplate);
         const stableContainer = document.createElement("div");
         renderTemplate(stableContainer, stableTemplate.id, {
@@ -70,7 +70,7 @@ test("render template validates before replacing slots", async ({ page }) => {
         const invalidTemplate = document.createElement("template");
         invalidTemplate.id = "invalid-root-template";
         invalidTemplate.innerHTML =
-            '<div data-template-slot="value"></div><div></div>';
+            '<div data-loki-template-slot="value"></div><div></div>';
         document.body.appendChild(invalidTemplate);
         const source = document.createElement("div");
         const suppliedNode = document.createElement("span");
@@ -87,7 +87,7 @@ test("render template validates before replacing slots", async ({ page }) => {
         const nestedTemplate = document.createElement("template");
         nestedTemplate.id = "nested-slot-template";
         nestedTemplate.innerHTML =
-            '<div><span data-template-slot="outer"><i data-template-slot="inner"></i></span></div>';
+            '<div><span data-loki-template-slot="outer"><i data-loki-template-slot="inner"></i></span></div>';
         document.body.appendChild(nestedTemplate);
         let nestedSlotError = "";
         try {

@@ -93,7 +93,7 @@ export function DropdownMenu(props: {
                 aria-controls={menuId}
                 aria-expanded="false"
                 aria-label={props.label}
-                data-tooltip={props.tooltip}
+                data-loki-tooltip={props.tooltip}
                 className={props.buttonClassName}
             >
                 {props.button}

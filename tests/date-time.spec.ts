@@ -80,7 +80,7 @@ test("date format preferences apply to rendered jump dates", async ({
             format.renderedDate,
         );
         await page.getByRole("link", { name: /#401/ }).click();
-        await expect(page.locator("[data-jump-date-input]")).toHaveValue(
+        await expect(page.locator("[data-loki-jump-date-input]")).toHaveValue(
             format.renderedDate,
         );
     }

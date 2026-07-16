@@ -277,7 +277,7 @@ function JumpImageField(props: { formId: string }) {
                     id={cameraButtonId}
                     variant="secondary"
                     className="shrink-0 gap-2 text-sm"
-                    data-tooltip="Take a photo with your camera"
+                    data-loki-tooltip="Take a photo with your camera"
                 >
                     <CameraIcon className="h-4 w-4" />
                     Camera
@@ -287,7 +287,7 @@ function JumpImageField(props: { formId: string }) {
                     id={clipboardButtonId}
                     variant="secondary"
                     className="shrink-0 gap-2 text-sm"
-                    data-tooltip="Paste images from the clipboard"
+                    data-loki-tooltip="Paste images from the clipboard"
                 >
                     <ClipboardIcon className="h-4 w-4" />
                     Paste

@@ -153,7 +153,7 @@ export function AgentMigrationCard() {
                 </p>
                 <Code
                     codeId={codeId}
-                    codeProps={{ "data-upload-path": uploadPath }}
+                    codeProps={{ "data-loki-upload-path": uploadPath }}
                     className="max-h-[32rem] whitespace-pre-wrap"
                 >
                     {$agentInstructions(uploadPath, username)}
@@ -170,7 +170,7 @@ export function AgentMigrationCard() {
                         const code = document.getElementById(codeId);
                         $assertElement(code, HTMLElement);
                         const uploadPath =
-                            code.getAttribute("data-upload-path") ?? "";
+                            code.getAttribute("data-loki-upload-path") ?? "";
                         code.textContent = $agentInstructions(
                             `${window.location.origin}${uploadPath}`,
                             username,

@@ -2,7 +2,7 @@ type TemplateValue = string | Node;
 
 /**
  * Clones a `<template>` into a container and fills its named
- * `data-template-slot` elements with text or DOM nodes.
+ * `data-loki-template-slot` elements with text or DOM nodes.
  *
  * Use this either to render repeatedly into a stable container, which preserves
  * the existing root and updates only its slots, or with a detached container as
@@ -25,7 +25,7 @@ export function $renderTemplate(
     const canRefill =
         container.childElementCount === 1 &&
         existingRoot instanceof HTMLElement &&
-        existingRoot.dataset.renderTemplate === templateId;
+        existingRoot.dataset.lokiRenderTemplate === templateId;
     let root: HTMLElement | DocumentFragment;
     let element: HTMLElement;
     if (canRefill) {
@@ -49,22 +49,28 @@ export function $renderTemplate(
             throw new Error(`Template must have one HTML root: ${templateId}`);
         }
         element = cloneRoot;
-        for (const slot of root.querySelectorAll("[data-template-slot]")) {
-            slot.setAttribute("data-render-template-slot", templateId);
+        for (const slot of root.querySelectorAll("[data-loki-template-slot]")) {
+            slot.setAttribute("data-loki-render-template-slot", templateId);
         }
     }
 
-    const slots = Array.from(root.querySelectorAll("[data-template-slot]"));
-    if (root instanceof HTMLElement && root.matches("[data-template-slot]")) {
+    const slots = Array.from(
+        root.querySelectorAll("[data-loki-template-slot]"),
+    );
+    if (
+        root instanceof HTMLElement &&
+        root.matches("[data-loki-template-slot]")
+    ) {
         slots.unshift(root);
     }
     const ownedSlots = slots.filter(
-        (slot) => slot.getAttribute("data-render-template-slot") === templateId,
+        (slot) =>
+            slot.getAttribute("data-loki-render-template-slot") === templateId,
     );
     const remainingNames = new Set(Object.keys(values));
     const replacements: { slot: Element; value: TemplateValue }[] = [];
     for (const slot of ownedSlots) {
-        const name = slot.getAttribute("data-template-slot");
+        const name = slot.getAttribute("data-loki-template-slot");
         if (name === null) throw new Error("Template slot has no name");
         if (
             ownedSlots.some(
@@ -91,6 +97,6 @@ export function $renderTemplate(
     }
     if (canRefill) return;
 
-    element.dataset.renderTemplate = templateId;
+    element.dataset.lokiRenderTemplate = templateId;
     container.replaceChildren(element);
 }

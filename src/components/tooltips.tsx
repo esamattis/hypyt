@@ -10,7 +10,9 @@ function $initTooltips(templateId: string) {
     if (!(tooltipElement instanceof HTMLElement)) return;
     document.body.appendChild(tooltipElement);
     const tooltipNode = document.getElementById("tooltip");
-    const tooltipTextNode = tooltipNode?.querySelector("[data-tooltip-text]");
+    const tooltipTextNode = tooltipNode?.querySelector(
+        "[data-loki-tooltip-text]",
+    );
     $assertElement(tooltipNode, HTMLDivElement);
     $assertElement(tooltipTextNode, HTMLSpanElement);
     const tooltip: HTMLDivElement = tooltipNode;
@@ -18,14 +20,14 @@ function $initTooltips(templateId: string) {
     let activeTarget: HTMLElement | null = null;
     function getTooltipTarget(target: EventTarget | null): HTMLElement | null {
         if (!(target instanceof Element)) return null;
-        const tooltipTarget = target.closest("[data-tooltip]");
+        const tooltipTarget = target.closest("[data-loki-tooltip]");
         if (!tooltipTarget) return null;
         $assertElement(tooltipTarget, HTMLElement);
-        return tooltipTarget.dataset.tooltip ? tooltipTarget : null;
+        return tooltipTarget.dataset.lokiTooltip ? tooltipTarget : null;
     }
     function showTooltip(target: HTMLElement) {
         activeTarget = target;
-        tooltipText.textContent = target.dataset.tooltip!;
+        tooltipText.textContent = target.dataset.lokiTooltip!;
         tooltip.hidden = false;
         if (!tooltip.matches(":popover-open")) tooltip.showPopover();
         const targetRect = target.getBoundingClientRect();
@@ -93,7 +95,7 @@ export function Tooltips() {
                     hidden
                     class="pointer-events-none fixed inset-auto z-50 m-0 max-w-xs overflow-visible rounded-md border-0 bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-slate-100 dark:text-slate-900"
                 >
-                    <span data-tooltip-text></span>
+                    <span data-loki-tooltip-text></span>
                     <span
                         aria-hidden="true"
                         class="absolute left-1/2 top-full -translate-x-1/2 border-x-4 border-t-4 border-x-transparent border-t-slate-900 dark:border-t-slate-100"

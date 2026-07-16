@@ -77,7 +77,7 @@ function $disableFormOnSubmit(config: {
                 submitter.insertBefore(spinner, submitter.firstChild);
             }
         }
-        if (form.hasAttribute("data-download")) {
+        if (form.hasAttribute("data-loki-download")) {
             setTimeout(() => {
                 $clearFormSubmitProgress(form, submitter);
             }, 1000);
