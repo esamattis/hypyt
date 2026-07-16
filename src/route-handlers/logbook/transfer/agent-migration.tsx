@@ -56,7 +56,7 @@ except urllib.error.HTTPError as error:
 
 Run the upload only after validating the converted CSV. Report the returned import statistics. If Loki returns HTTP 400, fix the reported CSV errors and upload it again. Do not use third-party Python packages.
 
-If the user did not provide the password or the data file path in the prompt, ask for them.
+If the user did not provide the password or the data file path in the prompt, ask for them. If the provided file is a native spreadsheet format such as .xlsx, .xls, .xlsm, .ods, or .numbers, ask the user to provide a .csv or .tsv export instead.
 
 </loki-instructions>
 `;
@@ -83,7 +83,8 @@ export function AgentMigrationCard() {
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         Migrate from any existing data file with an AI agent.
                         Give the agent your file, Loki password and paste the
-                        instructions below.
+                        instructions below. Export native spreadsheet files as
+                        CSV or TSV first.
                     </p>
                 </div>
             </div>
