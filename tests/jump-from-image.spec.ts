@@ -88,7 +88,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
         "data-form-dirty",
         "true",
     );
-    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
         "2024-06-15",
     );
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("42");
@@ -122,7 +122,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await expect(page.getByRole("link", { name: /#42 / })).toBeVisible();
     await page.getByRole("link", { name: /#42 / }).click();
 
-    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
         "2024-06-15",
     );
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("42");
@@ -183,7 +183,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await page.getByRole("button", { name: "Read image" }).click();
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?/);
-    await expect(page.locator('input[name="jumpDate"]')).toHaveValue("");
+    await expect(page.locator("[data-jump-date-input]")).toHaveValue("");
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("");
     await expect(page.locator('input[name="openingAltitude"]')).toHaveValue(
         "900",
@@ -457,7 +457,7 @@ test("a skydiver can paste a jump image from the clipboard", async ({
     await page.getByRole("button", { name: "Read image" }).click();
 
     await expect(page).toHaveURL(/\/logbook\/jumps\/new\?/);
-    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+    await expect(page.locator("[data-jump-date-input]")).toHaveValue(
         "2024-06-15",
     );
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("42");

@@ -108,6 +108,26 @@ export function CameraIcon(props: IconProps) {
     );
 }
 
+export function CalendarIcon(props: IconProps) {
+    return (
+        <svg
+            id={props.id}
+            aria-hidden="true"
+            className={props.className}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 3v3m8-3v3M4 9h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
+            />
+        </svg>
+    );
+}
+
 export function ClipboardIcon(props: IconProps) {
     return (
         <svg

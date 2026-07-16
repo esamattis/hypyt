@@ -30,7 +30,7 @@ test("an existing and a new aircraft can be added to a new jump", async ({
         .click();
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await page.locator('input[name="jumpNumber"]').fill("1");
-    await page.locator('input[name="jumpDate"]').fill("2024-07-01");
+    await page.locator("[data-jump-date-input]").fill("2024-07-01");
     await page.locator('input[name="exitAltitude"]').fill("4000");
     await page.locator('input[name="openingAltitude"]').fill("1000");
     await page.locator('input[name="freefallTime"]').fill("55");
