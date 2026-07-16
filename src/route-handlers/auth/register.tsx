@@ -9,6 +9,8 @@ import { createSession } from "@/route-handlers/auth/sessions";
 import * as routes from "@/routes";
 import { createRegistrationUser } from "@/route-handlers/auth/register/user";
 import type { AppDatabase } from "@/db";
+import { UserOptionsSchema } from "@/options";
+import { RegistrationLocaleInputs } from "@/route-handlers/auth/register/locale-inputs";
 
 const DEFAULT_AIRCRAFT = [
     "Cessna Caravan",
@@ -64,6 +66,10 @@ const RegisterFormSchema = z
             .email("Invalid email address"),
         password: z.string().min(6, "Password must be at least 6 characters"),
         confirmPassword: z.string().min(1, "Confirm password"),
+        altitudeUnits: UserOptionsSchema.shape.altitudeUnits,
+        speedUnits: UserOptionsSchema.shape.speedUnits,
+        dateTimeFormat: UserOptionsSchema.shape.dateTimeFormat,
+        numberFormat: UserOptionsSchema.shape.numberFormat,
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords do not match",
@@ -86,6 +92,7 @@ function RegisterForm(props: {
             alternateHref={routes.auth.login({})}
             alternateLabel="← Already have an account? Log in"
         >
+            <RegistrationLocaleInputs />
             {props.invitationRequired && (
                 <TextInput
                     name="invitationCode"
@@ -187,8 +194,17 @@ async function handleRegister(c: AppRequestContext) {
             />,
         );
 
-    const { invitationCode, username, displayName, email, password } =
-        result.data;
+    const {
+        invitationCode,
+        username,
+        displayName,
+        email,
+        password,
+        altitudeUnits,
+        speedUnits,
+        dateTimeFormat,
+        numberFormat,
+    } = result.data;
     const db = getAppContext(c).db;
     const formProps = registerFormProps({
         invitationCode,
@@ -242,6 +258,12 @@ async function handleRegister(c: AppRequestContext) {
             displayName,
             email,
             passwordHash,
+            options: UserOptionsSchema.parse({
+                altitudeUnits,
+                speedUnits,
+                dateTimeFormat,
+                numberFormat,
+            }),
         },
         invitationCode,
     );

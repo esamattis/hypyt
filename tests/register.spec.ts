@@ -1,4 +1,58 @@
 import { expect, test } from "./fixtures";
+import { openMainMenu } from "./helpers";
+
+const localeCases = [
+    {
+        locale: "fi-FI",
+        username: "finnish-locale-user",
+        altitudeUnits: "meters",
+        speedUnits: "kilometers-per-hour",
+        dateTimeFormat: "finnish",
+        numberFormat: "space-comma",
+    },
+    {
+        locale: "de-DE",
+        username: "german-locale-user",
+        altitudeUnits: "meters",
+        speedUnits: "kilometers-per-hour",
+        dateTimeFormat: "european",
+        numberFormat: "period-comma",
+    },
+    {
+        locale: "en-US",
+        username: "us-locale-user",
+        altitudeUnits: "feet",
+        speedUnits: "miles-per-hour",
+        dateTimeFormat: "american",
+        numberFormat: "comma-period",
+    },
+] as const;
+
+async function registerLocaleUser(
+    page: import("@playwright/test").Page,
+    localeCase: (typeof localeCases)[number],
+) {
+    await page.goto("/register");
+    for (const name of [
+        "altitudeUnits",
+        "speedUnits",
+        "dateTimeFormat",
+        "numberFormat",
+    ] as const) {
+        await expect(page.locator(`input[name="${name}"]`)).toHaveValue(
+            localeCase[name],
+        );
+    }
+    await page.locator('input[name="invitationCode"]').fill("test-invite");
+    await page.locator('input[name="username"]').fill(localeCase.username);
+    await page
+        .locator('input[name="email"]')
+        .fill(`${localeCase.username}@example.test`);
+    await page.locator('input[name="password"]').fill("parachute");
+    await page.locator('input[name="confirmPassword"]').fill("parachute");
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(page).toHaveURL("/logbook");
+}
 
 test("registration form keeps field values when password is too short", async ({
     page,
@@ -61,3 +115,30 @@ test("registration form keeps field values when invitation code is wrong", async
         "bad-invite@example.test",
     );
 });
+
+for (const localeCase of localeCases) {
+    test.describe(`registration locale ${localeCase.locale}`, () => {
+        test.use({ locale: localeCase.locale });
+
+        test("sets initial preferences from the browser locale", async ({
+            page,
+        }) => {
+            await registerLocaleUser(page, localeCase);
+            await openMainMenu(page);
+            await page
+                .getByRole("link", { name: "Preferences", exact: true })
+                .click();
+
+            for (const name of [
+                "altitudeUnits",
+                "speedUnits",
+                "dateTimeFormat",
+                "numberFormat",
+            ] as const) {
+                await expect(
+                    page.locator(`select[name="${name}"]`),
+                ).toHaveValue(localeCase[name]);
+            }
+        });
+    });
+}

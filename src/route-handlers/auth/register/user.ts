@@ -1,6 +1,6 @@
 import { and, eq, gt, sql } from "drizzle-orm";
 import type { AppDatabase } from "@/db";
-import { DEFAULT_USER_OPTIONS_JSON } from "@/options";
+import type { UserOptions } from "@/options";
 import { invitations, users } from "@/schema";
 
 export interface RegistrationUserValues {
@@ -8,6 +8,7 @@ export interface RegistrationUserValues {
     displayName?: string;
     email: string;
     passwordHash: string;
+    options: UserOptions;
 }
 
 export type RegistrationUserResult =
@@ -28,7 +29,7 @@ async function insertFirstUser(
         SELECT
             ${uuid}, ${values.username}, ${values.displayName || null},
             ${values.passwordHash}, ${values.email}, NULL,
-            ${DEFAULT_USER_OPTIONS_JSON}, 1
+            ${JSON.stringify(values.options)}, 1
         WHERE NOT EXISTS (SELECT 1 FROM users)
         RETURNING uuid
     `);
@@ -73,7 +74,7 @@ export async function createRegistrationUser(
             email: values.email,
             password: values.passwordHash,
             invitationCode,
-            options: DEFAULT_USER_OPTIONS_JSON,
+            options: JSON.stringify(values.options),
             admin: false,
         })
         .run();
