@@ -71,7 +71,7 @@ const JumpImageDataSchema = z.object({
         .lt(10_000)
         .nullable()
         .describe(
-            "Exit altitude in the requested unit, or null if not readable",
+            "Exit altitude in the requested unit, less than 10,000, or null if not readable",
         ),
     openingAltitude: z
         .number()
@@ -80,7 +80,7 @@ const JumpImageDataSchema = z.object({
         .lt(10_000)
         .nullable()
         .describe(
-            "Opening altitude in the requested unit, or null if not readable",
+            "Opening altitude in the requested unit, less than 10,000, or null if not readable",
         ),
     freefallTime: z
         .number()
@@ -88,7 +88,9 @@ const JumpImageDataSchema = z.object({
         .min(0)
         .lt(300)
         .nullable()
-        .describe("Freefall time in whole seconds, or null if not readable"),
+        .describe(
+            "Freefall time in whole seconds, less than 300, or null if not readable",
+        ),
     location: z
         .string()
         .trim()
