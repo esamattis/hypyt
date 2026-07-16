@@ -1,9 +1,10 @@
 import type { App } from "@/app/app";
+import { createHash } from "node:crypto";
+import { existsSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { extname, join } from "node:path";
 import { getAsset, getAssetKeys, isSea } from "node:sea";
 import { tmpdir } from "node:os";
-import { rmSync, writeFileSync } from "node:fs";
 
 const CONTENT_TYPES: Record<string, string> = {
     ".css": "text/css; charset=utf-8",
@@ -15,10 +16,28 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 function seaNativeBindingPath(): string {
-    const path = join(tmpdir(), `loki-better-sqlite3-${process.pid}.node`);
-    writeFileSync(path, new Uint8Array(getAsset("native/better_sqlite3.node")));
-    if (process.platform !== "win32") {
-        process.once("exit", () => rmSync(path, { force: true }));
+    // A native Node addon cannot be loaded directly from a SEA asset. Extract it
+    // to the filesystem so createRequire() can pass its path to the OS loader.
+    // The content hash lets every process and subsequent launch reuse the same
+    // file, leaving at most one temporary file per better-sqlite3 addon build.
+    // We keep the file because Windows cannot delete a loaded native module.
+    const binding = new Uint8Array(getAsset("native/better_sqlite3.node"));
+    const hash = createHash("sha256").update(binding).digest("hex");
+    const path = join(tmpdir(), `loki-better-sqlite3-${hash}.node`);
+    if (!existsSync(path)) {
+        // Publish a complete file atomically. Concurrent launches may race to
+        // rename identical files; on Windows, the loser sees the winner's file.
+        const temporaryPath = `${path}.${process.pid}.tmp`;
+        writeFileSync(temporaryPath, binding);
+        try {
+            renameSync(temporaryPath, path);
+        } catch (error) {
+            if (!existsSync(path)) {
+                throw error;
+            }
+        } finally {
+            rmSync(temporaryPath, { force: true });
+        }
     }
     return path;
 }
