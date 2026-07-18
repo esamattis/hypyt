@@ -70,6 +70,7 @@ export async function renderEditJump(c: AppRequestContext) {
             resources={await getJumpFormResources(c)}
             copyHref={routes.logbook.jumps.new({}, { from: jump.uuid })}
             jumpUuid={jump.uuid}
+            createdAt={jump.createdAt}
             canDelete
         />,
     );
@@ -82,7 +83,7 @@ export async function handleEditJump(c: AppRequestContext) {
     const { uuid } = routes.logbook.jumps.edit.params(c);
     if (!uuid) return c.notFound();
     const existing = await db
-        .select({ uuid: jumps.uuid })
+        .select({ uuid: jumps.uuid, createdAt: jumps.createdAt })
         .from(jumps)
         .where(and(eq(jumps.uuid, uuid), eq(jumps.userUuid, userUuid)))
         .get();
@@ -114,6 +115,7 @@ export async function handleEditJump(c: AppRequestContext) {
                 values={parsed.raw}
                 resources={parsed.resources}
                 errors={parsed.errors}
+                createdAt={existing.createdAt}
             />,
         );
     }
@@ -136,6 +138,7 @@ export async function handleEditJump(c: AppRequestContext) {
                         existingJump.uuid,
                     ),
                 ]}
+                createdAt={existing.createdAt}
             />,
         );
     }

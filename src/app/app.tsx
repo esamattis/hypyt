@@ -699,7 +699,8 @@ async function authenticateMiddleware(
                 admin: users.admin,
                 htmlCacheGeneration: users.htmlCacheGeneration,
                 expiresAt: sessions.expiresAt,
-                lastUsedAt: sessions.lastUsedAt,
+                sessionLastUsedAt: sessions.lastUsedAt,
+                userLastUsedAt: users.lastUsedAt,
             })
             .from(sessions)
             .innerJoin(users, eq(sessions.userUuid, users.uuid))
@@ -708,15 +709,24 @@ async function authenticateMiddleware(
             .get();
 
         if (row && row.expiresAt > now) {
-            const { expiresAt, lastUsedAt, ...userRow } = row;
+            const { expiresAt, sessionLastUsedAt, userLastUsedAt, ...userRow } =
+                row;
             void expiresAt;
             setAuthenticatedUser(ctx, userRow);
             // Throttle last-used writes to once per 5 minutes
-            if (lastUsedAt <= now - 5 * 60) {
+            if (sessionLastUsedAt <= now - 5 * 60) {
                 await ctx.db
                     .update(sessions)
                     .set({ lastUsedAt: now, expiresAt: now + SESSION_MAX_AGE })
                     .where(eq(sessions.tokenHash, tokenHash))
+                    .run();
+            }
+            // User activity is less granular than individual session activity.
+            if (userLastUsedAt <= now - 15 * 60) {
+                await ctx.db
+                    .update(users)
+                    .set({ lastUsedAt: now })
+                    .where(eq(users.uuid, userRow.uuid))
                     .run();
             }
         } else {

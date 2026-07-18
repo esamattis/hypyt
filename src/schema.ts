@@ -20,6 +20,10 @@ export const users = sqliteTable("users", {
     options: text("options").notNull().default("{}"),
     admin: integer("admin", { mode: "boolean" }).notNull().default(false),
     htmlCacheGeneration: integer("html_cache_generation").notNull().default(0),
+    lastUsedAt: integer("last_used_at")
+        .notNull()
+        .default(0)
+        .$defaultFn(() => Math.floor(Date.now() / 1000)),
 });
 
 export const invitations = sqliteTable("invitations", {
@@ -93,6 +97,10 @@ export const jumps = sqliteTable(
         }),
         jumpNumber: integer("jump_number").notNull(),
         jumpDate: text("jump_date").notNull(),
+        createdAt: integer("created_at")
+            .notNull()
+            .default(0)
+            .$defaultFn(() => Math.floor(Date.now() / 1000)),
         exitAltitude: integer("exit_altitude").notNull().default(0),
         openingAltitude: integer("opening_altitude").notNull().default(0),
         freefallTime: integer("freefall_time").notNull().default(0),

@@ -1,5 +1,5 @@
 import { useId, type Child } from "hono/jsx";
-import { useAppContext, useSpeedFormatter } from "@/app/app";
+import { useAppContext, useDateFormatter, useSpeedFormatter } from "@/app/app";
 import {
     Button,
     ButtonLink,
@@ -796,8 +796,10 @@ function JumpForm(props: {
     nextJumpNumber?: string;
     jumpNumberError?: Child;
     dirty?: boolean;
+    createdAt?: number;
 }) {
     const values = props.values ?? {};
+    const formatDate = useDateFormatter();
 
     return (
         <form
@@ -836,6 +838,11 @@ function JumpForm(props: {
                 label="Notes"
                 value={values.description}
             />
+            {props.createdAt !== undefined && (
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Created at {formatDate(props.createdAt)}
+                </p>
+            )}
             <div className="hidden sm:block">
                 <Button type="submit" variant="primary">
                     {props.submitLabel}
@@ -866,6 +873,7 @@ export function JumpFormPage(props: {
     jumpUuid?: string;
     isImagePrefill?: boolean;
     dirty?: boolean;
+    createdAt?: number;
 }) {
     const formId = useId();
 
@@ -914,6 +922,7 @@ export function JumpFormPage(props: {
                 nextJumpNumber={props.nextJumpNumber}
                 jumpNumberError={props.jumpNumberError}
                 dirty={props.dirty}
+                createdAt={props.createdAt}
                 {...props.resources}
             />
             {props.copyHref && (
