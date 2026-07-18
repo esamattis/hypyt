@@ -133,10 +133,10 @@ function Hero(props: { loggedIn: boolean }) {
                 <br className="hidden sm:block" /> your data.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-400">
-                Loki is an open source digital logbook for skydivers and BASE
-                jumpers. Self-host, run it locally on your laptop, or use the
-                invite-only hosted version. Export a portable backup whenever
-                you want - your logbook data always stays yours.{" "}
+                Loki is an open source digital logbook for skydivers. Self-host,
+                run it locally on your laptop, or possibly use the invite-only
+                hosted version. Export an Excel compatible (.csv) backup
+                whenever you want - your logbook data always stays yours.{" "}
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <LandingActions loggedIn={props.loggedIn} />
@@ -318,14 +318,6 @@ function SelfHosting() {
                         you know how to contact me, you might just get one :)
                     </p>
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                        <ButtonLink
-                            href={routes.about({})}
-                            variant="secondary"
-                            size="sm"
-                            className="w-full sm:w-auto"
-                        >
-                            About Loki
-                        </ButtonLink>
                         <a
                             href={REPOSITORY_URL}
                             className={buttonClassName({
@@ -346,6 +338,14 @@ function SelfHosting() {
                         >
                             Binary releases
                         </a>
+                        <ButtonLink
+                            href={routes.about({})}
+                            variant="secondary"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                        >
+                            About Loki
+                        </ButtonLink>
                     </div>
                 </div>
                 <div className={cardClassName}>
