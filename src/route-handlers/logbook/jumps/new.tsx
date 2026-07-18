@@ -12,6 +12,7 @@ import {
     JumpFormPage,
     type JumpFormValues,
 } from "@/route-handlers/logbook/jumps/form";
+import { JumpImageCreationComplete } from "@/route-handlers/logbook/jumps/image-created-client";
 import * as routes from "@/routes";
 import {
     jumps,
@@ -254,6 +255,11 @@ async function getNextJumpNumber(
 
 export async function handleNewJump(c: AppRequestContext) {
     const formData = await c.req.formData();
+    const sourceImageIdValue = formData.get("sourceImageId");
+    const sourceImageId =
+        typeof sourceImageIdValue === "string" && sourceImageIdValue
+            ? sourceImageIdValue
+            : undefined;
     const parsed = await parseAndResolveJumpForm(c, formData);
     const userUuid = getAppContext(c).getUser().uuid;
     if (!parsed.ok) {
@@ -266,6 +272,8 @@ export async function handleNewJump(c: AppRequestContext) {
                 values={parsed.raw}
                 nextJumpNumber={await getNextJumpNumber(c, userUuid)}
                 resources={parsed.resources}
+                sourceImageId={sourceImageId}
+                isImagePrefill={Boolean(sourceImageId)}
             />,
         );
     }
@@ -286,6 +294,8 @@ export async function handleNewJump(c: AppRequestContext) {
                 values={parsed.raw}
                 nextJumpNumber={await getNextJumpNumber(c, userUuid)}
                 resources={parsed.resources}
+                sourceImageId={sourceImageId}
+                isImagePrefill={Boolean(sourceImageId)}
             />,
         );
     }
@@ -319,6 +329,16 @@ export async function handleNewJump(c: AppRequestContext) {
             db.insert(jumpsToJumpTypes).values({ jumpUuid, jumpTypeUuid }),
         ),
     ]);
+    if (sourceImageId) {
+        return c.render(
+            <JumpImageCreationComplete
+                imageId={sourceImageId}
+                jumpUuid={jumpUuid}
+                jumpNumber={parsed.data.jumpNumber}
+                redirectUrl={routes.logbook.index({})}
+            />,
+        );
+    }
     return c.redirect(routes.logbook.index({}));
 }
 

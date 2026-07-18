@@ -1,6 +1,7 @@
 import { useId } from "hono/jsx";
 import { Script } from "@/components/script";
 import { $assertElement, $renderTemplate } from "@/utils";
+import * as routes from "@/routes";
 import {
     $appendJumpImageDrafts,
     $loadImage,
@@ -27,6 +28,8 @@ interface JumpImageInputProps {
     metaId: string;
     resizeNoteId: string;
     galleryItemTemplateId: string;
+    jumpLinkTemplateId: string;
+    jumpEditUrlTemplate: string;
     maxDimension: number;
     targetBytes: number;
     dbName: string;
@@ -47,6 +50,7 @@ export function ImageGallery(props: {
     const metaId = useId();
     const resizeNoteId = useId();
     const galleryItemTemplateId = useId();
+    const jumpLinkTemplateId = useId();
 
     return (
         <>
@@ -77,6 +81,12 @@ export function ImageGallery(props: {
                             className="block truncate px-1 py-1 text-xs text-slate-600 dark:text-slate-300"
                         ></span>
                     </button>
+                    <span
+                        data-loki-created-jumps
+                        className="hidden px-1 pb-2 text-xs text-indigo-700 dark:text-indigo-300"
+                    >
+                        Created: <span data-loki-created-jump-links />
+                    </span>
                     <button
                         type="button"
                         data-loki-delete-image
@@ -85,6 +95,12 @@ export function ImageGallery(props: {
                         X
                     </button>
                 </div>
+            </template>
+            <template id={jumpLinkTemplateId}>
+                <a
+                    data-loki-template-slot="label"
+                    className="font-semibold underline hover:no-underline"
+                />
             </template>
             <Script
                 $deps={[
@@ -116,6 +132,10 @@ export function ImageGallery(props: {
                         metaId,
                         resizeNoteId,
                         galleryItemTemplateId,
+                        jumpLinkTemplateId,
+                        jumpEditUrlTemplate: routes.logbook.jumps.edit({
+                            uuid: "__JUMP_UUID__",
+                        }),
                         maxDimension: JUMP_IMAGE_MAX_DIMENSION,
                         targetBytes: JUMP_IMAGE_TARGET_BYTES,
                         dbName: JUMP_IMAGE_DB_NAME,
@@ -378,6 +398,8 @@ export function $renderJumpImageGallery(options: {
     selectedId: string | null;
     previewUrls: Map<string, string>;
     templateId: string;
+    jumpLinkTemplateId: string;
+    jumpEditUrlTemplate: string;
     selectDraft: (id: string) => void;
     deleteDraft: (id: string) => void;
 }) {
@@ -405,16 +427,42 @@ export function $renderJumpImageGallery(options: {
         const image = item.querySelector("img");
         const deleteButton = item.querySelector("[data-loki-delete-image]");
         const readIndicator = item.querySelector("[data-loki-read-image]");
+        const createdJumps = item.querySelector("[data-loki-created-jumps]");
+        const createdJumpLinks = item.querySelector(
+            "[data-loki-created-jump-links]",
+        );
         $assertElement(selectButton, HTMLButtonElement);
         $assertElement(image, HTMLImageElement);
         $assertElement(deleteButton, HTMLButtonElement);
         $assertElement(readIndicator, HTMLElement);
+        $assertElement(createdJumps, HTMLElement);
+        $assertElement(createdJumpLinks, HTMLElement);
         selectButton.className = selectClass;
         selectButton.dataset.lokiSelectImage = draft.id;
         selectButton.setAttribute("aria-label", `Select ${draft.file.name}`);
         image.src = url;
         image.alt = alt;
         readIndicator.classList.toggle("hidden", !draft.read);
+        for (const [index, jump] of draft.createdJumps.entries()) {
+            const linkContainer = document.createElement("span");
+            $renderTemplate(linkContainer, options.jumpLinkTemplateId, {
+                label: `Jump #${jump.jumpNumber}`,
+            });
+            const link = linkContainer.firstElementChild;
+            $assertElement(link, HTMLAnchorElement);
+            link.href = options.jumpEditUrlTemplate.replace(
+                "__JUMP_UUID__",
+                encodeURIComponent(jump.uuid),
+            );
+            if (index > 0) {
+                createdJumpLinks.appendChild(document.createTextNode(", "));
+            }
+            createdJumpLinks.appendChild(link);
+        }
+        createdJumps.classList.toggle(
+            "hidden",
+            draft.createdJumps.length === 0,
+        );
         deleteButton.dataset.lokiDeleteImage = draft.id;
         deleteButton.setAttribute("aria-label", `Delete ${draft.file.name}`);
         options.gallery.appendChild(item);
@@ -562,6 +610,8 @@ export function $initJumpImageInput(props: JumpImageInputProps) {
             selectedId,
             previewUrls,
             templateId: props.galleryItemTemplateId,
+            jumpLinkTemplateId: props.jumpLinkTemplateId,
+            jumpEditUrlTemplate: props.jumpEditUrlTemplate,
             selectDraft,
             deleteDraft: (id) => void deleteDraft(id),
         });

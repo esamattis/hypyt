@@ -2,18 +2,25 @@ export interface JumpImageDraft {
     id: string;
     file: File;
     read: boolean;
+    createdJumps: CreatedJump[];
 }
 
-interface StoredJumpImage {
+export interface CreatedJump {
+    uuid: string;
+    jumpNumber: number;
+}
+
+export interface StoredJumpImage {
     id: string;
     blob: Blob;
     name: string;
     type: string;
     lastModified: number;
     read?: boolean;
+    createdJumps?: CreatedJump[];
 }
 
-interface StoredJumpImages {
+export interface StoredJumpImages {
     images: StoredJumpImage[];
     selectedId: string | null;
 }
@@ -60,6 +67,7 @@ export function $appendJumpImageDrafts(config: {
                     id: crypto.randomUUID(),
                     file,
                     read: false,
+                    createdJumps: [],
                 }));
                 const newImages = appended.map((draft) => ({
                     id: draft.id,
@@ -68,6 +76,7 @@ export function $appendJumpImageDrafts(config: {
                     type: draft.file.type,
                     lastModified: draft.file.lastModified,
                     read: draft.read,
+                    createdJumps: draft.createdJumps,
                 }));
                 store.put(
                     {
@@ -124,6 +133,9 @@ export function $loadImage(id: string): Promise<JumpImageDraft | null> {
                         },
                     ),
                     read: record.read === true,
+                    createdJumps: Array.isArray(record.createdJumps)
+                        ? record.createdJumps
+                        : [],
                 });
             };
             getRequest.onerror = () =>

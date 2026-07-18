@@ -122,6 +122,15 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await expect(page.getByRole("link", { name: /#42 / })).toBeVisible();
     await page.getByRole("link", { name: /#42 / }).click();
 
+    await expect(
+        page.getByRole("heading", { name: "Source image" }),
+    ).toBeVisible();
+    await expect(
+        page.getByText("This image is stored and shown only in this device."),
+    ).toBeVisible();
+    await expect(
+        page.getByRole("img", { name: "Image used to read jump values" }),
+    ).toBeVisible();
     await expect(page.locator("[data-loki-jump-date-input]")).toHaveValue(
         "2024-06-15",
     );
@@ -150,6 +159,11 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await page.getByRole("link", { name: "Read image", exact: true }).click();
     await expect(page).toHaveURL("/logbook/jumps/new/from-image");
     await expect(page.getByText("Read once", { exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Jump #42" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Jump #42" })).toHaveAttribute(
+        "href",
+        /\/logbook\/jumps\/[0-9a-f-]+/,
+    );
     const usageSection = page
         .locator("section")
         .filter({ has: page.getByRole("heading", { name: "AI usage" }) });

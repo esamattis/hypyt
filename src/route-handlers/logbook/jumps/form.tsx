@@ -933,6 +933,7 @@ export function JumpFormPage(props: {
     copyHref?: string;
     canDelete?: boolean;
     sourceImageId?: string;
+    jumpUuid?: string;
     isImagePrefill?: boolean;
     dirty?: boolean;
 }) {
@@ -961,7 +962,17 @@ export function JumpFormPage(props: {
                 </ButtonLink>
             )}
             {props.sourceImageId && (
-                <JumpImageSource imageId={props.sourceImageId} />
+                <JumpImageSource
+                    imageId={props.sourceImageId}
+                    title="Values read from this image"
+                    formId={formId}
+                />
+            )}
+            {props.jumpUuid && (
+                <JumpImageSource
+                    jumpUuid={props.jumpUuid}
+                    title="Source image"
+                />
             )}
             <JumpForm
                 formId={formId}

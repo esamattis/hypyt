@@ -68,6 +68,7 @@ export async function renderEditJump(c: AppRequestContext) {
             }}
             resources={await getJumpFormResources(c)}
             copyHref={routes.logbook.jumps.new({}, { from: jump.uuid })}
+            jumpUuid={jump.uuid}
             canDelete
         />,
     );
