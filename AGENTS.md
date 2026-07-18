@@ -40,10 +40,10 @@ return (
     <div>
         <button id={id}>example</button>
         <Script
+            $deps={[$elById]}
             $args={[id]}
             $exec={(id) => {
-                const button = document.getElementById(id);
-                $assertElement(button, HTMLButtonElement);
+                const button = $elById(id, HTMLButtonElement);
                 // ..rest of the code
             }}
         />
@@ -51,7 +51,9 @@ return (
 );
 ```
 
-Always assert elements with `$assertElement(el, typeclass)`. Never use type casts or type arguments such as `el.closest<HTMLElement>("[data-loki-tooltip]");`.
+Use `$el`, `$elAll`, and `$elById` from `@/utils` instead of calling `querySelector`, `querySelectorAll`, or `getElementById` directly. Pass a root as the third argument for scoped queries. Use `$elOrNull` and `$elByIdOrNull` when absence is valid.
+
+Use `$assertElement(el, typeclass)` for elements obtained through other APIs. Never use type casts or type arguments such as `el.closest<HTMLElement>("[data-loki-tooltip]");`.
 
 Functions prefixed with `$` must be executable in the browser.
 
