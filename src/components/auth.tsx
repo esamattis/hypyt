@@ -1,5 +1,6 @@
 import { ErrorList } from "@/components/feedback";
 import { Button } from "@/components/form";
+import * as routes from "@/routes";
 
 export function AuthFormShell(props: {
     title: string;
@@ -11,7 +12,10 @@ export function AuthFormShell(props: {
 }) {
     return (
         <div className="mx-4 mt-8 max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-900/5 sm:mx-auto sm:mt-16 sm:p-8 dark:bg-slate-900 dark:ring-slate-100/10">
-            <div className="mb-6 flex items-center justify-center gap-2 text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <a
+                href={routes.home.route}
+                className="mb-6 flex items-center justify-center gap-2 text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100"
+            >
                 <img
                     src="/logo.svg"
                     alt=""
@@ -19,7 +23,7 @@ export function AuthFormShell(props: {
                     className="h-8 w-auto"
                 />
                 <span>Loki – Skydiving Logbook</span>
-            </div>
+            </a>
             <h2 className="mb-6 text-center text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                 {props.title}
             </h2>
