@@ -131,7 +131,6 @@ function $showProgressOnLinkClick(templateId: string) {
         if (
             !(anchor instanceof HTMLAnchorElement) ||
             !anchor.href ||
-            anchor.hasAttribute("download") ||
             (anchor.target && anchor.target !== "_self")
         )
             return;
@@ -150,6 +149,8 @@ function $showProgressOnLinkClick(templateId: string) {
         )
             return;
         $showNavigationProgress({ mode: "link", templateId });
+        if (anchor.hasAttribute("download"))
+            setTimeout($clearNavigationProgress, 2000);
     });
 }
 

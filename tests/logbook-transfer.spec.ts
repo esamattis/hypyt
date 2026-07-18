@@ -214,6 +214,7 @@ test("an exported logbook file preserves jumps and jump items when imported", as
     const exportLink = page.getByRole("link", { name: "Export logbook" });
     await expect(exportLink).toHaveAttribute("download", "");
     await exportLink.click();
+    await expect(page.locator("#form-submit-progress")).toBeVisible();
     const download = await downloadPromise;
     await expect(page.locator("#form-submit-progress")).toHaveCount(0);
     await expect(page.locator(".form-submit-spinner")).toHaveCount(0);
