@@ -1,5 +1,10 @@
 import clsx from "clsx";
-import { Button, Checkbox, fileInputClassName } from "@/components/form";
+import {
+    Button,
+    ButtonLink,
+    Checkbox,
+    fileInputClassName,
+} from "@/components/form";
 import { ExportIcon, ImportIcon } from "@/components/icons";
 import * as routes from "@/routes";
 import { LogbookPage } from "@/app/authenticated-page";
@@ -37,16 +42,14 @@ function ExportSection() {
                     </p>
                 </div>
             </div>
-            <form
-                method="get"
-                action={routes.logbook.transfer.export({})}
-                data-loki-download
-                className="mt-4"
+            <ButtonLink
+                href={routes.logbook.transfer.export({})}
+                download
+                variant="primary"
+                className="mt-4 gap-1.5"
             >
-                <Button type="submit" variant="primary" className="gap-1.5">
-                    Export logbook
-                </Button>
-            </form>
+                Export logbook
+            </ButtonLink>
             <ExportCurlHelp />
         </div>
     );

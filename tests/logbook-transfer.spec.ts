@@ -212,15 +212,12 @@ test("an exported logbook file preserves jumps and jump items when imported", as
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Import or export" }).click();
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Export logbook" }).click();
-    await expect(page.locator("#form-submit-progress")).toBeVisible();
-    await expect(page.locator(".form-submit-spinner")).toBeVisible();
+    const exportLink = page.getByRole("link", { name: "Export logbook" });
+    await expect(exportLink).toHaveAttribute("download", "");
+    await exportLink.click();
     const download = await downloadPromise;
     await expect(page.locator("#form-submit-progress")).toHaveCount(0);
     await expect(page.locator(".form-submit-spinner")).toHaveCount(0);
-    await expect(
-        page.getByRole("button", { name: "Export logbook" }),
-    ).toBeEnabled();
     const exportPath = await download.path();
     if (!exportPath) {
         throw new Error("The export download has no file path");
@@ -336,7 +333,7 @@ test("clearing all previous data replaces the entire logbook during import", asy
     await expect(page.getByText("Imported 1 jump")).toBeVisible();
 
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Export logbook" }).click();
+    await page.getByRole("link", { name: "Export logbook" }).click();
     const download = await downloadPromise;
     const exportPath = await download.path();
     if (!exportPath) {

@@ -86,6 +86,7 @@ export function Button(props: {
 
 export function ButtonLink(props: {
     href: string;
+    download?: boolean;
     icon?: Child;
     variant?: ButtonVariant;
     size?: ButtonSize;
@@ -100,6 +101,7 @@ export function ButtonLink(props: {
     return (
         <a
             href={props.href}
+            download={props.download}
             title={props.title}
             data-loki-tooltip={props["data-loki-tooltip"]}
             aria-label={props["aria-label"]}
