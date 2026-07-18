@@ -384,6 +384,8 @@ async function renderJumpFromImage(
 }
 
 const PLAYWRIGHT_MOCK_JUMP_DATA: JumpImageInput = {
+    error: null,
+    warning: null,
     jumpDate: "2024-06-15",
     jumpNumber: 42,
     exitAltitude: { value: 13_123, unit: "feet" },
@@ -419,6 +421,9 @@ function applyOpeningAltitudeFallback(
     data: JumpImageData,
     altitudeUnits: UserOptions["altitudeUnits"],
 ): JumpImageData {
+    if (data.error) {
+        return data;
+    }
     return {
         ...data,
         openingAltitude:
@@ -427,6 +432,29 @@ function applyOpeningAltitudeFallback(
 }
 
 function getPlaywrightMockJumpData(additionalContext: string): JumpImageInput {
+    if (additionalContext === "Mock ambiguous jump") {
+        return {
+            error: "Multiple jumps are visible. Specify the requested jump number in Additional context.",
+            warning: null,
+            jumpDate: null,
+            jumpNumber: null,
+            exitAltitude: null,
+            openingAltitude: null,
+            freefallTime: null,
+            location: null,
+            aircraft: null,
+            gear: null,
+            jumpType: null,
+            description: null,
+        };
+    }
+    if (additionalContext === "Mock uncertain reading") {
+        return {
+            ...PLAYWRIGHT_MOCK_JUMP_DATA,
+            warning:
+                "Opening altitude was difficult to read and may be inaccurate.",
+        };
+    }
     if (additionalContext === "Mock unreadable required fields") {
         return {
             ...PLAYWRIGHT_MOCK_JUMP_DATA,
@@ -582,6 +610,7 @@ function buildJumpNewQuery(
                 ? jumpTypeItems.unmatchedNames.join("; ")
                 : undefined,
         description: data.description ?? undefined,
+        warning: data.warning ?? undefined,
     };
 }
 
@@ -658,6 +687,13 @@ async function handleJumpFromImage(c: AppRequestContext) {
             title: buildAiUsageTitle(data),
             usage,
         });
+        if (data.error) {
+            return renderJumpFromImage(c, {
+                errors: [data.error],
+                additionalContext,
+                model,
+            });
+        }
         return c.redirect(
             routes.logbook.jumps.new(
                 {},

@@ -210,6 +210,7 @@ export async function renderNewJump(c: AppRequestContext) {
             resources={await getJumpFormResources(c)}
             sourceImageId={query.imageId}
             isImagePrefill={isImagePrefill}
+            notices={query.warning ? [query.warning] : undefined}
             dirty={isImagePrefill}
         />,
     );

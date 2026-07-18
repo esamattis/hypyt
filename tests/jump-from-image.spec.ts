@@ -116,6 +116,9 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await expect(page.locator('textarea[name="description"]')).toHaveValue(
         "From image mock",
     );
+    await expect(
+        page.getByText("Opening altitude was difficult to read"),
+    ).toHaveCount(0);
 
     await page.getByRole("button", { name: "Add jump" }).click();
     await expect(page).toHaveURL("/logbook");
@@ -246,6 +249,38 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await expect(page.locator('input[name="jumpTypeName"]')).toHaveValue(
         "Image Special",
     );
+
+    await page.goto("/logbook/jumps/new/from-image");
+    await page
+        .locator('textarea[name="additionalContext"]')
+        .fill("Mock uncertain reading");
+    await page
+        .locator("input[multiple]")
+        .setInputFiles(path.join(__dirname, "fixtures/jump-image.png"));
+    await page.getByRole("button", { name: "Read image" }).click();
+
+    await expect(page).toHaveURL(/[?&]warning=/);
+    await expect(
+        page.getByText(
+            "Opening altitude was difficult to read and may be inaccurate.",
+        ),
+    ).toBeVisible();
+
+    await page.goto("/logbook/jumps/new/from-image");
+    await page
+        .locator('textarea[name="additionalContext"]')
+        .fill("Mock ambiguous jump");
+    await page
+        .locator("input[multiple]")
+        .setInputFiles(path.join(__dirname, "fixtures/jump-image.png"));
+    await page.getByRole("button", { name: "Read image" }).click();
+
+    await expect(page).toHaveURL("/logbook/jumps/new/from-image");
+    await expect(
+        page.getByText(
+            "Multiple jumps are visible. Specify the requested jump number in Additional context.",
+        ),
+    ).toBeVisible();
 
     await page.goto("/logbook/jumps/new/from-image");
     await page.getByRole("link", { name: "Jump #43" }).click();

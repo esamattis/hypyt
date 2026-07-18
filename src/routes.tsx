@@ -32,6 +32,7 @@ export type JumpPrefillQuery = {
     gearName?: string;
     jumpTypeName?: string;
     description?: string;
+    warning?: string;
 };
 
 export const home = route("/");
