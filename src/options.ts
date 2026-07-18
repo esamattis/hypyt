@@ -1,20 +1,20 @@
 import { z } from "zod";
 
-export const DEFAULT_JUMP_IMAGE_PROMPT = `Extract data for one skydiving jump from this image (logbook page, altimeter screenshot, freefall computer, or handwritten notes).
+/** Fixed system instructions for structured jump image extraction. */
+export const JUMP_IMAGE_SYSTEM_PROMPT = `Extract structured data for exactly one skydiving jump from the provided image and return it using the output schema.
 
-If the image contains multiple jumps, use the user's additional context to identify the requested jump. Do not combine values from different jumps.
+If the image contains multiple jumps, use the user's additional context to select the requested jump. Never combine values from different jumps.
 
-Return only values that are clearly visible or confidently readable. Use null for unreadable fields.
-- jumpNumber as a positive whole number
-- jumpDate as a valid YYYY-MM-DD date; do not infer missing date components
-- exitAltitude and openingAltitude as whole numbers in the altitude unit specified by the user
-- if openingAltitude is unreadable, use 900 meters or 3000 feet according to the requested altitude unit
-- freefallTime as a whole number of seconds
-- location as a short drop zone or location name
-- aircraft, gear, and jump types as separate short names, matching the user's existing logbook item names when possible
-- "WS" means the jump type "Wingsuit"
-- "Delay" means freefall time
-- description for clearly readable notes not already represented by another field, such as weather, formation, instructors, or incidents; preserve even a single-word note and do not invent details`;
+Use only information that is clearly visible or confidently readable in the image. Return null for unreadable fields and never invent details.`;
+
+/** Default user-editable instructions for interpreting jump image content. */
+export const DEFAULT_JUMP_IMAGE_PROMPT = `- Read the jump number and full date without guessing any missing parts.
+- Read the exit and opening altitudes in my selected altitude unit.
+- Read the freefall duration in whole seconds.
+- Identify the drop zone or location, aircraft, gear, and jump types.
+- Prefer the names already used in my logbook.
+- Treat "WS" as the jump type "Wingsuit" and "Delay" as the freefall time.
+- Include any other clearly readable notes, such as weather, formation, instructors, or incidents, even if a note is only one word.`;
 
 /** Vision-capable OpenAI models suited to structured logbook image extraction. */
 export const JUMP_IMAGE_MODEL_IDS = [

@@ -141,6 +141,19 @@ test("a skydiver can update preferences and account details", async ({
     await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
     await expect(page).toHaveURL("/preferences?back=%2Flogbook");
+    await expect(page.locator('textarea[name="jumpImagePrompt"]')).toHaveValue(
+        /Treat "WS" as the jump type "Wingsuit"/,
+    );
+    await expect(
+        page.locator('textarea[name="jumpImagePrompt"]'),
+    ).not.toHaveValue(/Do not combine values from different jumps/);
+    await page
+        .locator('textarea[name="jumpImagePrompt"]')
+        .fill("Custom image prompt");
+    await page.getByRole("button", { name: "Restore default prompt" }).click();
+    await expect(page.locator('textarea[name="jumpImagePrompt"]')).toHaveValue(
+        /Treat "WS" as the jump type "Wingsuit"/,
+    );
     await page.locator('input[name="displayName"]').fill("Feet Skydiver");
     await page.locator('input[name="email"]').fill("feet@example.test");
     await page.locator('select[name="altitudeUnits"]').selectOption("feet");

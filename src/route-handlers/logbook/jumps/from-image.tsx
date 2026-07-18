@@ -16,6 +16,7 @@ import {
 import {
     DEFAULT_JUMP_IMAGE_MODEL,
     DEFAULT_JUMP_IMAGE_PROMPT,
+    JUMP_IMAGE_SYSTEM_PROMPT,
     JUMP_IMAGE_MODELS,
     altitudeUnitLabel,
     resolveJumpImageModel,
@@ -559,8 +560,9 @@ async function extractJumpDataFromImage(options: {
 
     const openai = createOpenAI({ apiKey: options.apiKey });
     const unitLabel = altitudeUnitLabel(options.altitudeUnits);
-    const systemPrompt = options.prompt.trim() || DEFAULT_JUMP_IMAGE_PROMPT;
+    const prompt = options.prompt.trim() || DEFAULT_JUMP_IMAGE_PROMPT;
     const userText = [
+        `User's image reading instructions:\n${prompt}`,
         `Altitude unit for exitAltitude and openingAltitude: ${options.altitudeUnits} (${unitLabel}).`,
         "Match names to these existing logbook items when possible:",
         buildResourceHint("Locations", options.resources.locations),
@@ -582,7 +584,7 @@ async function extractJumpDataFromImage(options: {
             name: "jumpData",
             description: "Skydiving jump data extracted from an image",
         }),
-        system: systemPrompt,
+        system: JUMP_IMAGE_SYSTEM_PROMPT,
         messages: [
             {
                 role: "user",
