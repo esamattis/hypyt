@@ -20,6 +20,10 @@ export const users = sqliteTable("users", {
     options: text("options").notNull().default("{}"),
     admin: integer("admin", { mode: "boolean" }).notNull().default(false),
     htmlCacheGeneration: integer("html_cache_generation").notNull().default(0),
+    createdAt: integer("created_at")
+        .notNull()
+        .default(0)
+        .$defaultFn(() => Math.floor(Date.now() / 1000)),
     lastUsedAt: integer("last_used_at")
         .notNull()
         .default(0)

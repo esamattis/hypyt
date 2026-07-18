@@ -27,6 +27,7 @@ async function renderAdminPage(c: AppRequestContext) {
                 email: users.email,
                 invitationCode: users.invitationCode,
                 admin: users.admin,
+                createdAt: users.createdAt,
                 lastUsedAt: users.lastUsedAt,
             })
             .from(users)

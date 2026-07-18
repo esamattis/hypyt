@@ -10,6 +10,7 @@ export interface AdminUserRow {
     email: string;
     invitationCode: string | null;
     admin: boolean;
+    createdAt: number;
     lastUsedAt: number;
 }
 
@@ -150,9 +151,12 @@ export function AdminUsersSection(props: {
                                     currentUserUuid={props.currentUserUuid}
                                 />
                             </div>
-                            <dl className="grid gap-4 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:grid-cols-3 dark:border-slate-800 dark:bg-slate-950/30">
+                            <dl className="grid gap-4 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:grid-cols-2 dark:border-slate-800 dark:bg-slate-950/30">
                                 <MetadataItem label="Email">
                                     {user.email}
+                                </MetadataItem>
+                                <MetadataItem label="Created">
+                                    {formatDate(user.createdAt)}
                                 </MetadataItem>
                                 <MetadataItem label="Last seen">
                                     {user.lastUsedAt === 0

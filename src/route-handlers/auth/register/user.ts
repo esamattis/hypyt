@@ -24,12 +24,12 @@ async function insertFirstUser(
     const created = await db.get<{ uuid: string }>(sql`
         INSERT INTO users (
             uuid, username, display_name, password, email,
-            invitation_code, options, admin
+            invitation_code, options, admin, created_at
         )
         SELECT
             ${uuid}, ${values.username}, ${values.displayName || null},
             ${values.passwordHash}, ${values.email}, NULL,
-            ${JSON.stringify(values.options)}, 1
+            ${JSON.stringify(values.options)}, 1, unixepoch()
         WHERE NOT EXISTS (SELECT 1 FROM users)
         RETURNING uuid
     `);

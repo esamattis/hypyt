@@ -87,6 +87,7 @@ test("shows the invitation code used to register each user", async ({
         hasText: "@invitation-tracked-user",
     });
     await expect(invitedUser).toContainText("Invitation code: test-invite");
+    await expect(invitedUser).toContainText("Created:");
     await expect(invitedUser).toContainText("Last seen:");
 
     const seededAdmin = usersSection.getByRole("listitem").filter({
