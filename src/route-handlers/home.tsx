@@ -128,13 +128,9 @@ function Hero(props: { loggedIn: boolean }) {
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600 dark:text-slate-400">
                 Loki is an open source digital logbook for skydivers and BASE
-                jumpers. Track every jump, monitor how much your gear has been
-                used, and import entries from photos of paper logbooks and
-                freefall computers using AI vision. Self-host, run it locally on
-                your laptop, or use the invite-only hosted version. Export a
-                portable backup whenever you want - your logbook data always
-                stays yours.
-            </p>
+                jumpers. Self-host, run it locally on your laptop, or use the
+                invite-only hosted version. Export a portable backup whenever
+                you want - your logbook data always stays yours. </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <LandingActions loggedIn={props.loggedIn} />
             </div>
