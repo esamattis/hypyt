@@ -67,6 +67,7 @@ test("tracks aggregate SQLite query duration", () => {
 
         db.run(sql`SELECT 1`);
 
+        expect(timings.sqlQueries).toBe(1);
         expect(timings.sqlDuration).toBeGreaterThan(0);
         expect(timings.longestSqlDuration).toBeGreaterThan(0);
         expect(timings.longestSqlDuration).toBeLessThanOrEqual(

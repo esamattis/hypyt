@@ -36,8 +36,8 @@ import { createD1Database, type AppDatabase } from "@/db";
 import { htmlCacheMiddleware } from "@/app/html-cache";
 import {
     createServerTimings,
+    setServerTiming,
     type ServerTimings,
-    updatePageServerTiming,
 } from "@/server-timing";
 import { $select } from "@/utils";
 import {
@@ -91,8 +91,6 @@ export interface Variables {
 
 /** Bindings for Cloudflare Workers (D1) and optional Node self-host override. */
 export interface AppBindings extends CloudflareBindings {
-    /** Pre-built Drizzle client for Node/self-host. When set, DB is unused. */
-    APP_DB?: AppDatabase;
     /** Build a request-scoped Drizzle client for Node/self-host. */
     APP_DB_FACTORY?: (timings: ServerTimings) => AppDatabase;
     /** Absolute database path exposed by the self-contained Node binary. */
@@ -560,7 +558,6 @@ async function setAppContextMiddleware(
     c.set("appContext", {
         db:
             c.env.APP_DB_FACTORY?.(serverTimings) ??
-            c.env.APP_DB ??
             createD1Database(c.env.DB, serverTimings),
         sqlitePath: c.env.APP_SQLITE_PATH,
         user: null,
@@ -611,7 +608,7 @@ async function setAppContextMiddleware(
     try {
         await next();
     } finally {
-        updatePageServerTiming(c, serverTimings);
+        setServerTiming(c, serverTimings);
     }
 }
 
