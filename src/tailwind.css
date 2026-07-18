@@ -1,6 +1,38 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/*
+ * Tailwind's dark:* utilities activate in two ways:
+ * - .dark applies a user's explicit dark-theme selection.
+ * - prefers-color-scheme applies the system theme before JavaScript runs and
+ *   when JavaScript is unavailable.
+ *
+ * An explicit .light selection must override a dark system preference, so the
+ * media-query branch excludes both .light and every element below it.
+ */
+@custom-variant dark {
+    &:where(.dark, .dark *) {
+        @slot;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        &:where(:not(.light, .light *)) {
+            @slot;
+        }
+    }
+}
+
+/* Keep native controls and browser-rendered UI in sync with the same rules. */
+:root {
+    color-scheme: light dark;
+}
+
+:root.light {
+    color-scheme: light;
+}
+
+:root.dark {
+    color-scheme: dark;
+}
 
 /* Cross-document View Transitions for same-origin navigations (links + forms). */
 @view-transition {

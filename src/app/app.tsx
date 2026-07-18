@@ -383,12 +383,9 @@ export function $applyStoredTheme() {
         if (theme !== "light" && theme !== "dark") {
             theme = "system";
         }
-        const isDark =
-            theme === "dark" ||
-            (theme === "system" &&
-                matchMedia("(prefers-color-scheme: dark)").matches);
-        document.documentElement.classList.toggle("dark", isDark);
-        document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+        document.documentElement.classList.toggle("light", theme === "light");
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        document.documentElement.style.removeProperty("color-scheme");
     } catch (error) {
         console.error("Failed to apply the stored theme", error);
     }

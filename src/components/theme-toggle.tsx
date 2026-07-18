@@ -32,14 +32,9 @@ export function $initThemeToggle(ids: {
     }
 
     function applyTheme(theme: "light" | "dark" | "system") {
-        const resolved =
-            theme === "system"
-                ? window.matchMedia("(prefers-color-scheme: dark)").matches
-                    ? "dark"
-                    : "light"
-                : theme;
-        document.documentElement.classList.toggle("dark", resolved === "dark");
-        document.documentElement.style.colorScheme = resolved;
+        document.documentElement.classList.toggle("light", theme === "light");
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        document.documentElement.style.removeProperty("color-scheme");
     }
 
     const labels = {
