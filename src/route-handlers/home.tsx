@@ -1,0 +1,407 @@
+import type { Child } from "hono/jsx";
+import { getAppContext, type App, type AppRequestContext } from "@/app/app";
+import { ButtonLink, buttonClassName } from "@/components/form";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { GearIcon, LocationIcon, JumpTypeIcon } from "@/components/menu-icons";
+import {
+    CameraIcon,
+    ClipboardIcon,
+    ExportIcon,
+    ImportIcon,
+} from "@/components/icons";
+import * as routes from "@/routes";
+
+const REPOSITORY_URL = "https://github.com/esamattis/loki";
+const RELEASES_URL = `${REPOSITORY_URL}/releases`;
+const YOUTUBE_EMBED_URL = "https://www.youtube.com/embed/ABOUT_PLACEHOLDER";
+
+const cardClassName =
+    "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900";
+const sectionHeadingClassName =
+    "text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100";
+const sectionLeadClassName =
+    "mt-3 text-base text-slate-600 dark:text-slate-400";
+
+function LandingHeader() {
+    return (
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/85">
+            <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
+                <a
+                    href={routes.home.route}
+                    className="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100"
+                >
+                    <img
+                        src="/logo.svg"
+                        alt=""
+                        aria-hidden="true"
+                        className="h-8 w-auto"
+                    />
+                    <span>Loki</span>
+                </a>
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                    <ThemeToggle />
+                    <a
+                        href={routes.auth.login({})}
+                        className={buttonClassName({
+                            variant: "secondary",
+                            size: "sm",
+                        })}
+                    >
+                        Log in
+                    </a>
+                </div>
+            </div>
+        </header>
+    );
+}
+
+function Hero() {
+    return (
+        <section className="mx-auto max-w-5xl px-4 pt-16 text-center sm:pt-24">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">
+                Open source skydiving logbook
+            </p>
+            <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl dark:text-white">
+                Your jumps, your gear,
+                <br className="hidden sm:block" /> your data.
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600 dark:text-slate-400">
+                Loki is an open source digital logbook for skydivers and BASE
+                jumpers. Track every jump, monitor how much your gear has been
+                used, and import entries from photos of paper logbooks and
+                freefall computers using AI vision. Self-host or run it locally
+                on your laptop — your logbook always stays yours.
+            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <a
+                    href={routes.auth.register({})}
+                    className={buttonClassName({
+                        variant: "primary",
+                        className: "w-full px-6 py-3 text-base sm:w-auto",
+                    })}
+                >
+                    Get started
+                </a>
+                <a
+                    href={routes.auth.login({})}
+                    className={buttonClassName({
+                        variant: "secondary",
+                        className: "w-full px-6 py-3 text-base sm:w-auto",
+                    })}
+                >
+                    Log in
+                </a>
+            </div>
+        </section>
+    );
+}
+
+function VideoEmbed() {
+    return (
+        <section className="mx-auto mt-16 max-w-5xl px-4">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="relative aspect-video w-full">
+                    <iframe
+                        className="absolute inset-0 h-full w-full"
+                        src={YOUTUBE_EMBED_URL}
+                        title="Loki product video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                    />
+                </div>
+            </div>
+            <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
+                Product video placeholder — replace with your YouTube embed.
+            </p>
+        </section>
+    );
+}
+
+interface Feature {
+    icon: Child;
+    title: string;
+    description: string;
+}
+
+const FEATURES: Feature[] = [
+    {
+        icon: <ClipboardIcon className="h-6 w-6 text-indigo-500" />,
+        title: "Digital logbook",
+        description:
+            "Capture every jump with exit and opening altitude, freefall time, description, and jump number. Searchable and sortable history at your fingertips.",
+    },
+    {
+        icon: <JumpTypeIcon className="h-6 w-6 text-indigo-500" />,
+        title: "Customizable jump types",
+        description:
+            "Define your own jump types and tags to match the way you jump — belly, freefly, wingsuit, HALO, BASE, whatever fits your sky.",
+    },
+    {
+        icon: <LocationIcon className="h-6 w-6 text-indigo-500" />,
+        title: "Locations, aircraft & gear",
+        description:
+            "Track drop zones, aircraft, and rigs as reusable jump items. Assign them to jumps in seconds with quick, searchable selectors.",
+    },
+    {
+        icon: <GearIcon className="h-6 w-6 text-indigo-500" />,
+        title: "Gear usage tracking",
+        description:
+            "See how many jumps and how much time each canopy, wingsuit, and line set has accumulated. Know when it is time to retire or inspect.",
+    },
+    {
+        icon: <CameraIcon className="h-6 w-6 text-indigo-500" />,
+        title: "AI vision imports",
+        description:
+            "Snap a photo of a paper logbook page, altimeter, or freefall computer readout and let AI vision build the jump entry for you.",
+    },
+    {
+        icon: (
+            <>
+                <ExportIcon className="h-6 w-6 text-indigo-500" />
+                <ImportIcon className="h-6 w-6 text-indigo-500" />
+            </>
+        ),
+        title: "CSV import & export",
+        description:
+            "Bring your existing logbook in via CSV and keep a portable backup. No lock-in — your data is always exportable.",
+    },
+];
+
+function FeatureCard(props: { feature: Feature }) {
+    return (
+        <div className={cardClassName}>
+            <div className="flex items-center gap-3">
+                {props.feature.icon}
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {props.feature.title}
+                </h3>
+            </div>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+                {props.feature.description}
+            </p>
+        </div>
+    );
+}
+
+function Features() {
+    return (
+        <section className="mx-auto mt-20 max-w-5xl px-4">
+            <h2 className={sectionHeadingClassName}>
+                Built for the way you jump
+            </h2>
+            <p className={sectionLeadClassName}>
+                Everything you need to keep a clean, searchable record of every
+                jump — and the gear you trust it with.
+            </p>
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {FEATURES.map((feature) => (
+                    <FeatureCard key={feature.title} feature={feature} />
+                ))}
+            </div>
+        </section>
+    );
+}
+
+function SelfHosting() {
+    return (
+        <section className="mx-auto mt-20 max-w-5xl px-4">
+            <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+                <div>
+                    <h2 className={sectionHeadingClassName}>
+                        Open source. Self-hosted. Yours.
+                    </h2>
+                    <p className={sectionLeadClassName}>
+                        Loki is licensed under the AGPL and runs anywhere you
+                        can run a single binary. Host it on your own server,
+                        spin it up in the cloud, or just run it locally on your
+                        laptop. Your logbook data never has to leave your
+                        machine.
+                    </p>
+                    <ul className="mt-6 space-y-3 text-sm text-slate-700 dark:text-slate-300">
+                        <li className="flex items-start gap-3">
+                            <span className="mt-1 h-2 w-2 flex-none rounded-full bg-indigo-500" />
+                            <span>
+                                Single executable binary for Linux, macOS, and
+                                Windows — no runtime to install.
+                            </span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                            <span className="mt-1 h-2 w-2 flex-none rounded-full bg-indigo-500" />
+                            <span>
+                                Local SQLite storage with optional CSV backups.
+                            </span>
+                        </li>
+                    </ul>
+                    <div className="mt-8 flex flex-wrap gap-3">
+                        <ButtonLink
+                            href={routes.about({})}
+                            variant="secondary"
+                            size="sm"
+                        >
+                            About Loki
+                        </ButtonLink>
+                        <a
+                            href={REPOSITORY_URL}
+                            className={buttonClassName({
+                                variant: "secondary",
+                                size: "sm",
+                            })}
+                        >
+                            Source on GitHub
+                        </a>
+                        <a
+                            href={RELEASES_URL}
+                            className={buttonClassName({
+                                variant: "secondary",
+                                size: "sm",
+                            })}
+                        >
+                            Binary releases
+                        </a>
+                    </div>
+                </div>
+                <div className={cardClassName}>
+                    <pre className="overflow-x-auto rounded-lg bg-slate-50 p-4 text-xs leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                        <code>{`# Download the binary for your platform
+./loki serve
+
+# Open the logbook
+open http://localhost:8787`}</code>
+                    </pre>
+                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                        That's it. Loki boots a local server and stores your
+                        logbook in a single SQLite file.
+                    </p>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function FooterCta() {
+    return (
+        <section className="mt-24">
+            <div className="mx-auto max-w-5xl px-4">
+                <div className="rounded-3xl border border-indigo-200 bg-indigo-50 px-6 py-12 text-center sm:px-12 dark:border-indigo-900/60 dark:bg-indigo-950/40">
+                    <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                        Start your digital logbook today
+                    </h2>
+                    <p className="mx-auto mt-4 max-w-xl text-slate-700 dark:text-slate-300">
+                        Create an account or log in to pick up where you left
+                        off.
+                    </p>
+                    <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                        <a
+                            href={routes.auth.register({})}
+                            className={buttonClassName({
+                                variant: "primary",
+                                className:
+                                    "w-full px-6 py-3 text-base sm:w-auto",
+                            })}
+                        >
+                            Sign up
+                        </a>
+                        <a
+                            href={routes.auth.login({})}
+                            className={buttonClassName({
+                                variant: "secondary",
+                                className:
+                                    "w-full px-6 py-3 text-base sm:w-auto",
+                            })}
+                        >
+                            Log in
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function LandingFooter() {
+    return (
+        <footer className="mt-16 border-t border-slate-200 dark:border-slate-800">
+            <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-slate-500 sm:flex-row dark:text-slate-400">
+                <div className="flex flex-col items-center gap-1 text-center sm:flex-row sm:items-center sm:text-left">
+                    <div className="flex items-center gap-2">
+                        <img
+                            src="/logo.svg"
+                            alt=""
+                            aria-hidden="true"
+                            className="h-6 w-auto"
+                        />
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                            Loki
+                        </span>
+                        <span>— Skydiving Logbook</span>
+                    </div>
+                    <span className="hidden sm:inline text-slate-300 dark:text-slate-600">
+                        ·
+                    </span>
+                    <span>
+                        Built by{" "}
+                        <a
+                            href="https://esamatti.fi/"
+                            className="font-medium text-slate-700 underline-offset-2 hover:text-indigo-600 hover:underline dark:text-slate-300 dark:hover:text-indigo-400"
+                        >
+                            Esa-Matti Suuronen
+                        </a>
+                    </span>
+                </div>
+                <nav className="flex items-center gap-4">
+                    <a
+                        href={routes.about({})}
+                        className="underline-offset-2 hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                    >
+                        About
+                    </a>
+                    <a
+                        href={REPOSITORY_URL}
+                        className="underline-offset-2 hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                    >
+                        GitHub
+                    </a>
+                    <a
+                        href={routes.auth.login({})}
+                        className="underline-offset-2 hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                    >
+                        Log in
+                    </a>
+                    <a
+                        href={routes.auth.register({})}
+                        className="underline-offset-2 hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                    >
+                        Sign up
+                    </a>
+                </nav>
+            </div>
+        </footer>
+    );
+}
+
+function LandingPage() {
+    return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+            <LandingHeader />
+            <main>
+                <Hero />
+                <VideoEmbed />
+                <Features />
+                <SelfHosting />
+                <FooterCta />
+            </main>
+            <LandingFooter />
+        </div>
+    );
+}
+
+function renderHome(c: AppRequestContext) {
+    if (getAppContext(c).user) {
+        return c.redirect(routes.logbook.index({}));
+    }
+    return c.render(<LandingPage />);
+}
+
+export function register(app: App) {
+    app.get(routes.home.route, renderHome);
+}

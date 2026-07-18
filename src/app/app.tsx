@@ -616,6 +616,7 @@ async function setAppContextMiddleware(
 app.use("*", setAppContextMiddleware);
 
 const PUBLIC_PATHS = [
+    routes.home.route,
     routes.auth.login.route,
     routes.auth.register.route,
     routes.about.route,
