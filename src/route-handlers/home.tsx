@@ -358,7 +358,8 @@ open http://localhost:8787`}</code>
                     </pre>
                     <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                         That's it. Loki boots a local server and stores your
-                        logbook in a single SQLite file.
+                        logbook in a single SQLite file into your home
+                        directory.
                     </p>
                 </div>
             </div>
