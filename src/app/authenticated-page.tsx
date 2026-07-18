@@ -112,7 +112,7 @@ function LogbookActions(props: { pathname: string }) {
     const fromImagePath = routes.logbook.jumps.fromImage({});
 
     return (
-        <nav className="flex flex-wrap items-center gap-2.5 sm:gap-2">
+        <nav className="flex flex-wrap items-center justify-around sm:justify-start sm:gap-2">
             <ButtonLink
                 href={logbookPath}
                 icon={<LogbookIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}

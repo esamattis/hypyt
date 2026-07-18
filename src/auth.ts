@@ -1,10 +1,11 @@
 import { eq, or } from "drizzle-orm";
 import type { AppContext } from "@/app/app";
+import { verifyPassword } from "@/password";
 import { users } from "@/schema";
 
-const PBKDF2_ITERATIONS = 100_000;
-const PBKDF2_KEYLEN_BITS = 256;
 const SESSION_TOKEN_BYTES = 32; // 256 bits
+
+export { hashPassword } from "@/password";
 
 export const SESSION_COOKIE_NAME = "session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
@@ -75,68 +76,6 @@ export async function hashToken(token: string): Promise<string> {
         hex += byte.toString(16).padStart(2, "0");
     }
     return hex;
-}
-
-function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(new ArrayBuffer(binary.length));
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-}
-
-async function derivePasswordHash(
-    password: string,
-    salt: Uint8Array<ArrayBuffer>,
-    iterations: number,
-): Promise<string> {
-    const encoder = new TextEncoder();
-    const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        encoder.encode(password),
-        "PBKDF2",
-        false,
-        ["deriveBits"],
-    );
-    const derived = await crypto.subtle.deriveBits(
-        {
-            name: "PBKDF2",
-            salt,
-            iterations,
-            hash: "SHA-256",
-        },
-        keyMaterial,
-        PBKDF2_KEYLEN_BITS,
-    );
-    return bytesToBase64(new Uint8Array(derived));
-}
-
-export async function hashPassword(password: string): Promise<string> {
-    const salt = crypto.getRandomValues(new Uint8Array(new ArrayBuffer(16)));
-    const hash = await derivePasswordHash(password, salt, PBKDF2_ITERATIONS);
-    return `${PBKDF2_ITERATIONS}:${bytesToBase64(salt)}:${hash}`;
-}
-
-async function verifyPassword(
-    password: string,
-    storedHash: string,
-): Promise<boolean> {
-    const parts = storedHash.split(":");
-    if (parts.length !== 3) {
-        return false;
-    }
-    const [iterationsStr, saltBase64, hash] = parts;
-    if (!iterationsStr || !saltBase64 || !hash) {
-        return false;
-    }
-    const iterations = parseInt(iterationsStr, 10);
-    if (Number.isNaN(iterations)) {
-        return false;
-    }
-    const salt = base64ToBytes(saltBase64);
-    const computedHash = await derivePasswordHash(password, salt, iterations);
-    return computedHash === hash;
 }
 
 /** Parses an HTTP Basic Authorization header into username and password. */
