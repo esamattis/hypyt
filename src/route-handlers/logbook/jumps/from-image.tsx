@@ -505,7 +505,7 @@ async function extractJumpDataFromImage(options: {
     const userText = [
         `User's image reading instructions:\n${prompt}`,
         "Extract exitAltitude and openingAltitude as their visible values and source units. Supported source units are meters and feet. Do not convert them. If a source unit is not explicit in the image or supplied in the user's additional context, return null for that altitude.",
-        "Match a readable name to one of these existing logbook items only when the match is unambiguous; otherwise preserve the readable name from the image:",
+        "Match a readable name to one of these existing logbook items only when the match is unambiguous. If none matches, return the readable name from the image so a new jump item can be created:",
         buildResourceHint("Locations", options.resources.locations),
         buildResourceHint("Aircraft", options.resources.aircrafts),
         buildResourceHint("Gear", options.resources.gear),

@@ -293,7 +293,7 @@ function JumpFromImageSection(props: { options: UserOptions }) {
                 <Textarea
                     name="jumpImagePrompt"
                     label="Image reading prompt"
-                    rows={8}
+                    rows={14}
                     value={
                         props.options.jumpImagePrompt ||
                         DEFAULT_JUMP_IMAGE_PROMPT

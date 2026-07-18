@@ -27,6 +27,7 @@ export const DEFAULT_JUMP_IMAGE_PROMPT = `- Extract the jump number, complete da
 - Extract the drop zone or location, aircraft, gear, and jump types.
 - Match an existing logbook name only when the match is unambiguous; otherwise preserve the readable name from the image.
 - Treat "WS" as the jump type "Wingsuit" and "Delay" as the freefall time.
+- Preserve the original language for notes and descriptions. Never translate them.
 - Include other readable notes, such as weather, formation, instructors, or incidents, without repeating structured fields. Preserve short notes and abbreviations rather than expanding or embellishing them.`;
 
 function isValidJumpDate(value: string): boolean {
