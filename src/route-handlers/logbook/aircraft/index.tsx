@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import { Button, ButtonLink } from "@/components/form";
 import { PlusIcon } from "@/components/icons";
+import { IgnoreReturnRoute } from "@/components/return-after-form-post";
 import { LogbookPage } from "@/app/authenticated-page";
 import * as routes from "@/routes";
 import { aircrafts } from "@/schema";
@@ -19,6 +20,7 @@ async function getAircraftList(c: AppRequestContext) {
         .orderBy(aircrafts.name);
     return c.render(
         <LogbookPage title="Aircraft">
+            <IgnoreReturnRoute />
             <div className="flex flex-wrap items-center gap-3">
                 <ButtonLink
                     href={routes.logbook.aircraft.new({})}

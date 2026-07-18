@@ -146,6 +146,19 @@ test("saving preferences returns to the originating route", async ({
     ).toBeNull();
 });
 
+test("jump item lists are omitted from the return route", async ({ page }) => {
+    await registerUser(page, "ignored-item-list", "Ignored Item List");
+    await page.goto("/logbook?search=canopy");
+
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
+    await page.getByRole("link", { name: "Add gear" }).click();
+    await page.locator('input[name="name"]').fill("Ignored list canopy");
+    await page.getByRole("button", { name: "Add gear" }).click();
+
+    await expect(page).toHaveURL("/logbook?search=canopy");
+});
+
 test("a skydiver can update preferences and account details", async ({
     page,
 }) => {

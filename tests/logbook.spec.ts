@@ -102,7 +102,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="name"]').fill("Main canopy");
     await page.locator('input[name="previousCount"]').fill("12");
     await page.getByRole("button", { name: "Add gear" }).click();
-    await expect(page).toHaveURL("/logbook/gear");
+    await expect(page).toHaveURL("/logbook");
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await openManageLogbook(page);
@@ -123,7 +123,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="name"]').fill("Tracking");
     await page.locator('input[name="previousCount"]').fill("4");
     await page.getByRole("button", { name: "Add jump type" }).click();
-    await expect(page).toHaveURL("/logbook/jump-types");
+    await expect(page).toHaveURL("/logbook");
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await openManageLogbook(page);
@@ -132,7 +132,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="name"]').fill("Skydive Test Center");
     await page.locator('input[name="previousCount"]').fill("50");
     await page.getByRole("button", { name: "Add location" }).click();
-    await expect(page).toHaveURL("/logbook/locations");
+    await expect(page).toHaveURL("/logbook");
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await openManageLogbook(page);
@@ -144,7 +144,7 @@ test("a skydiver can register and record their first jump", async ({
         .click();
     await page.locator('input[name="previousCount"]').fill("25");
     await page.getByRole("button", { name: "Save aircraft" }).click();
-    await expect(page).toHaveURL("/logbook/aircrafts");
+    await expect(page).toHaveURL("/logbook");
 
     await page.getByRole("link", { name: /Test Skydiver's logbook/ }).click();
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
@@ -329,6 +329,8 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="previousCount"]').fill("15");
     await page.locator('textarea[name="description"]').fill("Updated gear");
     await page.getByRole("button", { name: "Save gear" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Main canopy updated" })
@@ -356,6 +358,8 @@ test("a skydiver can register and record their first jump", async ({
         .locator('textarea[name="description"]')
         .fill("Updated freefly type");
     await page.getByRole("button", { name: "Save jump type" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage jump types" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Freefly updated" })
@@ -383,6 +387,8 @@ test("a skydiver can register and record their first jump", async ({
         .locator('textarea[name="description"]')
         .fill("Updated tracking type");
     await page.getByRole("button", { name: "Save jump type" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage jump types" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Tracking updated" })
@@ -408,6 +414,8 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="previousCount"]').fill("55");
     await page.locator('textarea[name="description"]').fill("Updated location");
     await page.getByRole("button", { name: "Save location" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage locations" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Skydive Updated Center" })
@@ -433,6 +441,8 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="previousCount"]').fill("30");
     await page.locator('textarea[name="description"]').fill("Updated aircraft");
     await page.getByRole("button", { name: "Save aircraft" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage aircraft" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Cessna 182 updated" })

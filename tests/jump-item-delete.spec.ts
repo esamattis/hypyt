@@ -22,6 +22,8 @@ async function addItem(
     await page.getByRole("link", { name: item.addLabel }).click();
     await page.locator('input[name="name"]').fill(item.name);
     await page.getByRole("button", { name: item.addLabel }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: item.manageLink }).click();
 }
 
 async function confirmDelete(page: Page, deleteLabel: string) {

@@ -73,6 +73,12 @@ Do not use React-style `defaultValue` on form controls; Hono SSR does not map it
 
 Opt saveable edit forms into unsaved-change tracking with `data-loki-confirm="Edit Jump"`, using the dialog title as the attribute value. Forms without `data-loki-confirm` are not tracked. Never add it to destructive or confirmation-gated forms.
 
+## Return Navigation
+
+For form return navigation, use `RedirectBackAfterPost` and
+`IgnoreReturnRoute` from `@/components/return-after-form-post`; follow their
+component doc comments.
+
 # Terminology
 
 "Jump items" are gear, locations, aircraft, and jump types assignable to a jump.

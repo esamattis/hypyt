@@ -2,6 +2,7 @@ import type { App, AppRequestContext } from "@/app/app";
 import { getAppContext } from "@/app/app";
 import { LogbookPage } from "@/app/authenticated-page";
 import { Button, ButtonLink } from "@/components/form";
+import { IgnoreReturnRoute } from "@/components/return-after-form-post";
 import * as routes from "@/routes";
 import { locations } from "@/schema";
 import { eq } from "drizzle-orm";
@@ -19,6 +20,7 @@ async function getLocationList(c: AppRequestContext) {
         .orderBy(locations.name);
     return c.render(
         <LogbookPage title="Locations">
+            <IgnoreReturnRoute />
             <div className="flex flex-wrap items-center gap-3">
                 <ButtonLink
                     href={routes.logbook.locations.new({})}

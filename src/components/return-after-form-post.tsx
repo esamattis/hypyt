@@ -1,12 +1,15 @@
 import { Script } from "@/components/script";
+import { $select } from "@/utils";
 
 const REDIRECT_BACK_AFTER_POST_FIELD = "__loki_redirect_back_after_post";
+const IGNORE_RETURN_ROUTE_SELECTOR = "[data-loki-ignore-return-route]";
 
 function $returnAfterFormPost(config: {
     storageKey: string;
     destinationStorageKey: string;
     pendingStorageKey: string;
     formFieldName: string;
+    ignoreReturnRouteSelector: string;
 }) {
     const storageKey = config.storageKey;
     const destinationStorageKey = config.destinationStorageKey;
@@ -87,10 +90,23 @@ function $returnAfterFormPost(config: {
             return;
         }
 
-        // Record every ordinary same-origin document navigation. The form's
-        // marker decides later whether a POST consumes it; expectedDestination
-        // scopes the value so unrelated page loads can recognize it as stale.
-        sessionStorage.setItem(storageKey, sourceRoute);
+        const ignoresReturnRoute = $select.elOrNull(
+            config.ignoreReturnRouteSelector,
+            HTMLElement,
+        );
+        if (!ignoresReturnRoute) {
+            // Record every ordinary same-origin document navigation. The form's
+            // marker decides later whether a POST consumes it.
+            sessionStorage.setItem(storageKey, sourceRoute);
+        } else if (!sessionStorage.getItem(storageKey)) {
+            // An ignored page loaded directly has no earlier client-side route
+            // to preserve, so it must not invent one when the user leaves.
+            return;
+        }
+
+        // Ignored intermediary pages preserve the existing return route but
+        // still advance the expected destination. This keeps the state scoped
+        // to the next page and prevents its load from discarding the chain.
         sessionStorage.setItem(
             destinationStorageKey,
             destination.pathname + destination.search,
@@ -121,12 +137,14 @@ export function ReturnAfterFormPost() {
     const pendingStorageKey = "return-after-form-post-pending";
     return (
         <Script
+            $deps={[$select]}
             $args={[
                 {
                     storageKey,
                     destinationStorageKey,
                     pendingStorageKey,
                     formFieldName: REDIRECT_BACK_AFTER_POST_FIELD,
+                    ignoreReturnRouteSelector: IGNORE_RETURN_ROUTE_SELECTOR,
                 },
             ]}
             $exec={$returnAfterFormPost}
@@ -134,6 +152,17 @@ export function ReturnAfterFormPost() {
     );
 }
 
+/**
+ * Opts a form into returning to the route from which it was opened after a
+ * successful POST. Render this inside saveable create and edit forms. The
+ * client removes the hidden marker from FormData before submission. A
+ * validation response on the form route keeps the original return route for a
+ * corrected resubmission.
+ *
+ * Do not use this for single-action, destructive, authentication,
+ * import/export, or confirmation forms, or forms with an intentional canonical
+ * destination. Browsers without the Navigation API use the server redirect.
+ */
 export function RedirectBackAfterPost() {
     // Form submit progress disables controls asynchronously. This field must
     // stay enabled so NavigateEvent.formData still contains it.
@@ -145,4 +174,17 @@ export function RedirectBackAfterPost() {
             data-loki-keep-enabled-on-submit
         />
     );
+}
+
+/**
+ * Makes an intermediary page transparent when recording a return route.
+ * Navigating through a marked page preserves the earlier pathname and query
+ * while advancing the expected destination. A directly loaded marked page
+ * does not invent a return route.
+ *
+ * Use this on list pages that should be skipped when a form reached through
+ * the list saves. Jump item list views use it to return past the list.
+ */
+export function IgnoreReturnRoute() {
+    return <template data-loki-ignore-return-route></template>;
 }

@@ -47,6 +47,8 @@ test("editing a jump keeps archived jump items", async ({ page }) => {
         .locator('textarea[name="description"]')
         .fill("Archived canopy description");
     await page.getByRole("button", { name: "Add gear" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Unused Archived Gear");
     await page.getByRole("button", { name: "Add gear" }).click();
@@ -208,9 +210,13 @@ test("new jump form hides archived items and shows reveal button", async ({
     await page.getByRole("link", { name: "Add location" }).click();
     await page.locator('input[name="name"]').fill("Active Dropzone");
     await page.getByRole("button", { name: "Add location" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage locations" }).click();
     await page.getByRole("link", { name: "Add location" }).click();
     await page.locator('input[name="name"]').fill("Hidden Dropzone");
     await page.getByRole("button", { name: "Add location" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage locations" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Hidden Dropzone" })
@@ -225,9 +231,13 @@ test("new jump form hides archived items and shows reveal button", async ({
     await page.getByRole("link", { name: "Add aircraft" }).click();
     await page.locator('input[name="name"]').fill("Active Plane");
     await page.getByRole("button", { name: "Add aircraft" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage aircraft" }).click();
     await page.getByRole("link", { name: "Add aircraft" }).click();
     await page.locator('input[name="name"]').fill("Hidden Plane");
     await page.getByRole("button", { name: "Add aircraft" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage aircraft" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Hidden Plane" })
@@ -242,9 +252,13 @@ test("new jump form hides archived items and shows reveal button", async ({
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Active Canopy");
     await page.getByRole("button", { name: "Add gear" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Hidden Canopy");
     await page.getByRole("button", { name: "Add gear" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Hidden Canopy" })
@@ -259,6 +273,8 @@ test("new jump form hides archived items and shows reveal button", async ({
     await page.getByRole("link", { name: "Add jump type" }).click();
     await page.locator('input[name="name"]').fill("Hidden Freefly");
     await page.getByRole("button", { name: "Add jump type" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage jump types" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Hidden Freefly" })

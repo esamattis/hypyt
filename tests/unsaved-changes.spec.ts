@@ -53,12 +53,16 @@ test("edited forms warn before leaving via a link", async ({ page }) => {
 
     await page.getByRole("link", { name: "Cancel" }).click();
     await page.getByRole("button", { name: "Save" }).click();
-    await expect(page).toHaveURL("/logbook/gear");
+    await expect(page).toHaveURL("/logbook");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
     await expect(page.getByText("Dirty canopy", { exact: true })).toBeVisible();
 
     await page.getByRole("link", { name: "Add gear" }).click();
     await page.locator('input[name="name"]').fill("Merge target");
     await page.getByRole("button", { name: "Add gear" }).click();
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Manage gear" }).click();
     await page
         .getByRole("listitem")
         .filter({ hasText: "Dirty canopy" })
