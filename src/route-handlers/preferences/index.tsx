@@ -5,6 +5,7 @@ import { isSafeRedirectPath } from "@/auth";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import {
     Button,
+    Checkbox,
     Input,
     NumberInput,
     Select,
@@ -55,6 +56,7 @@ const PreferencesSchema = z
         openaiApiKey: z.string(),
         jumpImagePrompt: z.string(),
         jumpImageModel: UserOptionsSchema.shape.jumpImageModel,
+        htmlCacheEnabled: z.literal("true").optional(),
     })
     .superRefine((data, ctx) => {
         const changingPassword =
@@ -228,6 +230,28 @@ function DateTimeSection(props: { options: UserOptions }) {
     );
 }
 
+function PerformanceSection(props: { options: UserOptions }) {
+    return (
+        <section className="space-y-5 border-t border-slate-200 pt-8 dark:border-slate-800">
+            <div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    Performance
+                </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Cache generated pages securely for faster navigation. The
+                    cache is cleared whenever you submit a form.
+                </p>
+            </div>
+            <Checkbox
+                name="htmlCacheEnabled"
+                value="true"
+                label="Enable page caching"
+                checked={props.options.htmlCacheEnabled}
+            />
+        </section>
+    );
+}
+
 function JumpFromImageSection(props: { options: UserOptions }) {
     const promptContainerId = useId();
     const restorePromptButtonId = useId();
@@ -385,6 +409,7 @@ function PreferencesForm(props: {
             <JumpHistorySection options={props.values.options} />
             <UnitsSection options={props.values.options} />
             <DateTimeSection options={props.values.options} />
+            <PerformanceSection options={props.values.options} />
             <JumpFromImageSection options={props.values.options} />
             <PasswordSection />
             <div className="hidden sm:block">
@@ -460,6 +485,7 @@ function optionsFromRawForm(
         openaiApiKey: raw.openaiApiKey ?? current.openaiApiKey,
         jumpImagePrompt: raw.jumpImagePrompt ?? current.jumpImagePrompt,
         jumpImageModel: raw.jumpImageModel ?? current.jumpImageModel,
+        htmlCacheEnabled: raw.htmlCacheEnabled === "true",
     });
     return partial.success ? partial.data : current;
 }
@@ -582,6 +608,7 @@ async function handlePreferences(c: AppRequestContext) {
         jumpImagePrompt:
             result.data.jumpImagePrompt.trim() || DEFAULT_JUMP_IMAGE_PROMPT,
         jumpImageModel: result.data.jumpImageModel,
+        htmlCacheEnabled: result.data.htmlCacheEnabled === "true",
     });
     values.options = options;
     await ctx.db

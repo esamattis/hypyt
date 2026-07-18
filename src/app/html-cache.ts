@@ -1,0 +1,129 @@
+import { eq, sql } from "drizzle-orm";
+import { gitRevision } from "@/build-info";
+import { getAppContext, type AppRequestContext, type User } from "@/app/app";
+import * as routes from "@/routes";
+import { users } from "@/schema";
+
+const CACHE_NAME = "loki-html-v1";
+const CACHE_TTL_SECONDS = 5 * 60;
+
+function cacheApiAvailable(): boolean {
+    return typeof caches !== "undefined";
+}
+
+function excludedPath(path: string): boolean {
+    return (
+        path === routes.preferences.route ||
+        path === routes.admin.index.route ||
+        path.startsWith(`${routes.admin.index.route}/`)
+    );
+}
+
+/**
+ * Cloudflare's Cache API identifies entries with GET Request objects. This
+ * synthetic request is never fetched; its URL only namespaces the cached HTML
+ * by build, user, generation, role, and the complete requested page URL.
+ */
+function cacheKey(c: AppRequestContext, user: User): Request {
+    const url = new URL(c.req.url);
+    const build = encodeURIComponent(gitRevision || "development");
+    const userUuid = encodeURIComponent(user.uuid);
+    const admin = user.admin ? "admin" : "user";
+    url.pathname = `/__loki-html-cache/${build}/${userUuid}/${user.htmlCacheGeneration}/${admin}${url.pathname}`;
+    return new Request(url, { method: "GET" });
+}
+
+function responseForClient(response: Response): Response {
+    const headers = new Headers(response.headers);
+    headers.set("Cache-Control", "private, no-store");
+    return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+    });
+}
+
+function responseForCache(response: Response): Response {
+    const headers = new Headers(response.headers);
+    headers.set("Cache-Control", `public, max-age=${CACHE_TTL_SECONDS}`);
+    return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+    });
+}
+
+function cacheableResponse(response: Response): boolean {
+    if (response.status !== 200 || response.headers.has("Set-Cookie")) {
+        return false;
+    }
+    const contentType = response.headers.get("Content-Type");
+    if (!contentType?.toLowerCase().startsWith("text/html")) {
+        return false;
+    }
+    const cacheControl = response.headers.get("Cache-Control")?.toLowerCase();
+    return !cacheControl?.includes("no-store");
+}
+
+async function invalidateUserCache(c: AppRequestContext, userUuid: string) {
+    const ctx = getAppContext(c);
+    await ctx.db
+        .update(users)
+        .set({
+            htmlCacheGeneration: sql`${users.htmlCacheGeneration} + 1`,
+        })
+        .where(eq(users.uuid, userUuid))
+        .run();
+}
+
+async function handlePost(
+    c: AppRequestContext,
+    next: () => Promise<void>,
+    user: User,
+) {
+    try {
+        await next();
+    } finally {
+        await invalidateUserCache(c, user.uuid);
+    }
+}
+
+export async function htmlCacheMiddleware(
+    c: AppRequestContext,
+    next: () => Promise<void>,
+) {
+    if (!cacheApiAvailable()) {
+        return next();
+    }
+
+    const user = getAppContext(c).user;
+    if (!user) {
+        return next();
+    }
+    if (c.req.method === "POST") {
+        return handlePost(c, next, user);
+    }
+    if (
+        c.req.method !== "GET" ||
+        !user.options.htmlCacheEnabled ||
+        excludedPath(c.req.path)
+    ) {
+        return next();
+    }
+
+    const cache = await caches.open(CACHE_NAME);
+    const key = cacheKey(c, user);
+    const cachedResponse = await cache.match(key);
+    if (cachedResponse) {
+        return responseForClient(cachedResponse);
+    }
+
+    await next();
+    if (!cacheableResponse(c.res)) {
+        return;
+    }
+
+    const response = c.res;
+    await cache.put(key, responseForCache(response.clone()));
+    c.res = responseForClient(response);
+}

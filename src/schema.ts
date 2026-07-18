@@ -19,6 +19,7 @@ export const users = sqliteTable("users", {
     invitationCode: text("invitation_code"),
     options: text("options").notNull().default("{}"),
     admin: integer("admin", { mode: "boolean" }).notNull().default(false),
+    htmlCacheGeneration: integer("html_cache_generation").notNull().default(0),
 });
 
 export const invitations = sqliteTable("invitations", {

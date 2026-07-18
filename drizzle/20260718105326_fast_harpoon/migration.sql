@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `html_cache_generation` integer DEFAULT 0 NOT NULL;

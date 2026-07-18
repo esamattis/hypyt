@@ -34,6 +34,7 @@ import {
     type AuthenticatedUser,
 } from "@/auth";
 import { createD1Database, type AppDatabase } from "@/db";
+import { htmlCacheMiddleware } from "@/app/html-cache";
 import { $select } from "@/utils";
 import {
     createAltitudeFormatter,
@@ -75,6 +76,7 @@ export interface User {
     email: string;
     options: UserOptions;
     admin: boolean;
+    htmlCacheGeneration: number;
     getDisplayName(): string;
 }
 
@@ -630,6 +632,7 @@ function setAuthenticatedUser(ctx: AppContext, user: AuthenticatedUser) {
         email: user.email,
         options: parseUserOptions(user.options),
         admin: user.admin,
+        htmlCacheGeneration: user.htmlCacheGeneration,
         getDisplayName() {
             return user.displayName || user.username;
         },
@@ -682,6 +685,7 @@ async function authenticateMiddleware(
                 email: users.email,
                 options: users.options,
                 admin: users.admin,
+                htmlCacheGeneration: users.htmlCacheGeneration,
                 expiresAt: sessions.expiresAt,
                 lastUsedAt: sessions.lastUsedAt,
             })
@@ -758,6 +762,8 @@ async function authenticateMiddleware(
 }
 
 app.use("*", authenticateMiddleware);
+
+app.use("*", htmlCacheMiddleware);
 
 app.use(
     "*",
