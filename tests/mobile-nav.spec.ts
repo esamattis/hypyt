@@ -17,7 +17,7 @@ async function expectActiveAction(
     navigation: ReturnType<Page["getByRole"]>,
     activeLabel: string,
 ) {
-    const labels = ["Logbook", "Add jump", "Read image"];
+    const labels = ["Logbook", "Statistics", "Add jump", "Read image"];
 
     for (const label of labels) {
         const link = navigation.getByRole("link", { name: label, exact: true });
@@ -34,6 +34,23 @@ test("desktop header marks the active action", async ({ page }) => {
 
     const header = page.getByRole("banner");
     await expectActiveAction(header, "Logbook");
+    await expect(
+        page.getByRole("heading", { name: "Start your logbook" }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole("link", { name: "Add your first jump" }),
+    ).toHaveAttribute("href", "/logbook/jumps/new");
+    await expect(page.getByRole("link", { name: "CSV file" })).toHaveAttribute(
+        "href",
+        "/logbook/transfer",
+    );
+    await expect(page.getByRole("link", { name: "AI vision" })).toHaveAttribute(
+        "href",
+        "/logbook/jumps/new/from-image",
+    );
+
+    await page.goto("/logbook/statistics");
+    await expectActiveAction(header, "Statistics");
 
     await page.goto("/logbook/jumps/new");
     await expectActiveAction(header, "Add jump");
@@ -54,6 +71,9 @@ test("mobile navigation uses the bottom bar for actions and menu", async ({
     await expect(bottomBar).toBeVisible();
     await expect(
         bottomBar.getByRole("link", { name: "Logbook", exact: true }),
+    ).toBeVisible();
+    await expect(
+        bottomBar.getByRole("link", { name: "Statistics", exact: true }),
     ).toBeVisible();
     await expect(
         bottomBar.getByRole("link", { name: "Add jump", exact: true }),

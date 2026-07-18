@@ -81,7 +81,6 @@ test("statistics show recorded and total jump counts for every item", async ({
     await page
         .getByRole("link", { name: /statistics-skydiver's logbook/ })
         .click();
-    await openManageLogbook(page);
     await page.getByRole("link", { name: "Statistics", exact: true }).click();
 
     await expect(page).toHaveURL("/logbook/statistics");

@@ -201,12 +201,6 @@ test("a skydiver can register and record their first jump", async ({
             .getByText("55s", { exact: true }),
     ).toBeVisible();
     await expect(
-        page.getByText("Total freefall", { exact: true }),
-    ).toBeVisible();
-    await expect(page.getByText("Total freefall time")).toBeVisible();
-    await expect(page.getByText("Active jump years")).toBeVisible();
-    await expect(page.getByText("3 km").first()).toBeVisible();
-    await expect(
         page.getByRole("link", { name: /#1/ }).getByText("Freefly"),
     ).toBeVisible();
     await expect(

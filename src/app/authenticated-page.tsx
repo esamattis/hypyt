@@ -71,10 +71,6 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
                 Manage locations
             </MenuLink>
             <MenuDivider />
-            <MenuLink href={routes.logbook.statistics.index({})}>
-                <StatisticsIcon className={menuIconClassName} />
-                Statistics
-            </MenuLink>
             <MenuLink href={routes.logbook.transfer.index({})}>
                 <TransferIcon className={menuIconClassName} />
                 Import or export
@@ -111,6 +107,7 @@ function MainMenu(props: { isAdmin: boolean; menuClassName?: string }) {
 
 function LogbookActions(props: { pathname: string }) {
     const logbookPath = routes.logbook.index({});
+    const statisticsPath = routes.logbook.statistics.index({});
     const newJumpPath = routes.logbook.jumps.new({}, {});
     const fromImagePath = routes.logbook.jumps.fromImage({});
 
@@ -131,6 +128,29 @@ function LogbookActions(props: { pathname: string }) {
             >
                 <span className="hidden sm:inline">Logbook</span>
             </ButtonLink>
+            <ButtonLink
+                href={statisticsPath}
+                icon={<StatisticsIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                variant={
+                    props.pathname.startsWith(statisticsPath)
+                        ? "primary"
+                        : "secondary"
+                }
+                aria-label="Statistics"
+                aria-current={
+                    props.pathname.startsWith(statisticsPath)
+                        ? "page"
+                        : undefined
+                }
+                data-loki-tooltip="Show statistics"
+                className="gap-1 rounded-md px-2 py-1.5 text-xs font-medium sm:gap-1.5 sm:rounded-lg sm:px-3.5 sm:py-2 sm:text-sm"
+            >
+                <span className="hidden sm:inline">Statistics</span>
+            </ButtonLink>
+            <span
+                aria-hidden="true"
+                className="mx-0.5 h-6 w-px flex-none bg-slate-200 dark:bg-slate-700"
+            />
             <ButtonLink
                 href={newJumpPath}
                 icon={<PlusIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}

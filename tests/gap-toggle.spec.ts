@@ -42,7 +42,6 @@ test("the Show gap years toggle hides and reveals histogram gap years", async ({
     await page
         .getByRole("link", { name: /gap-toggle-skydiver's logbook/ })
         .click();
-    await openManageLogbook(page);
     await page.getByRole("link", { name: "Statistics", exact: true }).click();
     await expect(page).toHaveURL("/logbook/statistics");
     await expect(

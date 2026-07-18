@@ -259,10 +259,6 @@ test("unit preferences apply throughout the logbook UI", async ({ page }) => {
     await expect(jump).toContainText("3.281 ft");
     await expect(jump).toContainText("54,5 m/s");
     await expect(jump).toContainText("01/01/2026");
-    await expect(
-        page.getByText("Total freefall", { exact: true }).locator(".."),
-    ).toContainText("9.843 ft");
-
     await page.getByLabel("Search jumps").fill("13123");
     await page.getByLabel("Search jumps").press("Enter");
     await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
@@ -277,7 +273,6 @@ test("unit preferences apply throughout the logbook UI", async ({ page }) => {
     );
 
     await page.getByRole("link", { name: /Units Skydiver's logbook/ }).click();
-    await openManageLogbook(page);
     await page.getByRole("link", { name: "Statistics", exact: true }).click();
     await page.getByRole("link", { name: "View detailed statistics" }).click();
     await expect(

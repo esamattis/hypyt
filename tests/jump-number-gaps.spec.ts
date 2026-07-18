@@ -45,7 +45,6 @@ test("statistics page lists jump number gaps and insufficient data", async ({
     await page
         .getByRole("link", { name: /jump-gaps-skydiver's logbook/ })
         .click();
-    await openManageLogbook(page);
     await page.getByRole("link", { name: "Statistics", exact: true }).click();
     await expect(page).toHaveURL("/logbook/statistics");
 

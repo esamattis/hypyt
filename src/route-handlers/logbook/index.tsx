@@ -12,58 +12,14 @@ import {
     locations,
 } from "@/schema";
 import { Button } from "@/components/form";
-import { ChevronRightIcon } from "@/components/icons";
 import { Details } from "@/components/ui/details";
 import { LogbookPage } from "@/app/authenticated-page";
 import {
-    Distance,
     JumpCard,
     type JumpListItem,
 } from "@/route-handlers/logbook/components/jump-list";
 import { JumpSearch } from "@/route-handlers/logbook/components/search";
 import { JumpItemSelect } from "@/components/jump-item-select";
-import { formatDuration } from "@/utils/format-duration";
-
-function LogbookStatsCard(props: { label: string; value: any }) {
-    return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:shadow-black/30">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                {props.label}
-            </p>
-            <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                {props.value}
-            </p>
-        </div>
-    );
-}
-
-function LogbookStats(props: {
-    totalJumps: number;
-    totalFreefallMeters: number;
-    totalFreefallTime: number;
-    activeJumpYears: number;
-}) {
-    return (
-        <section
-            aria-label="Logbook summary"
-            className="grid grid-cols-2 gap-4"
-        >
-            <LogbookStatsCard label="Total jumps" value={props.totalJumps} />
-            <LogbookStatsCard
-                label="Total freefall"
-                value={<Distance meters={props.totalFreefallMeters} />}
-            />
-            <LogbookStatsCard
-                label="Total freefall time"
-                value={formatDuration(props.totalFreefallTime)}
-            />
-            <LogbookStatsCard
-                label="Active jump years"
-                value={props.activeJumpYears}
-            />
-        </section>
-    );
-}
 
 interface LogbookResource {
     uuid: string;
@@ -392,30 +348,6 @@ export async function getLogbookJumps(
         .limit(JUMPS_PER_PAGE + 1);
 }
 
-async function getLogbookStats(c: AppRequestContext, filters: LogbookFilters) {
-    const db = getAppContext(c).db;
-    const previousJumpCount =
-        getAppContext(c).getUser().options.previousJumpCount;
-    const [stats] = await db
-        .select({
-            totalJumps: sql<number>`count(*) + ${previousJumpCount}`,
-            totalFreefallMeters: sql<number>`coalesce(sum(max(${jumps.exitAltitude} - ${jumps.openingAltitude}, 0)), 0)`,
-            totalFreefallTime: sql<number>`coalesce(sum(${jumps.freefallTime}), 0)`,
-            activeJumpYears: sql<number>`count(distinct substr(${jumps.jumpDate}, 1, 4))`,
-        })
-        .from(jumps)
-        .where(and(...getLogbookJumpConditions(c, filters)));
-
-    return (
-        stats ?? {
-            totalJumps: 0,
-            totalFreefallMeters: 0,
-            totalFreefallTime: 0,
-            activeJumpYears: 0,
-        }
-    );
-}
-
 export async function getJumpTypesByJump(
     c: AppRequestContext,
     jumpUuids: string[],
@@ -503,10 +435,7 @@ async function renderLogbook(c: AppRequestContext) {
     const options = getAppContext(c).getUser().options;
     const resources = await getLogbookFilterResources(c);
     const filters = getLogbookFilters(c, resources);
-    const [stats, jumpRows] = await Promise.all([
-        getLogbookStats(c, filters),
-        getLogbookJumps(c, filters),
-    ]);
+    const jumpRows = await getLogbookJumps(c, filters);
     const jumpUuids = jumpRows.map((jump) => jump.uuid);
     const [aircraftsByJump, jumpTypesByJump] = await Promise.all([
         getAircraftsByJump(c, jumpUuids),
@@ -521,25 +450,6 @@ async function renderLogbook(c: AppRequestContext) {
 
     return c.render(
         <LogbookPage title="Your Jumps">
-            {stats.totalJumps > 0 && (
-                <>
-                    <LogbookStats
-                        totalJumps={stats.totalJumps}
-                        totalFreefallMeters={stats.totalFreefallMeters}
-                        totalFreefallTime={stats.totalFreefallTime}
-                        activeJumpYears={stats.activeJumpYears}
-                    />
-                    <div className="flex justify-end">
-                        <a
-                            href={routes.logbook.statistics.index({})}
-                            className="inline-flex items-center gap-1 text-sm text-slate-500 transition hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
-                        >
-                            View all statistics
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </a>
-                    </div>
-                </>
-            )}
             <JumpFilters
                 filters={filters}
                 locations={resources.locations}
@@ -551,26 +461,51 @@ async function renderLogbook(c: AppRequestContext) {
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Jumps
                     </h2>
-                    {stats.totalJumps > 0 && (
-                        <span className="text-sm text-slate-400 dark:text-slate-500">
-                            {stats.totalJumps} total
-                        </span>
-                    )}
                 </div>
-                {(stats.totalJumps > 0 || filters.search !== "") && (
+                {(jumpRows.length > 0 || filters.search !== "") && (
                     <JumpSearch filters={filters} />
                 )}
-                {stats.totalJumps === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {filters.locationUuids.length > 0 ||
-                            filters.gearUuids.length > 0 ||
-                            filters.jumpTypeUuids.length > 0 ||
-                            filters.search !== ""
-                                ? "No jumps match the selected filters or search."
-                                : "No jumps yet. Add your first jump to start your logbook."}
-                        </p>
-                    </div>
+                {jumpRows.length === 0 ? (
+                    filters.locationUuids.length > 0 ||
+                    filters.gearUuids.length > 0 ||
+                    filters.jumpTypeUuids.length > 0 ||
+                    filters.search !== "" ? (
+                        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                No jumps match the selected filters or search.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-6 dark:border-indigo-900 dark:bg-indigo-950/40">
+                            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                                Start your logbook
+                            </h3>
+                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                <a
+                                    href={routes.logbook.jumps.new({}, {})}
+                                    className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                                >
+                                    Add your first jump
+                                </a>
+                                , import an existing logbook using a{` `}
+                                <a
+                                    href={routes.logbook.transfer.index({})}
+                                    className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                                >
+                                    CSV file
+                                </a>
+                                , or use{` `}
+                                <a
+                                    href={routes.logbook.jumps.fromImage({})}
+                                    className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                                >
+                                    AI vision
+                                </a>
+                                {` `}
+                                to read your physical logbook.
+                            </p>
+                        </div>
+                    )
                 ) : (
                     <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <JumpList jumps={jumpCards} filters={filters} />
