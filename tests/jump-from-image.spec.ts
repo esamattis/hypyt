@@ -548,11 +548,11 @@ test("installed service worker restores a shared image into the from-image reade
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page).toHaveURL("/logbook");
 
-    // Reload so the already-registered service worker controls the page.
-    await page.reload();
     await page.evaluate(async () => {
         await navigator.serviceWorker.ready;
     });
+    // Reload only after registration finishes so the worker controls the page.
+    await page.reload();
     const hasController = await page.evaluate(
         () => !!navigator.serviceWorker.controller,
     );

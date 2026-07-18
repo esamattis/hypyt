@@ -7,7 +7,6 @@ import {
     $appendJumpImageDrafts,
     $loadImage,
     $loadJumpImageDrafts,
-    $migrateLegacyJumpImageDatabase,
     $updateJumpImageDrafts,
     JUMP_IMAGE_KEY,
     JUMP_IMAGE_STORE,
@@ -118,7 +117,6 @@ export function ImageGallery(props: {
                     $appendJumpImageDrafts,
                     $loadImage,
                     $loadJumpImageDrafts,
-                    $migrateLegacyJumpImageDatabase,
                     $updateJumpImageDrafts,
                     $resizeJumpImageIfNeeded,
                     $formatJumpImageBytes,
@@ -531,7 +529,6 @@ export async function $prepareJumpImageFiles(
             storageKey: props.storageKey,
         },
         $idb,
-        $migrateLegacyJumpImageDatabase,
     );
     const notes = results
         .filter((item) => item.result.resized)

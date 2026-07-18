@@ -6,10 +6,7 @@ import {
     $updateImageJumpAssociation,
     type ImageJumpAssociationChange,
 } from "@/route-handlers/logbook/jumps/image-jump-storage-client";
-import {
-    $migrateLegacyJumpImageDatabase,
-    jumpImageDbName,
-} from "@/route-handlers/logbook/jumps/image-storage-client";
+import { jumpImageDbName } from "@/route-handlers/logbook/jumps/image-storage-client";
 
 export function JumpImageAssociationComplete(props: {
     change: ImageJumpAssociationChange;
@@ -29,7 +26,6 @@ export function JumpImageAssociationComplete(props: {
                 $deps={[
                     $idb,
                     $applyImageJumpAssociationChange,
-                    $migrateLegacyJumpImageDatabase,
                     $updateImageJumpAssociation,
                 ]}
                 $args={[

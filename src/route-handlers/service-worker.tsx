@@ -1,12 +1,14 @@
-import { type App, type AppRequestContext } from "@/app/app";
+import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import { serializeClientDependency } from "@/components/script";
 import * as routes from "@/routes";
 import {
-    JUMP_IMAGE_DB_NAME,
     JUMP_IMAGE_KEY,
     JUMP_IMAGE_STORE,
 } from "@/route-handlers/logbook/jumps/image-client";
-import { $appendJumpImageDrafts } from "@/route-handlers/logbook/jumps/image-storage-client";
+import {
+    $appendJumpImageDrafts,
+    jumpImageDbName,
+} from "@/route-handlers/logbook/jumps/image-storage-client";
 import { $idb } from "@/utils";
 
 interface ShareTargetWorkerConfig {
@@ -127,7 +129,7 @@ function serviceWorker(c: AppRequestContext) {
         shareTargetPath: routes.logbook.jumps.imageShare({}),
         jumpFromImageUrl: routes.logbook.jumps.fromImage({}),
         fileFieldName: "image",
-        dbName: JUMP_IMAGE_DB_NAME,
+        dbName: jumpImageDbName(getAppContext(c).getUser().uuid),
         storeName: JUMP_IMAGE_STORE,
         storageKey: JUMP_IMAGE_KEY,
     };

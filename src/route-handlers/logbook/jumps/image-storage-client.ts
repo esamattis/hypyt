@@ -35,50 +35,6 @@ export interface StoredJumpImages {
     selectedId: string | null;
 }
 
-export async function $migrateLegacyJumpImageDatabase(
-    config: { dbName: string; storeName: string; storageKey: string },
-    idb: typeof $idb,
-): Promise<void> {
-    // Remove this migration after drafts from the legacy shared database no longer need support.
-    const legacyDbName = "loki-jump-from-image";
-    if (config.dbName === legacyDbName) return;
-    const databases = await indexedDB.databases();
-    if (!databases.some((database) => database.name === legacyDbName)) return;
-
-    const legacyDb = await idb.open(legacyDbName, 1);
-    const legacyDraft = await idb
-        .transaction(
-            legacyDb,
-            { storeName: config.storeName, mode: "readonly" },
-            (store) => idb.request(store.get(config.storageKey)),
-        )
-        .finally(() => legacyDb.close());
-    if (legacyDraft !== undefined) {
-        const userDb = await idb.open(config.dbName, 1, (database) => {
-            if (!database.objectStoreNames.contains(config.storeName)) {
-                database.createObjectStore(config.storeName);
-            }
-        });
-        await idb
-            .transaction(
-                userDb,
-                { storeName: config.storeName, mode: "readwrite" },
-                async (store) => {
-                    const current = await idb.request(
-                        store.get(config.storageKey),
-                    );
-                    if (current === undefined) {
-                        await idb.request(
-                            store.put(legacyDraft, config.storageKey),
-                        );
-                    }
-                },
-            )
-            .finally(() => userDb.close());
-    }
-    await idb.request(indexedDB.deleteDatabase(legacyDbName));
-}
-
 export async function $appendJumpImageDrafts(
     config: {
         files: File[];
@@ -87,9 +43,7 @@ export async function $appendJumpImageDrafts(
         storageKey: string;
     },
     idb: typeof $idb,
-    migrateLegacyDatabase?: typeof $migrateLegacyJumpImageDatabase,
 ): Promise<JumpImageDraft[]> {
-    await migrateLegacyDatabase?.(config, idb);
     const db = await idb.open(config.dbName, 1, (database) => {
         if (!database.objectStoreNames.contains(config.storeName)) {
             database.createObjectStore(config.storeName);
@@ -152,10 +106,6 @@ export async function $loadImage(
 ): Promise<JumpImageDraft | null> {
     const storeName = "images";
     const storageKey = "draft";
-    await $migrateLegacyJumpImageDatabase(
-        { dbName, storeName, storageKey },
-        $idb,
-    );
     const db = await $idb.open(dbName, 1);
     return $idb
         .transaction(db, { storeName, mode: "readonly" }, async (store) => {
@@ -198,10 +148,6 @@ export async function $loadJumpImageDrafts(
     storeName: string,
     storageKey: string,
 ): Promise<{ drafts: JumpImageDraft[]; selectedId: string | null }> {
-    await $migrateLegacyJumpImageDatabase(
-        { dbName, storeName, storageKey },
-        $idb,
-    );
     const db = await $idb.open(dbName, 1, (database) => {
         if (!database.objectStoreNames.contains(storeName)) {
             database.createObjectStore(storeName);
@@ -271,7 +217,6 @@ export async function $updateJumpImageDrafts(config: {
     deletedId?: string;
     readId?: string;
 }): Promise<void> {
-    await $migrateLegacyJumpImageDatabase(config, $idb);
     const db = await $idb.open(config.dbName, 1);
     return $idb
         .transaction(

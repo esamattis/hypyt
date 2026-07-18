@@ -6,7 +6,6 @@ import {
     $loadImage,
     $loadJumpImageDrafts,
     $markImageRead,
-    $migrateLegacyJumpImageDatabase,
     $updateJumpImageDrafts,
     jumpImageDbName,
 } from "@/route-handlers/logbook/jumps/image-storage-client";
@@ -54,7 +53,6 @@ export function JumpImageSource(props: {
                     $loadJumpImageDrafts,
                     $loadImageForJump,
                     $markImageRead,
-                    $migrateLegacyJumpImageDatabase,
                     $updateJumpImageDrafts,
                 ]}
                 $args={[

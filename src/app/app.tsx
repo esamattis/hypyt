@@ -15,7 +15,6 @@ import {
 } from "@/components/navigation-progress";
 import { RestoreFormScrollPosition } from "@/components/restore-form-scroll-position";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
-import { JumpImageDatabaseMigration } from "@/route-handlers/logbook/jumps/image-database-migration";
 import { ThemeScript } from "@/components/theme-script";
 import { Tooltips } from "@/components/tooltips";
 import { UnsavedChangesDialog as UnsavedChangesDialogComponent } from "@/components/unsaved-changes-dialog";
@@ -617,7 +616,6 @@ const PUBLIC_ROOT_ASSETS = new Set([
     "/apple-144x144.png",
     "/logo.svg",
     "/manifest.json",
-    "/sw.js",
 ]);
 
 function isPublicAssetPath(path: string) {
@@ -805,11 +803,10 @@ app.use(
 
                     <title>{title}</title>
                     <ThemeScript />
-                    <ServiceWorkerRegistration
-                        workerUrl={routes.serviceWorker({})}
-                    />
                     {user && (
-                        <JumpImageDatabaseMigration userUuid={user.uuid} />
+                        <ServiceWorkerRegistration
+                            workerUrl={routes.serviceWorker({})}
+                        />
                     )}
                     <link
                         href={routes.assets.tailwindCss({

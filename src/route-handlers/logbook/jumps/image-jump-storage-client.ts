@@ -1,6 +1,5 @@
 import {
     $loadJumpImageDrafts,
-    $migrateLegacyJumpImageDatabase,
     type JumpImageDraft,
     type StoredJumpImage,
     type StoredJumpImages,
@@ -60,10 +59,6 @@ export async function $updateImageJumpAssociation(
 ): Promise<void> {
     const storeName = "images";
     const storageKey = "draft";
-    await $migrateLegacyJumpImageDatabase(
-        { dbName, storeName, storageKey },
-        $idb,
-    );
     const db = await $idb.open(dbName, 1, (database) => {
         if (!database.objectStoreNames.contains("images")) {
             database.createObjectStore("images");
