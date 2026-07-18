@@ -83,6 +83,15 @@ Never use git commands unless explicitly instructed.
 
 Never use subagents unless explicitly instructed.
 
+# Dependency Patches
+
+Document every pnpm dependency patch in `PATCHES.md`. Include the package and
+version, a link to the patch file, the reason for the patch, the errors or
+behavior it fixes, and when the patch can be removed.
+
+Update or remove the corresponding `PATCHES.md` entry whenever a patch changes
+or is removed.
+
 # Tests
 
 After every change, run:
@@ -112,3 +121,14 @@ parameter. They define the route-handler file layout; see that module's comment.
 Each route handler exports `register(app)` for only its own endpoints. Register
 all handlers explicitly in `src/app/register-routes.ts`; never use side-effect
 imports for registration.
+
+# Scripts
+
+Use the `zx` module for external command execution
+
+Use the `$$` pattern instead of helper functions.
+
+```
+import { $ } from "zx";
+const $$ = $({ stdio: "inherit" });
+```

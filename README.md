@@ -98,6 +98,14 @@ Generate or update TypeScript types for Cloudflare bindings:
 pn cf-typegen
 ```
 
+To migrate the remote D1 database, authenticate with `wrangler login`. The
+command exports a backup before Drizzle Kit uses Wrangler's credentials to
+apply pending migrations over the D1 HTTP API:
+
+```sh
+pn db:migrate:remote
+```
+
 Deploy the application:
 
 ```sh

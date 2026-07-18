@@ -1,0 +1,32 @@
+diff --git a/sqlite-proxy/session.cjs b/sqlite-proxy/session.cjs
+index d159ab366c06acd6d6984835a644e25776dc5bd1..98a1657687db722fbb8079b4acbc8cd6dbc1c719 100644
+--- a/sqlite-proxy/session.cjs
++++ b/sqlite-proxy/session.cjs
+@@ -23,9 +23,9 @@ var SQLiteRemoteSession = class extends __sqlite_core_async_session_ts.SQLiteAsy
+ 	prepareQuery(query, mode, _prepare, executeMethod, mapper, queryMetadata, cacheConfig) {
+ 		return new __sqlite_core_async_session_ts.SQLiteAsyncPreparedQuery("async", executeMethod, {
+-			all: (params) => this.client(query.sql, params, "all").then(({ rows }) => rows),
++			all: (params) => this.client(query.sql, params, mode === "arrays" ? "values" : "all").then(({ rows }) => rows),
+ 			get: (params) => this.client(query.sql, params, "get").then(({ rows }) => rows),
+ 			run: (params) => this.client(query.sql, params, "run"),
+-			values: (params) => this.client(query.sql, params, "all").then(({ rows }) => rows)
++			values: (params) => this.client(query.sql, params, "values").then(({ rows }) => rows)
+ 		}, query, mapper, mode, this.logger, this.cache, queryMetadata, cacheConfig);
+ 	}
+ 	objects(_query) {
+diff --git a/sqlite-proxy/session.js b/sqlite-proxy/session.js
+index feb4f48f497b7aa410ffe16426ec8c20b3857ff3..80d2d3b2d7992b605a78036c79bf253e25f4aaaa 100644
+--- a/sqlite-proxy/session.js
++++ b/sqlite-proxy/session.js
+@@ -21,9 +21,9 @@ var SQLiteRemoteSession = class extends SQLiteAsyncSession {
+ 	prepareQuery(query, mode, _prepare, executeMethod, mapper, queryMetadata, cacheConfig) {
+ 		return new SQLiteAsyncPreparedQuery("async", executeMethod, {
+-			all: (params) => this.client(query.sql, params, "all").then(({ rows }) => rows),
++			all: (params) => this.client(query.sql, params, mode === "arrays" ? "values" : "all").then(({ rows }) => rows),
+ 			get: (params) => this.client(query.sql, params, "get").then(({ rows }) => rows),
+ 			run: (params) => this.client(query.sql, params, "run"),
+-			values: (params) => this.client(query.sql, params, "all").then(({ rows }) => rows)
++			values: (params) => this.client(query.sql, params, "values").then(({ rows }) => rows)
+ 		}, query, mapper, mode, this.logger, this.cache, queryMetadata, cacheConfig);
+ 	}
+ 	objects(_query) {

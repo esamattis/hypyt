@@ -15,7 +15,7 @@
         "db:generate": "node scripts/db-generate.ts",
         "db:migrate": "node scripts/migrate-local.ts",
         "db:migrate:sqlite": "node scripts/migrate-sqlite.ts",
-        "db:migrate:remote": "$npm_execpath run db:export:remote && node scripts/migrate-remote.ts",
+        "db:migrate:remote": "$npm_execpath run db:export:remote && drizzle-kit migrate --config drizzle.remote.config.ts",
         "db:export:remote": "mkdir -p backups && wrangler d1 export loki --remote --output \"backups/loki-$(date +%Y%m%d-%H%M%S).sql\"",
         "db:import:remote": "node scripts/import-remote.ts",
         "db:reset": "rm -rf .wrangler && $npm_execpath run db:migrate",

@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  drizzle-orm@1.0.0-rc.4: 9e50255cf3ad1b1ae97205fd35e9e6f5b8f66ab81f098f889aa76b94cc891a67
+
 importers:
 
   .:
@@ -34,7 +37,7 @@ importers:
         version: 17.4.2
       drizzle-orm:
         specifier: 1.0.0-rc.4
-        version: 1.0.0-rc.4(zod@4.4.3)
+        version: 1.0.0-rc.4(patch_hash=9e50255cf3ad1b1ae97205fd35e9e6f5b8f66ab81f098f889aa76b94cc891a67)(zod@4.4.3)
       fast-xml-parser:
         specifier: ^5.10.0
         version: 5.10.0
@@ -2550,7 +2553,7 @@ snapshots:
       get-tsconfig: 4.14.0
       jiti: 2.7.0
 
-  drizzle-orm@1.0.0-rc.4(zod@4.4.3):
+  drizzle-orm@1.0.0-rc.4(patch_hash=9e50255cf3ad1b1ae97205fd35e9e6f5b8f66ab81f098f889aa76b94cc891a67)(zod@4.4.3):
     optionalDependencies:
       zod: 4.4.3
 
