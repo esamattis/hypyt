@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { controlClassName } from "@/components/form";
+import { buttonClassName, controlClassName } from "@/components/form";
 import { CloseIcon, SearchIcon } from "@/components/icons";
 import * as routes from "@/routes";
 import type { LogbookFilters } from "@/route-handlers/logbook/index";
@@ -33,7 +33,7 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
             action={routes.logbook.index({})}
             method="get"
             role="search"
-            className="relative flex items-center"
+            className="flex items-center"
         >
             {props.filters.locationUuids.map((uuid) => (
                 <input
@@ -59,28 +59,38 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
                     value={uuid}
                 />
             ))}
-            <SearchIcon className="pointer-events-none absolute left-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
-            <input
-                type="search"
-                name="search"
-                value={props.filters.search}
-                placeholder="Search jumps..."
-                aria-label="Search jumps"
-                maxLength={200}
-                className={clsx(
-                    controlClassName,
-                    "py-2 pl-9 pr-9 text-sm focus:ring-indigo-500/40",
+            <div className="relative grow">
+                <input
+                    type="search"
+                    name="search"
+                    value={props.filters.search}
+                    placeholder="Search jumps..."
+                    aria-label="Search jumps"
+                    maxLength={200}
+                    className={clsx(
+                        controlClassName,
+                        "rounded-r-none py-2 pr-9 text-sm focus:ring-indigo-500/40",
+                    )}
+                />
+                {hasSearch && (
+                    <a
+                        href={buildLogbookUrl(props.filters, { search: "" })}
+                        aria-label="Clear search"
+                        className="absolute right-2.5 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    >
+                        <CloseIcon className="h-4 w-4" />
+                    </a>
                 )}
-            />
-            {hasSearch && (
-                <a
-                    href={buildLogbookUrl(props.filters, { search: "" })}
-                    aria-label="Clear search"
-                    className="absolute right-2.5 inline-flex h-6 w-6 items-center justify-center rounded text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                >
-                    <CloseIcon className="h-4 w-4" />
-                </a>
-            )}
+            </div>
+            <button
+                type="submit"
+                aria-label="Search"
+                className={buttonClassName({
+                    className: "-ml-px rounded-l-none px-3 py-2",
+                })}
+            >
+                <SearchIcon className="h-4 w-4" />
+            </button>
         </form>
     );
 }

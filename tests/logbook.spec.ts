@@ -79,6 +79,15 @@ test("the log book loads additional jumps while scrolling", async ({
     await expect(page.getByRole("link", { name: /#\d+/ })).toHaveCount(25);
     await expect(page.getByRole("link", { name: /^#1 / })).toBeVisible();
     await expect(loadMore).toHaveCount(0);
+
+    const searchInput = page.getByRole("searchbox", { name: "Search jumps" });
+    await searchInput.fill("2");
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await expect(page).toHaveURL(/search=2/);
+    await expect(
+        page.getByRole("link", { name: /#\d+/ }).first(),
+    ).toHaveAccessibleName(/^#2 /);
+    await expect(page.getByRole("link", { name: /^#2 / })).toHaveCount(1);
 });
 
 // eslint-disable-next-line max-lines-per-function

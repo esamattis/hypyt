@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, ne, or, sql } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import * as routes from "@/routes";
 import {
@@ -326,9 +326,18 @@ export async function getLogbookJumps(
     before?: number,
 ) {
     const db = getAppContext(c).db;
+    const searchedJumpNumber = /^\d+$/.test(filters.search)
+        ? Number(filters.search)
+        : undefined;
+    const validSearchedJumpNumber = Number.isSafeInteger(searchedJumpNumber)
+        ? searchedJumpNumber
+        : undefined;
     const conditions = [
         ...getLogbookJumpConditions(c, filters),
         ...(before === undefined ? [] : [lt(jumps.jumpNumber, before)]),
+        ...(before === undefined || validSearchedJumpNumber === undefined
+            ? []
+            : [ne(jumps.jumpNumber, validSearchedJumpNumber)]),
     ];
     return db
         .select({
@@ -344,7 +353,16 @@ export async function getLogbookJumps(
         .from(jumps)
         .leftJoin(locations, eq(jumps.locationUuid, locations.uuid))
         .where(and(...conditions))
-        .orderBy(desc(jumps.jumpNumber))
+        .orderBy(
+            ...(before === undefined && validSearchedJumpNumber !== undefined
+                ? [
+                      asc(
+                          sql`CASE WHEN ${jumps.jumpNumber} = ${validSearchedJumpNumber} THEN 0 ELSE 1 END`,
+                      ),
+                  ]
+                : []),
+            desc(jumps.jumpNumber),
+        )
         .limit(JUMPS_PER_PAGE + 1);
 }
 
