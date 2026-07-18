@@ -48,6 +48,7 @@ test("page caching invalidates on POST and can be disabled", async ({
 
     const cachedResponse = await page.request.get("/logbook");
     expect(cachedResponse.headers()["cache-control"]).toBe("private, no-store");
+    expect(cachedResponse.headers()["x-loki-html-cache"]).toBe("HIT");
     expect(await cachedResponse.text()).toContain(initialName);
 
     const updatedName = "Invalidated Skydiver";
@@ -63,9 +64,12 @@ test("page caching invalidates on POST and can be disabled", async ({
     });
     expect(invalidPost.status()).toBe(200);
     const freshResponse = await page.request.get("/logbook");
+    expect(freshResponse.headers()["x-loki-html-cache"]).toBe("MISS");
     expect(await freshResponse.text()).toContain(updatedName);
 
     await page.goto("/preferences");
+    const preferencesResponse = await page.request.get("/preferences");
+    expect(preferencesResponse.headers()["x-loki-html-cache"]).toBe("BYPASS");
     const cacheCheckbox = page.getByLabel("Enable page caching");
     await expect(cacheCheckbox).toBeChecked();
     await cacheCheckbox.uncheck();
@@ -78,6 +82,7 @@ test("page caching invalidates on POST and can be disabled", async ({
         WHERE username = '${username}';
     `);
     const uncachedResponse = await page.request.get("/logbook");
+    expect(uncachedResponse.headers()["x-loki-html-cache"]).toBe("DISABLED");
     expect(await uncachedResponse.text()).toContain(disabledName);
 
     await openMainMenu(page);
