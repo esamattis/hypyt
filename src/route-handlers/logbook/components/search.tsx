@@ -69,7 +69,7 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
                     maxLength={200}
                     className={clsx(
                         controlClassName,
-                        "rounded-r-none py-2 pr-9 text-sm focus:ring-indigo-500/40",
+                        "h-10 rounded-r-none pr-9 text-sm focus:ring-indigo-500/40 [&::-webkit-search-cancel-button]:appearance-none",
                     )}
                 />
                 {hasSearch && (
@@ -86,7 +86,7 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
                 type="submit"
                 aria-label="Search"
                 className={buttonClassName({
-                    className: "-ml-px rounded-l-none px-3 py-2",
+                    className: "-ml-px h-10 rounded-l-none px-3",
                 })}
             >
                 <SearchIcon className="h-4 w-4" />
