@@ -154,7 +154,7 @@ function VideoEmbed() {
                 </div>
             </div>
             <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
-                Product video placeholder — replace with your YouTube embed.
+                Quick glance at Loki's features
             </p>
         </section>
     );
