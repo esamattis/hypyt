@@ -11,7 +11,7 @@ import { app } from "@/app/app";
 import { registerRoutes } from "@/app/register-routes";
 import { createSqliteDatabase, defaultSqliteDirectory } from "@/db-sqlite";
 import { migrateSqlite } from "@/migrate-sqlite";
-import { loadNodeNativeBinding, registerSeaStaticAssets } from "@/node-sea";
+import { registerSeaStaticAssets } from "@/node-sea";
 import { buildTitle } from "@/build-info";
 
 const DEFAULT_PORT = 8787;
@@ -140,7 +140,6 @@ async function startServer(args: {
 
     const { db, sqlite, path } = createSqliteDatabase(
         join(resolve(args.sqliteDir), "loki.sqlite"),
-        loadNodeNativeBinding(),
     );
     const selfContained = isSea();
     migrateSqlite(sqlite);
@@ -175,20 +174,14 @@ async function startServer(args: {
 function runSmokeTest(): void {
     const directory = mkdtempSync(join(tmpdir(), "loki-smoke-test-"));
     try {
-        const { sqlite } = createSqliteDatabase(
-            join(directory, "loki.sqlite"),
-            loadNodeNativeBinding(),
-        );
+        const { sqlite } = createSqliteDatabase(join(directory, "loki.sqlite"));
         try {
             migrateSqlite(sqlite);
             sqlite.exec(
                 "CREATE TABLE smoke_test (value TEXT NOT NULL); INSERT INTO smoke_test VALUES ('ok')",
             );
-            const result = sqlite
-                .prepare("SELECT value FROM smoke_test")
-                .pluck()
-                .get();
-            if (result !== "ok") {
+            const result = sqlite.prepare("SELECT value FROM smoke_test").get();
+            if (result?.value !== "ok") {
                 throw new Error(
                     "SQLite smoke test returned an unexpected value",
                 );

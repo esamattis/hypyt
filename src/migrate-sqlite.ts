@@ -1,40 +1,47 @@
 import { readMigrationFiles, type MigrationMeta } from "drizzle-orm/migrator";
-import type Database from "better-sqlite3";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
-import { getAsset, isSea } from "node:sea";
+import { getAsset, getAssetKeys, isSea } from "node:sea";
+import type { DatabaseSync } from "node:sqlite";
 
-type MigrationJournal = {
-    entries: {
-        breakpoints: boolean;
-        tag: string;
-        when: number;
-    }[];
-};
+function migrationTimestamp(name: string): number {
+    const date = name.slice(0, 14);
+    return Date.UTC(
+        Number(date.slice(0, 4)),
+        Number(date.slice(4, 6)) - 1,
+        Number(date.slice(6, 8)),
+        Number(date.slice(8, 10)),
+        Number(date.slice(10, 12)),
+        Number(date.slice(12, 14)),
+    );
+}
 
 function readSeaMigrationFiles(): MigrationMeta[] {
-    const journal = JSON.parse(
-        getAsset("drizzle/meta/_journal.json", "utf8"),
-    ) as MigrationJournal;
-
-    return journal.entries.map((entry) => {
-        const query = getAsset(`drizzle/${entry.tag}.sql`, "utf8");
-        return {
-            sql: query.split("--> statement-breakpoint"),
-            bps: entry.breakpoints,
-            folderMillis: entry.when,
-            hash: createHash("sha256").update(query).digest("hex"),
-        };
-    });
+    return getAssetKeys()
+        .flatMap((key) => {
+            const match = /^drizzle\/([^/]+)\/migration\.sql$/.exec(key);
+            return match?.[1] ? [{ key, name: match[1] }] : [];
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((migration) => {
+            const query = getAsset(migration.key, "utf8");
+            return {
+                sql: query.split("--> statement-breakpoint"),
+                bps: true,
+                folderMillis: migrationTimestamp(migration.name),
+                hash: createHash("sha256").update(query).digest("hex"),
+                name: migration.name,
+            };
+        });
 }
 
 /**
- * Apply Drizzle migrations to better-sqlite3.
+ * Apply Drizzle migrations to node:sqlite.
  * Splits multi-statement migration chunks (some historical files omit
- * statement-breakpoint separators that D1 tolerates but better-sqlite3 rejects).
+ * statement-breakpoint separators that D1 tolerates but node:sqlite rejects).
  */
 export function migrateSqlite(
-    sqlite: Database.Database,
+    sqlite: DatabaseSync,
     migrationsFolder = resolve("drizzle"),
 ): void {
     const migrations = isSea()
@@ -45,33 +52,44 @@ export function migrateSqlite(
         CREATE TABLE IF NOT EXISTS \`__drizzle_migrations\` (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             hash text NOT NULL,
-            created_at numeric
+            created_at numeric,
+            name text,
+            applied_at TEXT
         );
     `);
 
     const appliedRows = sqlite
-        .prepare(`SELECT hash FROM \`__drizzle_migrations\``)
-        .all() as { hash: string }[];
-    const applied = new Set(appliedRows.map((row) => row.hash));
+        .prepare(`SELECT name FROM \`__drizzle_migrations\``)
+        .all();
+    const applied = new Set(appliedRows.map((row) => String(row.name)));
 
     const insertMigration = sqlite.prepare(
-        `INSERT INTO \`__drizzle_migrations\` (\`hash\`, \`created_at\`) VALUES (?, ?)`,
+        `INSERT INTO \`__drizzle_migrations\` (\`hash\`, \`created_at\`, \`name\`, \`applied_at\`) VALUES (?, ?, ?, ?)`,
     );
 
     for (const migration of migrations) {
-        if (applied.has(migration.hash)) {
+        if (applied.has(migration.name)) {
             continue;
         }
 
-        const run = sqlite.transaction(() => {
+        sqlite.exec("BEGIN");
+        try {
             for (const query of migration.sql) {
                 for (const statement of splitSqlStatements(query)) {
                     sqlite.exec(statement);
                 }
             }
-            insertMigration.run(migration.hash, migration.folderMillis);
-        });
-        run();
+            insertMigration.run(
+                migration.hash,
+                migration.folderMillis,
+                migration.name,
+                new Date().toISOString(),
+            );
+            sqlite.exec("COMMIT");
+        } catch (error) {
+            sqlite.exec("ROLLBACK");
+            throw error;
+        }
     }
 }
 

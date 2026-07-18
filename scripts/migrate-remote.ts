@@ -1,26 +1,12 @@
-// We shell out to `wrangler d1 execute --remote` instead of using the drizzle
-// migrator (`drizzle-orm/d1/migrator`) via `getPlatformProxy({ remoteBindings: true }`) like the
-// previous implementation. Despite the option name, `remoteBindings` only routes a binding to the
-// remote D1 when the binding is declared with `"remote": true` in wrangler.jsonc (see
-// `pickRemoteBindings` in wrangler's source). Our config omits this flag, so the proxy silently
-// falls back to the local miniflare SQLite under `.wrangler/state/v3/d1`, the migrator finds the
-// migrations already applied there, and the script reports success without ever touching prod.
-// Driving `wrangler d1 execute --remote` directly guarantees we hit the production database.
-import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { readFileSync } from "node:fs";
+// `getPlatformProxy({ remoteBindings: true })` only uses remote D1 when the
+// binding has `remote: true`. Shelling out guarantees this targets production.
+import { readMigrationFiles, type MigrationMeta } from "drizzle-orm/migrator";
 import { $ } from "zx";
 import { wranglerBin } from "./wrangler-bin.ts";
 
 const DB_BINDING = "DB";
-// Reuse drizzle's default tracking table name and schema so this stays compatible with the drizzle
-// migrator (`drizzle-orm/d1/migrator.cjs`) and the journal in `drizzle/meta/_journal.json`.
 const MIGRATIONS_TABLE = "__drizzle_migrations";
 const MIGRATIONS_FOLDER = "drizzle";
-
-type MigrationJournal = {
-    entries: Array<{ tag: string; when: number; breakpoints: boolean }>;
-};
 
 type WranglerEnvelope<T> = {
     results: T[];
@@ -40,7 +26,6 @@ async function wranglerQuery<T = unknown>(
         "--command",
         command,
     ]}`;
-    // `--command` returns pure JSON on stdout: an array of result envelopes (one per statement).
     const parsed: WranglerEnvelope<T>[] = JSON.parse(stdout);
     const [envelope] = parsed;
     if (!envelope) {
@@ -50,9 +35,7 @@ async function wranglerQuery<T = unknown>(
 }
 
 async function wranglerApplyFile(filePath: string): Promise<void> {
-    // Use `--file` (no `--json`) because the file upload path mixes progress spinner text into
-    // stdout, making the output non-parseable. We rely on the non-zero exit code on failure
-    // instead of parsing the result envelope.
+    // File uploads mix progress text into stdout, so rely on the exit code.
     await $`${process.execPath} ${[
         wranglerBin(),
         "d1",
@@ -64,72 +47,56 @@ async function wranglerApplyFile(filePath: string): Promise<void> {
     ]}`;
 }
 
-const MIGRATIONS_TABLE_DDL = `CREATE TABLE IF NOT EXISTS ${MIGRATIONS_TABLE} (id INTEGER PRIMARY KEY AUTOINCREMENT, hash text NOT NULL, created_at numeric)`;
+function sqlString(value: string): string {
+    return `'${value.replaceAll("'", "''")}'`;
+}
 
 async function ensureMigrationsTable(): Promise<void> {
-    await wranglerQuery(MIGRATIONS_TABLE_DDL);
-}
-
-async function getAppliedHashes(): Promise<Set<string>> {
-    const result = await wranglerQuery<{ hash: string }>(
-        `SELECT hash FROM ${MIGRATIONS_TABLE}`,
-    );
-    return new Set(result.results.map((row) => row.hash));
-}
-
-// Replicate drizzle's migration hash exactly: sha256 of the raw `.sql` file content (see
-// `readMigrationFiles` in `drizzle-orm/migrator.cjs`). This is the key used to decide whether a
-// migration has already been applied, so any deviation here would cause migrations to re-run.
-function computeHash(content: string): string {
-    return createHash("sha256").update(content).digest("hex");
-}
-
-async function recordMigration(hash: string, when: number): Promise<void> {
     await wranglerQuery(
-        `INSERT INTO ${MIGRATIONS_TABLE} (hash, created_at) VALUES ('${hash}', ${when})`,
+        `CREATE TABLE IF NOT EXISTS ${MIGRATIONS_TABLE} (id INTEGER PRIMARY KEY AUTOINCREMENT, hash text NOT NULL, created_at numeric, name text, applied_at TEXT)`,
     );
 }
 
-async function applyMigration(
-    tag: string,
-    hash: string,
-    when: number,
-): Promise<void> {
-    console.log(`Applying migration ${tag}...`);
-    await wranglerApplyFile(`${MIGRATIONS_FOLDER}/${tag}.sql`);
-    await recordMigration(hash, when);
-    console.log(`  Applied ${tag}`);
+async function getAppliedNames(): Promise<Set<string>> {
+    const result = await wranglerQuery<{ name: string }>(
+        `SELECT name FROM ${MIGRATIONS_TABLE}`,
+    );
+    return new Set(result.results.map((row) => row.name));
+}
+
+async function recordMigration(migration: MigrationMeta): Promise<void> {
+    await wranglerQuery(
+        `INSERT INTO ${MIGRATIONS_TABLE} (hash, created_at, name, applied_at) VALUES (${sqlString(migration.hash)}, ${migration.folderMillis}, ${sqlString(migration.name)}, ${sqlString(new Date().toISOString())})`,
+    );
+}
+
+async function applyMigration(migration: MigrationMeta): Promise<void> {
+    console.log(`Applying migration ${migration.name}...`);
+    await wranglerApplyFile(
+        `${MIGRATIONS_FOLDER}/${migration.name}/migration.sql`,
+    );
+    await recordMigration(migration);
+    console.log(`  Applied ${migration.name}`);
 }
 
 async function main(): Promise<void> {
-    const journal: MigrationJournal = JSON.parse(
-        await readFile(`${MIGRATIONS_FOLDER}/meta/_journal.json`, "utf8"),
-    );
-
-    await ensureMigrationsTable();
-    const applied = await getAppliedHashes();
-
-    const pending = journal.entries.filter((entry) => {
-        const content = readFileSync(
-            `${MIGRATIONS_FOLDER}/${entry.tag}.sql`,
-            "utf8",
-        );
-        return !applied.has(computeHash(content));
+    const migrations = readMigrationFiles({
+        migrationsFolder: MIGRATIONS_FOLDER,
     });
+    await ensureMigrationsTable();
+    const applied = await getAppliedNames();
+    const pending = migrations.filter(
+        (migration) => !applied.has(migration.name),
+    );
 
     if (pending.length === 0) {
         console.log("Remote database is up to date. No pending migrations.");
         return;
     }
 
-    for (const entry of pending) {
-        const content = readFileSync(
-            `${MIGRATIONS_FOLDER}/${entry.tag}.sql`,
-            "utf8",
-        );
-        await applyMigration(entry.tag, computeHash(content), entry.when);
+    for (const migration of pending) {
+        await applyMigration(migration);
     }
-
     console.log(`Applied ${pending.length} migration(s) to remote database.`);
 }
 

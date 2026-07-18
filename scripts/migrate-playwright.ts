@@ -1,17 +1,10 @@
-import { readFile } from "node:fs/promises";
+import { readMigrationFiles } from "drizzle-orm/migrator";
 import { $ } from "zx";
 import { wranglerBin } from "./wrangler-bin.ts";
 
-type MigrationJournal = {
-    entries: Array<{ tag: string }>;
-};
-
 async function main(): Promise<void> {
-    const journal: MigrationJournal = JSON.parse(
-        await readFile("drizzle/meta/_journal.json", "utf8"),
-    );
-
-    for (const { tag } of journal.entries) {
+    const migrations = readMigrationFiles({ migrationsFolder: "drizzle" });
+    for (const migration of migrations) {
         const { stdout, stderr } = await $`${process.execPath} ${[
             wranglerBin(),
             "d1",
@@ -21,7 +14,7 @@ async function main(): Promise<void> {
             "--persist-to",
             ".playwright/state",
             "--file",
-            `drizzle/${tag}.sql`,
+            `drizzle/${migration.name}/migration.sql`,
         ]}`;
         process.stdout.write(stdout);
         process.stderr.write(stderr);

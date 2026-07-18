@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
-import Database from "better-sqlite3";
 import { readMigrationFiles } from "drizzle-orm/migrator";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { logOut } from "../tests/helpers";
 
 const sqlitePath = resolve(".playwright/executable/sqlite/loki.sqlite");
@@ -68,24 +68,21 @@ test("serves the app with an initialized SQLite database", async ({
     });
 
     expect(existsSync(sqlitePath)).toBe(true);
-    const sqlite = new Database(sqlitePath, { readonly: true });
+    const sqlite = new DatabaseSync(sqlitePath, { readOnly: true });
     try {
-        const appliedMigrationCount = sqlite
-            .prepare("SELECT COUNT(*) FROM __drizzle_migrations")
-            .pluck()
+        const appliedMigration = sqlite
+            .prepare("SELECT COUNT(*) AS count FROM __drizzle_migrations")
             .get();
         const migrations = readMigrationFiles({
             migrationsFolder: resolve("drizzle"),
         });
-        expect(appliedMigrationCount).toBe(migrations.length);
-        expect(
-            sqlite
-                .prepare(
-                    "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'users'",
-                )
-                .pluck()
-                .get(),
-        ).toBe(1);
+        expect(appliedMigration?.count).toBe(migrations.length);
+        const usersTable = sqlite
+            .prepare(
+                "SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'users'",
+            )
+            .get();
+        expect(usersTable?.count).toBe(1);
     } finally {
         sqlite.close();
     }

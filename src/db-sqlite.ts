@@ -1,8 +1,8 @@
-import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle as drizzleSqlite } from "drizzle-orm/node-sqlite";
 import { chmodSync, closeSync, mkdirSync, openSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, posix, resolve, win32 } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import type { AppDatabase } from "@/db";
 
 export function defaultSqliteDirectory(
@@ -67,35 +67,32 @@ function prepareSqliteStorage(path: string): void {
 }
 
 /**
- * Build a Drizzle client against better-sqlite3, with a D1-compatible `batch`.
+ * Build a Drizzle client against node:sqlite, with a D1-compatible `batch`.
  */
-export function createSqliteDatabase(
-    path = resolveSqlitePath(),
-    nativeBinding?: object,
-): {
+export function createSqliteDatabase(path = resolveSqlitePath()): {
     db: AppDatabase;
-    sqlite: Database.Database;
+    sqlite: DatabaseSync;
     path: string;
 } {
     const absolutePath = resolve(path);
     prepareSqliteStorage(absolutePath);
-    const sqlite = new Database(
-        absolutePath,
-        nativeBinding
-            ? ({ nativeBinding } as unknown as Database.Options)
-            : undefined,
-    );
-    sqlite.pragma("journal_mode = WAL");
-    sqlite.pragma("foreign_keys = ON");
+    const sqlite = new DatabaseSync(absolutePath);
+    sqlite.exec("PRAGMA journal_mode = WAL");
+    sqlite.exec("PRAGMA foreign_keys = ON");
 
     // Shared SQLite dialect; cast to the app's D1-shaped client type.
-    const drizzleDb = drizzleSqlite(sqlite);
+    const drizzleDb = drizzleSqlite({ client: sqlite });
     Object.assign(drizzleDb, {
         batch: async function batch(queries: BatchableQuery[]) {
-            const run = sqlite.transaction(() => {
-                return queries.map((query) => runBatchQuery(query));
-            });
-            return run();
+            sqlite.exec("BEGIN");
+            try {
+                const results = queries.map((query) => runBatchQuery(query));
+                sqlite.exec("COMMIT");
+                return results;
+            } catch (error) {
+                sqlite.exec("ROLLBACK");
+                throw error;
+            }
         },
     });
     const db = drizzleDb as unknown as AppDatabase;

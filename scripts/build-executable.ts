@@ -1,12 +1,6 @@
-import { createRequire } from "node:module";
-import { dirname, join, relative, resolve, sep } from "node:path";
-import {
-    mkdirSync,
-    readFileSync,
-    readdirSync,
-    rmSync,
-    writeFileSync,
-} from "node:fs";
+import { readMigrationFiles } from "drizzle-orm/migrator";
+import { join, relative, resolve, sep } from "node:path";
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { $ } from "zx";
 
 const root = resolve(import.meta.dirname, "..");
@@ -41,40 +35,16 @@ function addDirectoryAssets(
     }
 }
 
-function betterSqliteAddonPath(): string {
-    const require = createRequire(import.meta.url);
-    const packagePath = require.resolve("better-sqlite3/package.json");
-    return join(dirname(packagePath), "build/Release/better_sqlite3.node");
-}
-
 function migrationAssets(): Record<string, string> {
     const drizzleDirectory = join(root, "drizzle");
-    const journalPath = join(drizzleDirectory, "meta/_journal.json");
-    const journal: unknown = JSON.parse(readFileSync(journalPath, "utf8"));
-    if (
-        !journal ||
-        typeof journal !== "object" ||
-        !("entries" in journal) ||
-        !Array.isArray(journal.entries)
-    ) {
-        throw new Error("Invalid Drizzle migration journal");
-    }
-
-    const assets: Record<string, string> = {
-        "drizzle/meta/_journal.json": journalPath,
-    };
-    for (const entry of journal.entries) {
-        if (
-            !entry ||
-            typeof entry !== "object" ||
-            !("tag" in entry) ||
-            typeof entry.tag !== "string"
-        ) {
-            throw new Error("Invalid Drizzle migration journal entry");
-        }
-        assets[`drizzle/${entry.tag}.sql`] = join(
+    const assets: Record<string, string> = {};
+    for (const migration of readMigrationFiles({
+        migrationsFolder: drizzleDirectory,
+    })) {
+        assets[`drizzle/${migration.name}/migration.sql`] = join(
             drizzleDirectory,
-            `${entry.tag}.sql`,
+            migration.name,
+            "migration.sql",
         );
     }
     return assets;
@@ -85,7 +55,6 @@ async function main(): Promise<void> {
     mkdirSync(outputDirectory, { recursive: true });
 
     const assets = migrationAssets();
-    assets["native/better_sqlite3.node"] = betterSqliteAddonPath();
     addDirectoryAssets(assets, "client", join(root, "dist/client"));
 
     const configPath = join(outputDirectory, "sea-config.json");

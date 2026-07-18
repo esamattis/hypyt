@@ -112,7 +112,6 @@ D1 remain fully supported; this is an alternate runtime entrypoint.
 ### Requirements
 
 - Node.js (see `mise.toml`)
-- Native build tools for `better-sqlite3` (usually prebuilt binaries)
 
 ### Build and run
 

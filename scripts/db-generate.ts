@@ -6,7 +6,7 @@
  * This script fails generation if a new migration would drop a table that other
  * tables reference with ON DELETE CASCADE.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { $ } from "zx";
@@ -16,8 +16,10 @@ const migrationsDir = join(root, "drizzle");
 const $$ = $({ cwd: root, stdio: "inherit" });
 
 function listSqlFiles(): string[] {
-    return readdirSync(migrationsDir)
-        .filter((name) => name.endsWith(".sql"))
+    return readdirSync(migrationsDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => join(entry.name, "migration.sql"))
+        .filter((path) => existsSync(join(migrationsDir, path)))
         .sort();
 }
 
@@ -36,7 +38,7 @@ function extractDroppedTables(sql: string): string[] {
 function extractCascadeParents(sql: string): Set<string> {
     const parents = new Set<string>();
     const re =
-        /REFERENCES\s+[`"]?(\w+)[`"]?\s*\([^)]*\)\s*ON\s+DELETE\s+CASCADE/gi;
+        /REFERENCES\s+[`"]?(\w+)[`"]?\s*\([^)]*\)[^,;]*ON\s+DELETE\s+CASCADE/gi;
     for (const match of sql.matchAll(re)) {
         const name = match[1];
         if (name) {
@@ -94,7 +96,7 @@ async function main(): Promise<void> {
         "Do not ship that. Prefer application-level defaults, or hand-write a safe migration.",
     );
     console.error(
-        "Delete the new migration file(s) and snapshot under drizzle/meta/ before retrying.\n",
+        "Delete the new migration folder(s) under drizzle/ before retrying.\n",
     );
     process.exit(1);
 }
