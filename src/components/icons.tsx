@@ -202,7 +202,12 @@ export function SystemThemeIcon(props: IconProps) {
             <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                d="M9.75 17h4.5m-8.25 2h12a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0018 5H6a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 006 19z"
+                d="M1 21h10M1 21a5 5 0 0110 0m-5-9v2m-4.5 1L3 16.5m7.5-1.5L9 16.5"
+            />
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M22 7.3a5.5 5.5 0 11-5.8-5.8A4.4 4.4 0 0022 7.3z"
             />
         </svg>
     );
