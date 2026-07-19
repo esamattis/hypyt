@@ -199,16 +199,8 @@ export function SystemThemeIcon(props: IconProps) {
             stroke="currentColor"
             stroke-width="2"
         >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M1 21h10M1 21a5 5 0 0110 0m-5-9v2m-4.5 1L3 16.5m7.5-1.5L9 16.5"
-            />
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M22 7.3a5.5 5.5 0 11-5.8-5.8A4.4 4.4 0 0022 7.3z"
-            />
+            <path d="M12 4a8 8 0 000 16V4z" fill="currentColor" stroke="none" />
+            <circle cx="12" cy="12" r="8" />
         </svg>
     );
 }
