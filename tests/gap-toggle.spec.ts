@@ -48,6 +48,18 @@ test("the Show gap years toggle hides and reveals histogram gap years", async ({
         page.getByRole("heading", { name: "Jumps per year" }),
     ).toBeVisible();
 
+    const today = new Date();
+    const firstJumpAnniversaryHasPassed =
+        today.toISOString().slice(5, 10) >= "06-15";
+    const expectedYearsSinceFirstJump =
+        today.getUTCFullYear() - 2021 - (firstJumpAnniversaryHasPassed ? 0 : 1);
+    await expect(
+        page.getByText("Years since first jump").locator("..").locator("dd"),
+    ).toHaveText(String(expectedYearsSinceFirstJump));
+    await expect(
+        page.getByText("Active jump years").locator("..").locator("dd"),
+    ).toHaveText("3");
+
     const toggle = page
         .locator("section")
         .filter({ has: page.getByRole("heading", { name: "Jumps per year" }) })

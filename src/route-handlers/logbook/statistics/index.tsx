@@ -9,6 +9,7 @@ import {
 } from "@/app/app";
 import { ButtonLink } from "@/components/form";
 import { Script } from "@/components/script";
+import { SingleNumberCard } from "@/components/ui/single-number-card";
 import * as routes from "@/routes";
 import {
     jumps,
@@ -48,16 +49,20 @@ function getTwelveMonthsAgo(): string {
     return formatDate(date);
 }
 
-function SummaryCard(props: { label: string; value: string }) {
-    return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                {props.label}
-            </dt>
-            <dd className="mt-2 text-3xl font-bold tracking-tight text-slate-900 tabular-nums dark:text-slate-100">
-                {props.value}
-            </dd>
-        </div>
+function getYearsSince(date: string | null): number {
+    if (date === null) {
+        return 0;
+    }
+    const firstJumpYear = Number(date.slice(0, 4));
+    if (!Number.isInteger(firstJumpYear)) {
+        return 0;
+    }
+    const today = new Date();
+    const currentYear = today.getUTCFullYear();
+    const anniversaryHasPassed = formatDate(today).slice(5) >= date.slice(5);
+    return Math.max(
+        currentYear - firstJumpYear - (anniversaryHasPassed ? 0 : 1),
+        0,
     );
 }
 
@@ -246,6 +251,7 @@ async function renderStatistics(c: AppRequestContext) {
             app.db
                 .select({
                     totalJumps: sql<number>`count(*) + ${user.options.previousJumpCount}`,
+                    firstJumpDate: sql<string | null>`min(${jumps.jumpDate})`,
                     currentYearJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfCurrentYear} then 1 else 0 end), 0)`,
                     lastTwelveMonthsJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${twelveMonthsAgo} then 1 else 0 end), 0)`,
                     lastMonthJumps: sql<number>`coalesce(sum(case when ${jumps.jumpDate} >= ${startOfPreviousMonth} and ${jumps.jumpDate} < ${startOfCurrentMonth} then 1 else 0 end), 0)`,
@@ -283,6 +289,7 @@ async function renderStatistics(c: AppRequestContext) {
 
     const values = stats ?? {
         totalJumps: 0,
+        firstJumpDate: null,
         currentYearJumps: 0,
         lastTwelveMonthsJumps: 0,
         lastMonthJumps: 0,
@@ -303,21 +310,29 @@ async function renderStatistics(c: AppRequestContext) {
     return c.render(
         <LogbookPage title="Statistics">
             <dl className="grid gap-4 sm:grid-cols-2">
-                <SummaryCard
+                <SingleNumberCard
                     label="Total jumps"
                     value={formatNumber(values.totalJumps)}
                 />
-                <SummaryCard
+                <SingleNumberCard
                     label="Jumps this year"
                     value={formatNumber(values.currentYearJumps)}
                 />
-                <SummaryCard
+                <SingleNumberCard
                     label="Jumps in the last 12 months"
                     value={formatNumber(values.lastTwelveMonthsJumps)}
                 />
-                <SummaryCard
+                <SingleNumberCard
                     label="Jumps last month"
                     value={formatNumber(values.lastMonthJumps)}
+                />
+                <SingleNumberCard
+                    label="Years since first jump"
+                    value={formatNumber(getYearsSince(values.firstJumpDate))}
+                />
+                <SingleNumberCard
+                    label="Active jump years"
+                    value={formatNumber(yearlyData.length)}
                 />
             </dl>
             <YearlyJumpsHistogram data={yearlyData} />
