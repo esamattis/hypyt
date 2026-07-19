@@ -129,6 +129,17 @@ test("statistics show recorded and total jump counts for every item", async ({
     expect(mostJumpsDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(mostJumpsDayUrl.searchParams.get("end")).toBe(mostJumpsDate);
 
+    for (const label of ["Most jumps in a week", "Most jumps in a month"]) {
+        const record = page.getByText(label).locator("..");
+        await expect(record).toContainText("2 jumps");
+        const href = await record.getByRole("link").getAttribute("href");
+        if (!href) throw new Error(`${label} link has no href`);
+        const url = new URL(href, page.url());
+        expect(url.pathname).toBe("/logbook");
+        expect(url.searchParams.get("start")).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(url.searchParams.get("end")).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+
     await mostJumpsDayLink.click();
     await expect(page).toHaveURL(mostJumpsDayUrl.toString());
     await expect(page.getByRole("textbox", { name: "Start date" })).toHaveValue(

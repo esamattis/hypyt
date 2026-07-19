@@ -29,14 +29,15 @@ interface RecordJump {
     tooltip?: string;
 }
 
-interface RecordDay {
-    jumpDate: string;
+interface RecordPeriod {
+    startDate: string;
+    endDate: string;
     jumpCount: number;
 }
 
 function RecordJumps(props: {
     records: Array<{ label: string; jump: RecordJump | undefined }>;
-    mostJumpsDay: RecordDay | undefined;
+    periods: Array<{ label: string; period: RecordPeriod | undefined }>;
 }) {
     const formatDate = useDateFormatter();
     const formatNumber = useNumberFormatter();
@@ -82,37 +83,46 @@ function RecordJumps(props: {
                         </dd>
                     </div>
                 ))}
-                <div className="flex items-center justify-between gap-4 px-5 py-3.5">
-                    <dt className="text-sm text-slate-600 dark:text-slate-400">
-                        Most jumps in a day
-                    </dt>
-                    <dd className="text-right">
-                        {props.mostJumpsDay ? (
-                            <a
-                                href={routes.logbook.index(
-                                    {},
-                                    {
-                                        start: props.mostJumpsDay.jumpDate,
-                                        end: props.mostJumpsDay.jumpDate,
-                                    },
-                                )}
-                                className="font-medium text-indigo-600 transition hover:underline dark:text-indigo-400"
-                            >
-                                {formatNumber(props.mostJumpsDay.jumpCount)}{" "}
-                                {props.mostJumpsDay.jumpCount === 1
-                                    ? "jump"
-                                    : "jumps"}{" "}
-                                <span className="text-sm text-slate-500 dark:text-slate-400">
-                                    ({formatDate(props.mostJumpsDay.jumpDate)})
+                {props.periods.map((record) => (
+                    <div
+                        key={record.label}
+                        className="flex items-center justify-between gap-4 px-5 py-3.5"
+                    >
+                        <dt className="text-sm text-slate-600 dark:text-slate-400">
+                            {record.label}
+                        </dt>
+                        <dd className="text-right">
+                            {record.period ? (
+                                <a
+                                    href={routes.logbook.index(
+                                        {},
+                                        {
+                                            start: record.period.startDate,
+                                            end: record.period.endDate,
+                                        },
+                                    )}
+                                    className="font-medium text-indigo-600 transition hover:underline dark:text-indigo-400"
+                                >
+                                    {formatNumber(record.period.jumpCount)}{" "}
+                                    {record.period.jumpCount === 1
+                                        ? "jump"
+                                        : "jumps"}{" "}
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                                        ({formatDate(record.period.startDate)}
+                                        {record.period.endDate !==
+                                            record.period.startDate &&
+                                            ` - ${formatDate(record.period.endDate)}`}
+                                        )
+                                    </span>
+                                </a>
+                            ) : (
+                                <span className="text-sm text-slate-400 dark:text-slate-500">
+                                    No recorded jump
                                 </span>
-                            </a>
-                        ) : (
-                            <span className="text-sm text-slate-400 dark:text-slate-500">
-                                No recorded jump
-                            </span>
-                        )}
-                    </dd>
-                </div>
+                            )}
+                        </dd>
+                    </div>
+                ))}
             </dl>
         </section>
     );
@@ -373,7 +383,9 @@ interface DetailedStatisticsResult {
     highestOpening: RecordJump | undefined;
     lowestOpening: RecordJump | undefined;
     highestAverageSpeed: RecordJump | undefined;
-    mostJumpsDay: RecordDay | undefined;
+    mostJumpsDay: RecordPeriod | undefined;
+    mostJumpsWeek: RecordPeriod | undefined;
+    mostJumpsMonth: RecordPeriod | undefined;
 }
 
 interface StatisticsItemRow {
@@ -521,13 +533,46 @@ function fetchRecordStatistics(
             .orderBy(sql`substr(${jumps.jumpDate}, 1, 4) desc`),
         db
             .select({
-                jumpDate: jumps.jumpDate,
+                startDate: jumps.jumpDate,
+                endDate: jumps.jumpDate,
                 jumpCount: sql<number>`count(*)`,
             })
             .from(jumps)
             .where(jumpCondition)
             .groupBy(jumps.jumpDate)
             .orderBy(desc(sql`count(*)`), desc(jumps.jumpDate))
+            .limit(1),
+        db
+            .select({
+                startDate: sql<string>`date(${jumps.jumpDate}, '-' || ((cast(strftime('%w', ${jumps.jumpDate}) as integer) + 6) % 7) || ' days')`,
+                endDate: sql<string>`date(${jumps.jumpDate}, '-' || ((cast(strftime('%w', ${jumps.jumpDate}) as integer) + 6) % 7) || ' days', '+6 days')`,
+                jumpCount: sql<number>`count(*)`,
+            })
+            .from(jumps)
+            .where(jumpCondition)
+            .groupBy(
+                sql`date(${jumps.jumpDate}, '-' || ((cast(strftime('%w', ${jumps.jumpDate}) as integer) + 6) % 7) || ' days')`,
+            )
+            .orderBy(
+                desc(sql`count(*)`),
+                desc(
+                    sql`date(${jumps.jumpDate}, '-' || ((cast(strftime('%w', ${jumps.jumpDate}) as integer) + 6) % 7) || ' days')`,
+                ),
+            )
+            .limit(1),
+        db
+            .select({
+                startDate: sql<string>`date(${jumps.jumpDate}, 'start of month')`,
+                endDate: sql<string>`date(${jumps.jumpDate}, 'start of month', '+1 month', '-1 day')`,
+                jumpCount: sql<number>`count(*)`,
+            })
+            .from(jumps)
+            .where(jumpCondition)
+            .groupBy(sql`strftime('%Y-%m', ${jumps.jumpDate})`)
+            .orderBy(
+                desc(sql`count(*)`),
+                desc(sql`strftime('%Y-%m', ${jumps.jumpDate})`),
+            )
             .limit(1),
         db
             .select({
@@ -644,6 +689,8 @@ async function fetchDetailedStatistics(
     const [
         yearRows,
         mostJumpsDayRows,
+        mostJumpsWeekRows,
+        mostJumpsMonthRows,
         longestFreefallRows,
         longestFreefallDistanceRows,
         highestExitRows,
@@ -672,6 +719,8 @@ async function fetchDetailedStatistics(
         jumpTypeRows,
         years,
         mostJumpsDay: mostJumpsDayRows[0],
+        mostJumpsWeek: mostJumpsWeekRows[0],
+        mostJumpsMonth: mostJumpsMonthRows[0],
         totalJumps,
         totalFreefallTime: freefallTotals?.totalFreefallTime ?? 0,
         totalFreefallDistance: freefallTotals?.totalFreefallDistance ?? 0,
@@ -739,6 +788,8 @@ async function renderDetailedStatistics(c: AppRequestContext) {
         lowestOpening,
         highestAverageSpeed,
         mostJumpsDay,
+        mostJumpsWeek,
+        mostJumpsMonth,
     } = await fetchDetailedStatistics(c, year);
 
     const locationsWithCounts = toStatisticsItems(locationRows, (uuid) =>
@@ -801,7 +852,20 @@ async function renderDetailedStatistics(c: AppRequestContext) {
             </dl>
             <div className="space-y-6">
                 <RecordJumps
-                    mostJumpsDay={mostJumpsDay}
+                    periods={[
+                        {
+                            label: "Most jumps in a day",
+                            period: mostJumpsDay,
+                        },
+                        {
+                            label: "Most jumps in a week",
+                            period: mostJumpsWeek,
+                        },
+                        {
+                            label: "Most jumps in a month",
+                            period: mostJumpsMonth,
+                        },
+                    ]}
                     records={[
                         {
                             label: "Longest freefall time",
