@@ -280,7 +280,8 @@ interface DetailedStatisticsResult {
     highestExit: RecordJump | undefined;
     highestOpening: RecordJump | undefined;
     lowestOpening: RecordJump | undefined;
-    highestAverageSpeed: RecordJump | undefined;
+    fastestAverageSpeed: RecordJump | undefined;
+    slowestAverageSpeed: RecordJump | undefined;
     mostJumpsDay: RecordPeriod | undefined;
     mostJumpsWeek: RecordPeriod | undefined;
     mostJumpsMonth: RecordPeriod | undefined;
@@ -454,7 +455,8 @@ async function fetchDetailedStatistics(
         highestExitRows,
         highestOpeningRows,
         lowestOpeningRows,
-        highestAverageSpeedRows,
+        fastestAverageSpeedRows,
+        slowestAverageSpeedRows,
         [freefallTotals],
     ] = recordStatistics;
 
@@ -512,10 +514,16 @@ async function fetchDetailedStatistics(
                   value: formatAltitude(lowestOpeningRows[0].value),
               }
             : undefined,
-        highestAverageSpeed: highestAverageSpeedRows[0]
+        fastestAverageSpeed: fastestAverageSpeedRows[0]
             ? {
-                  ...highestAverageSpeedRows[0],
-                  value: formatSpeed(highestAverageSpeedRows[0].value),
+                  ...fastestAverageSpeedRows[0],
+                  value: formatSpeed(fastestAverageSpeedRows[0].value),
+              }
+            : undefined,
+        slowestAverageSpeed: slowestAverageSpeedRows[0]
+            ? {
+                  ...slowestAverageSpeedRows[0],
+                  value: formatSpeed(slowestAverageSpeedRows[0].value),
               }
             : undefined,
     };
@@ -543,7 +551,8 @@ async function renderDetailedStatistics(c: AppRequestContext) {
         highestExit,
         highestOpening,
         lowestOpening,
-        highestAverageSpeed,
+        fastestAverageSpeed,
+        slowestAverageSpeed,
         mostJumpsDay,
         mostJumpsWeek,
         mostJumpsMonth,
@@ -631,8 +640,12 @@ async function renderDetailedStatistics(c: AppRequestContext) {
                         { label: "Highest opening", jump: highestOpening },
                         { label: "Lowest opening", jump: lowestOpening },
                         {
-                            label: "Highest freefall speed avg",
-                            jump: highestAverageSpeed,
+                            label: "Fastest average freefall speed",
+                            jump: fastestAverageSpeed,
+                        },
+                        {
+                            label: "Slowest average freefall speed",
+                            jump: slowestAverageSpeed,
                         },
                     ]}
                 />

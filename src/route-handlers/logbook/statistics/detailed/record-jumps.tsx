@@ -29,6 +29,10 @@ export function RecordJumps(props: {
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     Record jumps
                 </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Fastest and slowest freefall speeds are averages and only
+                    include jumps with more than 2,000 m of freefall.
+                </p>
             </div>
             <dl className="divide-y divide-slate-100 dark:divide-slate-800">
                 {props.records.map((record) => (
@@ -108,6 +112,31 @@ export function RecordJumps(props: {
             </dl>
         </section>
     );
+}
+
+function fetchAverageSpeedRecord(
+    db: ReturnType<typeof getAppContext>["db"],
+    jumpCondition: ReturnType<typeof and>,
+    fastest: boolean,
+) {
+    const averageSpeed = sql<number>`(${jumps.exitAltitude} - ${jumps.openingAltitude}) * 1.0 / ${jumps.freefallTime}`;
+    return db
+        .select({
+            uuid: jumps.uuid,
+            jumpNumber: jumps.jumpNumber,
+            jumpDate: jumps.jumpDate,
+            value: averageSpeed,
+        })
+        .from(jumps)
+        .where(
+            and(
+                jumpCondition,
+                gt(jumps.freefallTime, 0),
+                gt(sql`${jumps.exitAltitude} - ${jumps.openingAltitude}`, 2000),
+            ),
+        )
+        .orderBy(fastest ? desc(averageSpeed) : asc(averageSpeed))
+        .limit(1);
 }
 
 export function fetchRecordStatistics(
@@ -224,21 +253,8 @@ export function fetchRecordStatistics(
             .where(jumpCondition)
             .orderBy(asc(jumps.openingAltitude))
             .limit(1),
-        db
-            .select({
-                uuid: jumps.uuid,
-                jumpNumber: jumps.jumpNumber,
-                jumpDate: jumps.jumpDate,
-                value: sql<number>`(${jumps.exitAltitude} - ${jumps.openingAltitude}) * 1.0 / ${jumps.freefallTime}`,
-            })
-            .from(jumps)
-            .where(and(jumpCondition, gt(jumps.freefallTime, 0)))
-            .orderBy(
-                desc(
-                    sql`(${jumps.exitAltitude} - ${jumps.openingAltitude}) * 1.0 / ${jumps.freefallTime}`,
-                ),
-            )
-            .limit(1),
+        fetchAverageSpeedRecord(db, jumpCondition, true),
+        fetchAverageSpeedRecord(db, jumpCondition, false),
         db
             .select({
                 totalFreefallTime: sql<number>`coalesce(sum(${jumps.freefallTime}), 0)`,

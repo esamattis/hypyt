@@ -155,6 +155,15 @@ test("statistics show recorded and total jump counts for every item", async ({
     await expect(
         page.getByText("Longest freefall distance").locator(".."),
     ).toContainText("3 km");
+    await expect(
+        page.getByText("Fastest average freefall speed").locator(".."),
+    ).toContainText("Jump #301");
+    await expect(
+        page.getByText("Slowest average freefall speed").locator(".."),
+    ).toContainText("Jump #302");
+    await expect(
+        page.getByText(/only include jumps with more than/),
+    ).toContainText("2,000 m of freefall");
     const mostJumpsDay = page.getByText("Most jumps in a day").locator("..");
     await expect(mostJumpsDay).toContainText("2 jumps");
     const mostJumpsDayLink = mostJumpsDay.getByRole("link");

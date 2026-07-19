@@ -291,7 +291,7 @@ test("unit preferences apply throughout the logbook UI", async ({ page }) => {
         page.getByText("Highest jump altitude").locator(".."),
     ).toContainText("13.123 ft");
     await expect(
-        page.getByText("Highest freefall speed avg").locator(".."),
+        page.getByText("Fastest average freefall speed").locator(".."),
     ).toContainText("54,5 m/s");
     await expect(page.getByText("Jump #1 (01/01/2026)").first()).toBeVisible();
 });

@@ -66,6 +66,22 @@ function getYearsSince(date: string | null): number {
     );
 }
 
+function getAverageJumpsPerCompletedActiveYear(
+    yearlyData: Array<{ year: number; count: number }>,
+): number {
+    const currentYear = new Date().getUTCFullYear();
+    const completedActiveYears = yearlyData.filter(
+        (entry) => entry.year !== currentYear,
+    );
+    if (completedActiveYears.length === 0) {
+        return 0;
+    }
+    return (
+        completedActiveYears.reduce((total, entry) => total + entry.count, 0) /
+        completedActiveYears.length
+    );
+}
+
 function findJumpNumberGaps(jumpNumbers: number[]): number[] {
     if (jumpNumbers.length < 2) {
         return [];
@@ -302,6 +318,8 @@ async function renderStatistics(c: AppRequestContext) {
             count: Number(row.count),
         }))
         .filter((entry) => Number.isInteger(entry.year) && entry.year > 0);
+    const averageJumpsPerActiveYear =
+        getAverageJumpsPerCompletedActiveYear(yearlyData);
 
     const jumpNumberGaps = findJumpNumberGaps(
         jumpNumberRows.map((row) => row.jumpNumber),
@@ -333,6 +351,13 @@ async function renderStatistics(c: AppRequestContext) {
                 <SingleNumberCard
                     label="Active jump years"
                     value={formatNumber(yearlyData.length)}
+                />
+                <SingleNumberCard
+                    label="Average jumps per active year"
+                    value={formatNumber(averageJumpsPerActiveYear, {
+                        maximumFractionDigits: 1,
+                    })}
+                    description="Based on years with at least one recorded jump. The current year is excluded."
                 />
             </dl>
             <YearlyJumpsHistogram data={yearlyData} />

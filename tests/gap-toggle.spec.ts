@@ -10,7 +10,9 @@ const fixtureCsv = [
     "location,Gap Drop Zone,0,,,,,,,,,,",
     "jump,,,1,2021-06-15,4000,1000,55,Gap Drop Zone,Gap Plane,,,First gap year jump",
     "jump,,,2,2023-06-15,4000,1000,55,Gap Drop Zone,Gap Plane,,,Second gap year jump",
-    "jump,,,3,2025-06-15,4000,1000,55,Gap Drop Zone,Gap Plane,,,Third gap year jump",
+    "jump,,,3,2023-07-15,4000,1000,55,Gap Drop Zone,Gap Plane,,,Second jump in 2023",
+    "jump,,,4,2025-06-15,4000,1000,55,Gap Drop Zone,Gap Plane,,,Third active year jump",
+    `jump,,,5,${new Date().getUTCFullYear()}-01-15,4000,1000,55,Gap Drop Zone,Gap Plane,,,Current year jump`,
 ].join("\n");
 
 async function registerUser(page: Page, username: string) {
@@ -37,7 +39,7 @@ test("the Show gap years toggle hides and reveals histogram gap years", async ({
         buffer: Buffer.from(fixtureCsv),
     });
     await page.getByRole("button", { name: "Import logbook" }).click();
-    await expect(page.getByText("Imported 3 jumps")).toBeVisible();
+    await expect(page.getByText("Imported 5 jumps")).toBeVisible();
 
     await page
         .getByRole("link", { name: /gap-toggle-skydiver's logbook/ })
@@ -58,7 +60,14 @@ test("the Show gap years toggle hides and reveals histogram gap years", async ({
     ).toHaveText(String(expectedYearsSinceFirstJump));
     await expect(
         page.getByText("Active jump years").locator("..").locator("dd"),
-    ).toHaveText("3");
+    ).toHaveText("4");
+    const averageCard = page
+        .getByText("Average jumps per active year")
+        .locator("..");
+    await expect(averageCard.locator("dd").first()).toHaveText(/1[,.]3/);
+    await expect(averageCard).toContainText(
+        "Based on years with at least one recorded jump. The current year is excluded.",
+    );
 
     const toggle = page
         .locator("section")
