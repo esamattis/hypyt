@@ -1,4 +1,5 @@
 import { and, asc, eq, gte, lt, sql } from "drizzle-orm";
+import clsx from "clsx";
 import {
     getAppContext,
     useNumberFormatter,
@@ -59,6 +60,47 @@ function compareStatisticsItems(
     const countDifference =
         getTotalJumpCount(second) - getTotalJumpCount(first);
     return countDifference || first.name.localeCompare(second.name);
+}
+
+function StatisticsCount(props: {
+    item: StatisticsItem;
+    filteredByYear: boolean;
+}) {
+    const formatNumber = useNumberFormatter();
+    const showRecordedCount =
+        !props.filteredByYear && props.item.previousJumpCount > 0;
+    const count = props.filteredByYear
+        ? props.item.recordedJumpCount
+        : getTotalJumpCount(props.item);
+
+    return (
+        <span
+            className={clsx(
+                "items-baseline justify-end",
+                props.filteredByYear
+                    ? "inline-flex"
+                    : "inline-grid grid-cols-[auto_7ch] gap-1",
+            )}
+        >
+            <span
+                data-loki-tooltip={
+                    props.filteredByYear
+                        ? "Usage count from recorded jumps"
+                        : "Total usage count, including previous usage"
+                }
+            >
+                {formatNumber(count)}
+            </span>
+            {showRecordedCount && (
+                <span
+                    className="font-normal text-slate-400 dark:text-slate-500"
+                    data-loki-tooltip="Usage count from recorded jumps"
+                >
+                    ({formatNumber(props.item.recordedJumpCount)})
+                </span>
+            )}
+        </span>
+    );
 }
 
 function YearNavigationBar(props: {
@@ -163,7 +205,6 @@ function StatisticsSection(props: {
     items: StatisticsItem[];
     filteredByYear: boolean;
 }) {
-    const formatNumber = useNumberFormatter();
     return (
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-baseline justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -190,18 +231,14 @@ function StatisticsSection(props: {
                                     scope="col"
                                     className="px-5 py-3 text-right"
                                 >
-                                    {props.filteredByYear
-                                        ? "Jumps"
-                                        : "Recorded"}
+                                    {props.filteredByYear ? (
+                                        "Jumps"
+                                    ) : (
+                                        <span className="inline-grid grid-cols-[auto_7ch] gap-1">
+                                            <span>Total jumps</span>
+                                        </span>
+                                    )}
                                 </th>
-                                {!props.filteredByYear && (
-                                    <th
-                                        scope="col"
-                                        className="px-5 py-3 text-right"
-                                    >
-                                        Total jumps
-                                    </th>
-                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -220,16 +257,14 @@ function StatisticsSection(props: {
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-5 py-3.5 text-right tabular-nums text-slate-600 dark:text-slate-400">
-                                        {formatNumber(item.recordedJumpCount)}
+                                    <td className="px-5 py-3.5 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+                                        <StatisticsCount
+                                            item={item}
+                                            filteredByYear={
+                                                props.filteredByYear
+                                            }
+                                        />
                                     </td>
-                                    {!props.filteredByYear && (
-                                        <td className="px-5 py-3.5 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">
-                                            {formatNumber(
-                                                getTotalJumpCount(item),
-                                            )}
-                                        </td>
-                                    )}
                                 </tr>
                             ))}
                         </tbody>

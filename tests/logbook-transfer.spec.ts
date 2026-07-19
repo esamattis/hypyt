@@ -105,13 +105,21 @@ test("saving a record jump returns to yearly statistics", async ({ page }) => {
     ).toBeVisible();
 });
 
-test("statistics show recorded and total jump counts for every item", async ({
+test("statistics show total and recorded jump counts for every item", async ({
     page,
 }) => {
     await registerUser(page, "statistics-skydiver");
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Import or export" }).click();
-    await page.locator('input[name="file"]').setInputFiles(fixturePath);
+    const csv = (await readFile(fixturePath, "utf8")).replaceAll(
+        ",Navigator 260,Formation skydiving",
+        ",Navigator 260; New rig,Formation skydiving",
+    );
+    await page.locator('input[name="file"]').setInputFiles({
+        name: "logbook.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from(csv),
+    });
     await page.getByRole("button", { name: "Import logbook" }).click();
     await expect(page.getByText("Imported 2 jumps")).toBeVisible();
 
@@ -200,12 +208,27 @@ test("statistics show recorded and total jump counts for every item", async ({
     await expect(
         page.getByRole("heading", { name: "Yearly statistics" }),
     ).toBeVisible();
+    const locationRow = page
+        .getByRole("row")
+        .filter({ hasText: "Skydive Example" });
     await expect(
-        page.getByRole("row").filter({ hasText: "Skydive Example" }),
-    ).toContainText("2");
+        locationRow.locator(
+            '[data-loki-tooltip="Total usage count, including previous usage"]',
+        ),
+    ).toHaveText("302");
     await expect(
-        page.getByRole("row").filter({ hasText: "Skydive Example" }),
-    ).toContainText("302");
+        locationRow.locator(
+            '[data-loki-tooltip="Usage count from recorded jumps"]',
+        ),
+    ).toHaveText("(2)");
+    const newGearRow = page.getByRole("row").filter({ hasText: "New rig" });
+    await expect(newGearRow).toContainText("2");
+    await expect(newGearRow).not.toContainText("(");
+    await expect(
+        newGearRow.locator(
+            '[data-loki-tooltip="Usage count from recorded jumps"]',
+        ),
+    ).toHaveCount(0);
     await expect(
         page.getByRole("row").filter({ hasText: "Twin Otter" }),
     ).toContainText("122");
