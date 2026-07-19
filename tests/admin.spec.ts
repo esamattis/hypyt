@@ -96,6 +96,37 @@ test("shows the invitation code used to register each user", async ({
     await expect(seededAdmin).toContainText("Invitation code: Not recorded");
 });
 
+test("does not allow removing the last admin", async ({ page, request }) => {
+    await page.goto("/login");
+    await page.locator('input[name="usernameOrEmail"]').fill("test-admin");
+    await page.locator('input[name="password"]').fill("test-admin-password");
+    await page.getByRole("button", { name: "Log in" }).click();
+    await page.goto("/admin");
+
+    const adminUser = page.getByRole("listitem").filter({
+        hasText: "@test-admin",
+    });
+    const removeButton = adminUser.getByRole("button", {
+        name: "Remove admin",
+    });
+    await expect(removeButton).toBeDisabled();
+    await expect(removeButton).toHaveAttribute(
+        "data-loki-tooltip",
+        "The last admin cannot be removed",
+    );
+
+    const uuid = await adminUser.locator('input[name="uuid"]').inputValue();
+    const response = await postAsPage(page, request, {
+        path: "/admin/toggle-admin",
+        form: { uuid },
+    });
+    expect(response.status()).toBe(302);
+
+    await page.reload();
+    await expect(page).toHaveURL("/admin");
+    await expect(removeButton).toBeDisabled();
+});
+
 test("non-admins cannot perform admin actions", async ({ page, request }) => {
     await registerUser(page, "non-admin-actions");
 

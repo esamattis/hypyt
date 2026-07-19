@@ -120,6 +120,7 @@ export function AdminUsersSection(props: {
     currentUserUuid: string;
 }) {
     const formatDate = useDateFormatter();
+    const adminCount = props.users.filter((user) => user.admin).length;
     return (
         <section id="users" className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -150,6 +151,7 @@ export function AdminUsersSection(props: {
                                 <UserActions
                                     user={user}
                                     currentUserUuid={props.currentUserUuid}
+                                    canRemoveAdmin={adminCount > 1}
                                 />
                             </div>
                             <dl className="grid gap-4 border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:grid-cols-2 dark:border-slate-800 dark:bg-slate-950/30">
@@ -176,7 +178,12 @@ export function AdminUsersSection(props: {
     );
 }
 
-function UserActions(props: { user: AdminUserRow; currentUserUuid: string }) {
+function UserActions(props: {
+    user: AdminUserRow;
+    currentUserUuid: string;
+    canRemoveAdmin: boolean;
+}) {
+    const cannotRemoveAdmin = props.user.admin && !props.canRemoveAdmin;
     return (
         <div className="flex flex-wrap items-center gap-2">
             <form method="post" action={routes.admin.toggleAdmin({})}>
@@ -185,7 +192,13 @@ function UserActions(props: { user: AdminUserRow; currentUserUuid: string }) {
                     type="submit"
                     variant="secondary"
                     size="sm"
-                    className="px-3 py-2"
+                    className="px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={cannotRemoveAdmin}
+                    data-loki-tooltip={
+                        cannotRemoveAdmin
+                            ? "The last admin cannot be removed"
+                            : undefined
+                    }
                 >
                     {props.user.admin ? "Remove admin" : "Make admin"}
                 </Button>

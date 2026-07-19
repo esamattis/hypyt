@@ -20,6 +20,9 @@ import {
     locations,
 } from "@/schema";
 import { formatDuration } from "@/utils/format-duration";
+import { Script } from "@/components/script";
+import { $select } from "@/utils";
+import { useId } from "hono/jsx";
 
 export function Distance(props: { meters: number }) {
     const altitudeUnits = useAppContext().getUser().options.altitudeUnits;
@@ -141,14 +144,65 @@ function JumpItemNames(props: { items: JumpCardItem[]; fallback?: string }) {
     );
 }
 
+function ClampedDescription(props: { description: string; jumpUuid: string }) {
+    const idPrefix = `${useId()}-${props.jumpUuid}`;
+    const descriptionId = `${idPrefix}-description`;
+    const buttonId = `${idPrefix}-show-all`;
+    return (
+        <>
+            <p
+                id={descriptionId}
+                className="mx-5 mb-4 line-clamp-2 text-sm text-slate-500 dark:text-slate-400"
+            >
+                {props.description}
+            </p>
+            <button
+                id={buttonId}
+                type="button"
+                hidden
+                aria-controls={descriptionId}
+                aria-expanded="false"
+                className="mx-5 -mt-2 mb-3 text-xs font-medium text-indigo-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 dark:text-indigo-400"
+            >
+                Show all
+            </button>
+            <Script
+                $deps={[$select]}
+                $args={[descriptionId, buttonId]}
+                $exec={(descriptionId, buttonId) => {
+                    const description = $select.id(
+                        descriptionId,
+                        HTMLParagraphElement,
+                    );
+                    const button = $select.id(buttonId, HTMLButtonElement);
+                    function updateButton() {
+                        button.hidden =
+                            description.scrollHeight <=
+                            description.clientHeight + 1;
+                    }
+                    const resizeObserver = new ResizeObserver(updateButton);
+                    resizeObserver.observe(description);
+                    updateButton();
+                    button.addEventListener("click", () => {
+                        description.classList.remove("line-clamp-2");
+                        button.setAttribute("aria-expanded", "true");
+                        button.hidden = true;
+                        resizeObserver.disconnect();
+                    });
+                }}
+            />
+        </>
+    );
+}
+
 export function JumpCard(props: JumpListItem) {
     const formatDate = useDateFormatter();
     const weekday = formatShortWeekday(props.jumpDate);
     return (
-        <li>
+        <li className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-indigo-300 hover:bg-slate-50/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700 dark:hover:bg-slate-800/40 dark:hover:shadow-black/30">
             <a
                 href={routes.logbook.jumps.edit({ uuid: props.uuid })}
-                className="block h-full rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-indigo-300 hover:bg-slate-50/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700 dark:hover:bg-slate-800/40 dark:hover:shadow-black/30 dark:focus-visible:ring-indigo-400/50"
+                className="block px-5 py-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500/50 dark:focus-visible:ring-indigo-400/50"
             >
                 <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
                     <div className="flex items-center gap-3">
@@ -215,11 +269,6 @@ export function JumpCard(props: JumpListItem) {
                         />
                     </JumpStat>
                 </dl>
-                {props.description && (
-                    <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
-                        {props.description}
-                    </p>
-                )}
                 {props.gearItems.length > 0 && (
                     <p className="mt-3 border-t border-slate-200 pt-2 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
                         <span className="font-medium text-slate-600 dark:text-slate-300">
@@ -229,6 +278,12 @@ export function JumpCard(props: JumpListItem) {
                     </p>
                 )}
             </a>
+            {props.description && (
+                <ClampedDescription
+                    description={props.description}
+                    jumpUuid={props.uuid}
+                />
+            )}
         </li>
     );
 }

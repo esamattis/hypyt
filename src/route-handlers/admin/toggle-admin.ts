@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import { requireAdmin } from "@/route-handlers/admin/helpers";
 import * as routes from "@/routes";
@@ -20,7 +20,6 @@ async function handleToggleAdmin(c: AppRequestContext) {
     const target = await db
         .select({
             uuid: users.uuid,
-            admin: users.admin,
         })
         .from(users)
         .where(eq(users.uuid, uuid))
@@ -33,8 +32,21 @@ async function handleToggleAdmin(c: AppRequestContext) {
 
     await db
         .update(users)
-        .set({ admin: !target.admin })
-        .where(eq(users.uuid, uuid))
+        .set({ admin: sql`not ${users.admin}` })
+        .where(
+            and(
+                eq(users.uuid, uuid),
+                or(
+                    eq(users.admin, false),
+                    sql`exists (
+                        select 1
+                        from ${users} as other_admin
+                        where other_admin.admin = 1
+                          and other_admin.uuid <> ${uuid}
+                    )`,
+                ),
+            ),
+        )
         .run();
 
     return c.redirect(routes.admin.index({}));
