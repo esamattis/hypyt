@@ -119,7 +119,7 @@ test("mobile navigation uses the bottom bar for actions and menu", async ({
     await expect(
         page
             .getByLabel("Form actions")
-            .getByRole("button", { name: "AI Vision" }),
+            .getByRole("button", { name: "Read image" }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Cancel" })).toHaveCount(0);
 
