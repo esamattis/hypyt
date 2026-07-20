@@ -68,6 +68,50 @@ async function registerUser(page: Page, username: string) {
     await expect(page).toHaveURL("/logbook");
 }
 
+test("dropping a logbook file anywhere on the import page selects it", async ({
+    page,
+}) => {
+    await registerUser(page, "drop-import-skydiver");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Import or export" }).click();
+    await expect(page).toHaveURL("/logbook/transfer");
+
+    const importButton = page.getByRole("button", { name: "Import logbook" });
+    await expect(importButton).not.toHaveClass(/bg-indigo-600/);
+
+    const csv = await readFile(fixturePath);
+    await page.evaluate(async (bytes) => {
+        const file = new File([new Uint8Array(bytes)], "logbook.csv", {
+            type: "text/csv",
+        });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        window.dispatchEvent(
+            new DragEvent("dragenter", {
+                bubbles: true,
+                cancelable: true,
+                dataTransfer,
+            }),
+        );
+        window.dispatchEvent(
+            new DragEvent("drop", {
+                bubbles: true,
+                cancelable: true,
+                dataTransfer,
+            }),
+        );
+    }, Array.from(csv));
+
+    await expect(page.locator('input[name="file"]')).toHaveValue(
+        /logbook\.csv$/,
+    );
+    await expect(importButton).toHaveClass(/bg-indigo-600/);
+    await expect(page.getByText("Imported 2 jumps")).toHaveCount(0);
+
+    await importButton.click();
+    await expect(page.getByText("Imported 2 jumps")).toBeVisible();
+});
+
 test("saving a record jump returns to yearly statistics", async ({ page }) => {
     await registerUser(page, "record-jump-return");
     await openManageLogbook(page);
