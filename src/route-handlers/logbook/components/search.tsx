@@ -268,6 +268,14 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
                             searchInputId,
                             HTMLInputElement,
                         );
+                        if (searchInput.value === "") {
+                            const match = /^#jump-(\d+)$/.exec(
+                                window.location.hash,
+                            );
+                            if (match?.[1]) {
+                                searchInput.value = match[1];
+                            }
+                        }
                         button.addEventListener("click", () => {
                             const form = button.form;
                             if (!form) {
