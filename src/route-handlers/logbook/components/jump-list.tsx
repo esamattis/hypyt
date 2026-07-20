@@ -154,7 +154,7 @@ function ClampedDescription(props: { description: string; jumpUuid: string }) {
         <div className="mx-5 mb-3">
             <p
                 id={descriptionId}
-                className="line-clamp-2 text-sm text-slate-500 dark:text-slate-400"
+                className="line-clamp-2 text-sm italic text-indigo-800/70 dark:text-indigo-200/70"
             >
                 {props.description}
             </p>
