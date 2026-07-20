@@ -2,8 +2,12 @@ import { ButtonLink } from "@/components/form";
 import { ImageIcon, LogbookIcon, PlusIcon } from "@/components/icons";
 import { StatisticsIcon } from "@/components/menu-icons";
 import * as routes from "@/routes";
+import type { Child } from "hono/jsx";
 
-export function LogbookActions(props: { pathname: string }) {
+export function LogbookActions(props: {
+    pathname: string;
+    end?: Child;
+}) {
     const logbookPath = routes.logbook.index({});
     const statisticsPath = routes.logbook.statistics.index({});
     const newJumpPath = routes.logbook.jumps.new({}, {});
@@ -79,6 +83,15 @@ export function LogbookActions(props: { pathname: string }) {
             >
                 <span className="hidden sm:inline">AI Vision</span>
             </ButtonLink>
+            {props.end && (
+                <>
+                    <span
+                        aria-hidden="true"
+                        className="mx-0.5 h-6 w-px flex-none bg-slate-200 dark:bg-slate-700"
+                    />
+                    {props.end}
+                </>
+            )}
         </nav>
     );
 }
