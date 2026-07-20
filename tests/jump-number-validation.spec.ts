@@ -1,5 +1,9 @@
 import { expect, test, type Page } from "./fixtures";
-import { openManageLogbook, selectJumpItems } from "./helpers";
+import {
+    expectLogbookAroundJump,
+    openManageLogbook,
+    selectJumpItems,
+} from "./helpers";
 
 async function registerUser(page: Page, username: string, displayName: string) {
     await page.goto("/register");
@@ -112,7 +116,7 @@ test("new jump page dynamically shows conflict options when jump number already 
         aircraftName: "Banner Plane",
     });
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 357);
 
     await page.goto("/logbook/jumps/new");
     const jumpNumber = page.locator('input[name="jumpNumber"]');
@@ -167,7 +171,7 @@ test("adding a jump with an existing jump number requires a conflict selection",
         aircraftName: "Conflict Plane",
     });
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await fillJumpBasics(page, {
@@ -209,7 +213,7 @@ test("adding a jump can replace an existing jump number", async ({ page }) => {
         aircraftName: "Overwrite Plane",
     });
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     await expect(page.getByText("Original jump")).toBeVisible();
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
@@ -226,7 +230,7 @@ test("adding a jump can replace an existing jump number", async ({ page }) => {
     await jumpConflictSelect(page).selectOption("replace");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     await expect(jumpNumberLink(page, 1)).toHaveCount(1);
     await expect(page.getByText("Replaced jump")).toBeVisible();
     await expect(page.getByText("Original jump")).toHaveCount(0);
@@ -267,7 +271,7 @@ test("adding a jump can shift existing and later jumps by +1", async ({
     await jumpConflictSelect(page).selectOption("shift");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 2);
     await expect(jumpNumberLink(page, 1)).toHaveCount(1);
     await expect(jumpNumberLink(page, 2)).toHaveCount(1);
     await expect(jumpNumberLink(page, 3)).toHaveCount(1);

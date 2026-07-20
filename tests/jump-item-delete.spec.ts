@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "./fixtures";
-import { openDangerZone, openManageLogbook, selectJumpItems } from "./helpers";
+import {
+    expectLogbookAroundJump,
+    openDangerZone,
+    openManageLogbook,
+    selectJumpItems,
+} from "./helpers";
 
 async function registerUser(page: Page, username: string, displayName: string) {
     await page.goto("/register");
@@ -127,7 +132,7 @@ test("aircraft cannot be deleted while used by jumps", async ({ page }) => {
     await selectJumpItems(page, "Location", ["Guarded DZ"]);
     await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage aircraft" }).click();
@@ -186,7 +191,7 @@ test("aircraft can be deleted once no jumps use it", async ({ page }) => {
     await selectJumpItems(page, "Location", ["Free DZ"]);
     await selectJumpItems(page, "Aircraft", ["Free Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     // Delete the jump first so the aircraft is no longer referenced.
     await page.getByRole("link", { name: /#1/ }).click();
@@ -256,7 +261,7 @@ test("gear cannot be deleted while used by jumps", async ({ page }) => {
     await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
     await selectJumpItems(page, "Gear used", ["Guarded Canopy"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
@@ -325,7 +330,7 @@ test("jump types cannot be deleted while used by jumps", async ({ page }) => {
     await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
     await selectJumpItems(page, "Jump types", ["Guarded Type"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage jump types" }).click();
@@ -382,7 +387,7 @@ test("locations cannot be deleted while used by jumps", async ({ page }) => {
     await selectJumpItems(page, "Location", ["Guarded DZ"]);
     await selectJumpItems(page, "Aircraft", ["Guarded Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();

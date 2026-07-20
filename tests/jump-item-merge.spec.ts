@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "./fixtures";
-import { openDangerZone, openManageLogbook, selectJumpItems } from "./helpers";
+import {
+    expectLogbookAroundJump,
+    openDangerZone,
+    openManageLogbook,
+    selectJumpItems,
+} from "./helpers";
 
 async function registerUser(page: Page, username: string, displayName: string) {
     await page.goto("/register");
@@ -102,7 +107,7 @@ test("location can be merged into another location", async ({ page }) => {
     await selectJumpItems(page, "Location", ["Source DZ"]);
     await selectJumpItems(page, "Aircraft", ["Merge Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await mergeItem(page, {
         manageLink: "Manage locations",
@@ -159,7 +164,7 @@ test("aircraft can be merged into another aircraft", async ({ page }) => {
     await selectJumpItems(page, "Location", ["Merge DZ"]);
     await selectJumpItems(page, "Aircraft", ["Source Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await mergeItem(page, {
         manageLink: "Manage aircraft",
@@ -229,7 +234,7 @@ test("gear can be merged into another gear item", async ({ page }) => {
     await selectJumpItems(page, "Aircraft", ["Merge Plane"]);
     await selectJumpItems(page, "Gear used", ["Source Canopy"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await mergeItem(page, {
         manageLink: "Manage gear",
@@ -299,7 +304,7 @@ test("jump type can be merged into another jump type", async ({ page }) => {
     await selectJumpItems(page, "Aircraft", ["Merge Plane"]);
     await selectJumpItems(page, "Jump types", ["Source Type"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await mergeItem(page, {
         manageLink: "Manage jump types",

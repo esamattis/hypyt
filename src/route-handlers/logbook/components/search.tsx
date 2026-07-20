@@ -37,7 +37,7 @@ export function isDefaultLogbookSort(filters: LogbookFilters): boolean {
 export function appendLogbookFilterParams(
     query: URLSearchParams,
     filters: LogbookFilters,
-    overrides: { search?: string } = {},
+    overrides: { search?: string; around?: number | null } = {},
 ): void {
     for (const uuid of filters.locationUuids) {
         query.append("locationUuids", uuid);
@@ -58,6 +58,11 @@ export function appendLogbookFilterParams(
     if (search) {
         query.set("search", search);
     }
+    const around =
+        overrides.around !== undefined ? overrides.around : filters.around;
+    if (around !== null) {
+        query.set("around", String(around));
+    }
     if (!isDefaultLogbookSort(filters)) {
         query.set("sort", logbookSortParam(filters));
     }
@@ -65,12 +70,30 @@ export function appendLogbookFilterParams(
 
 export function buildLogbookUrl(
     filters: LogbookFilters,
-    overrides: { search?: string } = {},
+    overrides: { search?: string; around?: number | null } = {},
 ): string {
     const query = new URLSearchParams();
     appendLogbookFilterParams(query, filters, overrides);
     const queryString = query.toString();
     return `${routes.logbook.index({})}${queryString ? `?${queryString}` : ""}`;
+}
+
+export function jumpAnchorId(jumpNumber: number): string {
+    return `jump-${jumpNumber}`;
+}
+
+export function buildLogbookAroundJumpUrl(jumpNumber: number): string {
+    return `${buildLogbookUrl({
+        locationUuids: [],
+        gearUuids: [],
+        jumpTypeUuids: [],
+        start: "",
+        end: "",
+        search: "",
+        around: jumpNumber,
+        sortBy: "jumpNumber",
+        sortOrder: "desc",
+    })}#${jumpAnchorId(jumpNumber)}`;
 }
 
 function FilterResourceHiddenFields(props: { filters: LogbookFilters }) {
@@ -105,6 +128,13 @@ function FilterResourceHiddenFields(props: { filters: LogbookFilters }) {
             )}
             {props.filters.end && (
                 <input type="hidden" name="end" value={props.filters.end} />
+            )}
+            {props.filters.around !== null && (
+                <input
+                    type="hidden"
+                    name="around"
+                    value={String(props.filters.around)}
+                />
             )}
         </>
     );

@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "./fixtures";
-import { openDangerZone, openManageLogbook, selectJumpItems } from "./helpers";
+import {
+    expectLogbookAroundJump,
+    openDangerZone,
+    openManageLogbook,
+    selectJumpItems,
+} from "./helpers";
 
 async function registerAndAddFirstJump(
     page: Page,
@@ -41,7 +46,7 @@ async function registerAndAddFirstJump(
     await page.locator('textarea[name="description"]').fill("Doomed jump");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
 }
 

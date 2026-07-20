@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
     getAppContext,
@@ -23,6 +24,7 @@ import { formatDuration } from "@/utils/format-duration";
 import { Script } from "@/components/script";
 import { $select } from "@/utils";
 import { useId } from "hono/jsx";
+import { jumpAnchorId } from "@/route-handlers/logbook/components/search";
 
 export function Distance(props: { meters: number }) {
     const altitudeUnits = useAppContext().getUser().options.altitudeUnits;
@@ -197,11 +199,23 @@ function ClampedDescription(props: { description: string; jumpUuid: string }) {
     );
 }
 
-export function JumpCard(props: JumpListItem) {
+export function JumpCard(
+    props: JumpListItem & {
+        highlight?: boolean;
+    },
+) {
     const formatDate = useDateFormatter();
     const weekday = formatShortWeekday(props.jumpDate);
     return (
-        <li className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-indigo-300 hover:bg-slate-50/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-700 dark:hover:bg-slate-800/40 dark:hover:shadow-black/30">
+        <li
+            id={jumpAnchorId(props.jumpNumber)}
+            className={clsx(
+                "scroll-mt-24 overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:border-indigo-300 hover:bg-slate-50/40 hover:shadow-md dark:bg-slate-900 dark:hover:border-indigo-700 dark:hover:bg-slate-800/40 dark:hover:shadow-black/30",
+                props.highlight
+                    ? "border-indigo-400 ring-2 ring-indigo-300/70 dark:border-indigo-500 dark:ring-indigo-500/40"
+                    : "border-slate-200 dark:border-slate-800",
+            )}
+        >
             <a
                 href={routes.logbook.jumps.edit({ uuid: props.uuid })}
                 className="block px-5 py-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500/50 dark:focus-visible:ring-indigo-400/50"

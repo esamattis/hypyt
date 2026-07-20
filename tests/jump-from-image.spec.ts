@@ -3,11 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+    expectLogbookAroundJump,
     jumpItemSummary,
     openDangerZone,
     openMainMenu,
     openManageLogbook,
 } from "./helpers";
+// helper import patched below
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -126,7 +128,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     ).toHaveCount(0);
 
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 42);
     await expect(page.getByRole("link", { name: /#42 / })).toBeVisible();
     await page.getByRole("link", { name: /#42 / }).click();
 

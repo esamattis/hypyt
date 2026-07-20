@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import {
+    expectLogbookAroundJump,
     jumpItemSummary,
     openDangerZone,
     openMainMenu,
@@ -74,6 +75,7 @@ test("the log book loads additional jumps while scrolling", async ({
         await page.getByRole("button", { name: "Add jump" }).click();
     }
 
+    await page.goto("/logbook");
     await expect(page.getByRole("link", { name: /#\d+/ })).toHaveCount(24);
     const loadMore = page.getByText("Loading more jumps...");
     await loadMore.scrollIntoViewIfNeeded();
@@ -115,7 +117,7 @@ test("truncated jump notes can be fully shown", async ({ page }) => {
     await expect(notes).toHaveClass(/line-clamp-2/);
 
     await showAll.click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     await expect(notes).not.toHaveClass(/line-clamp-2/);
     await expect(showAll).toBeHidden();
 });
@@ -232,7 +234,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('textarea[name="description"]').fill("First test jump");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     await expect(
         page.getByRole("heading", { name: "1 Jumps", level: 1 }),
     ).toBeVisible();
@@ -261,14 +263,18 @@ test("a skydiver can register and record their first jump", async ({
     await expect(firstJump.getByText("Freefly")).toBeVisible();
     await expect(firstJump.getByText("Tracking")).toBeVisible();
 
-    await page.getByText("Filters", { exact: true }).click();
-    await page.getByRole("textbox", { name: "Start date" }).fill("2024-06-15");
+    const startDate = page.getByRole("textbox", { name: "Start date" });
+    if (!(await startDate.isVisible())) {
+        await page.getByText("Filters", { exact: true }).click();
+    }
+    await startDate.fill("2024-06-15");
     await page.getByRole("textbox", { name: "End date" }).fill("2024-06-15");
     await selectJumpItems(page, "Jump types", ["Freefly", "Tracking"]);
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page).toHaveURL(/\/logbook\?.*jumpTypeUuids=/);
     await expect(page).toHaveURL(/start=2024-06-15/);
     await expect(page).toHaveURL(/end=2024-06-15/);
+    await expect(page).toHaveURL(/around=1/);
     await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /#2/ })).toHaveCount(0);
 
@@ -337,7 +343,7 @@ test("a skydiver can register and record their first jump", async ({
     );
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 2);
     const secondJump = page.getByRole("link", { name: /#2/ });
     await expect(secondJump).toContainText("Skydive Test Center");
     await expect(secondJump).toContainText("Cessna 182");
@@ -613,7 +619,7 @@ test("a jump can be added without measurements or jump items", async ({
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     await expect(page.getByRole("link", { name: /#1/ })).toBeVisible();
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
@@ -622,7 +628,7 @@ test("a jump can be added without measurements or jump items", async ({
     await expect(page.locator('input[name="freefallTime"]')).toHaveValue("");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 2);
     await expect(page.getByRole("link", { name: /#2/ })).toBeVisible();
 });
 
@@ -749,7 +755,7 @@ test("a skydiver can create jump items from the add jump form", async ({
         .fill("Inline Tracking; Inline Camera");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     const jump = page.getByRole("link", { name: /#1/ });
     await expect(jump).toContainText("Inline Drop Zone");
     await expect(jump).toContainText("Inline Helicopter, Inline Plane");
@@ -844,7 +850,7 @@ test("next jump number button restores max plus one", async ({ page }) => {
     await selectJumpItems(page, "Location", ["Next Number Drop Zone"]);
     await selectJumpItems(page, "Aircraft", ["Next Number Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 5);
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("6");
@@ -898,7 +904,7 @@ test("adding a jump with an existing jump number shows an overwrite warning and 
     await selectJumpItems(page, "Location", ["Duplicate Drop Zone"]);
     await selectJumpItems(page, "Aircraft", ["Duplicate Plane"]);
     await page.getByRole("button", { name: "Add jump" }).click();
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     const jumpNumber = page.locator('input[name="jumpNumber"]');

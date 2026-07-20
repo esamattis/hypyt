@@ -1,5 +1,10 @@
 import { expect, test } from "./fixtures";
-import { jumpItemSummary, openManageLogbook, selectJumpItems } from "./helpers";
+import {
+    expectLogbookAroundJump,
+    jumpItemSummary,
+    openManageLogbook,
+    selectJumpItems,
+} from "./helpers";
 
 test("an existing and a new aircraft can be added to a new jump", async ({
     page,
@@ -39,7 +44,7 @@ test("an existing and a new aircraft can be added to a new jump", async ({
     await page.locator('input[name="aircraftName"]').fill("New Plane");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     const jump = page.getByRole("link", { name: /#1/ });
     await expect(jump).toContainText("Mixed Drop Zone");
     await expect(jump).toContainText("Existing Plane, New Plane");

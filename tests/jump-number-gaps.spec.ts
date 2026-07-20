@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "./fixtures";
-import { openManageLogbook } from "./helpers";
+import { expectLogbookAroundJump, openManageLogbook } from "./helpers";
 
 const CSV_HEADER =
     "type,name,previousCount,jumpNumber,jumpDate,exitAltitude,openingAltitude,freefallTime,location,aircraft,gear,jumpTypes,description";
@@ -192,7 +192,7 @@ test("a jump can be saved without jump items and is listed as insufficient", asy
     await page.locator('input[name="freefallTime"]').fill("55");
     await page.getByRole("button", { name: "Add jump" }).click();
 
-    await expect(page).toHaveURL("/logbook");
+    await expectLogbookAroundJump(page, 1);
     const jump = page.getByRole("link", { name: /#1/ });
     await expect(jump.getByText("Not set", { exact: true })).toHaveCount(2);
 

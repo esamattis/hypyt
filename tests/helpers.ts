@@ -1,4 +1,16 @@
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
+
+export function logbookAroundJumpPath(jumpNumber: number): RegExp {
+    return new RegExp(`/logbook\\?around=${jumpNumber}(?:#.*)?$`);
+}
+
+export async function expectLogbookAroundJump(
+    page: Page,
+    jumpNumber: number,
+): Promise<void> {
+    await expect(page).toHaveURL(logbookAroundJumpPath(jumpNumber));
+    await expect(page.locator(`#jump-${jumpNumber}`)).toBeVisible();
+}
 
 export async function openMainMenu(page: Page) {
     await page.getByRole("button", { name: "Menu" }).click();
