@@ -189,7 +189,7 @@ function rowToImportValue(fields: string[]): unknown {
     return { type };
 }
 
-function parseCsvImport(
+export function parseCsvImport(
     content: string,
 ): { errors: string[] } | { records: ImportRecord[] } {
     const parseResult = parseCsvRows(content);
@@ -580,7 +580,7 @@ class ImportState {
 }
 
 /** Imports validated records for the current user in one atomic D1 batch. */
-async function importRecords(
+export async function importRecords(
     c: AppRequestContext,
     records: ImportRecord[],
     clearAll: boolean,

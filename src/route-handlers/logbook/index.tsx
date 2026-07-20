@@ -807,6 +807,19 @@ async function renderLogbook(c: AppRequestContext) {
                                 {` `}
                                 to read your physical logbook.
                             </p>
+                            <form
+                                action={routes.logbook.injectExampleData({})}
+                                method="post"
+                                className="mt-4"
+                            >
+                                <Button
+                                    type="submit"
+                                    variant="secondary"
+                                    size="sm"
+                                >
+                                    Load example data
+                                </Button>
+                            </form>
                         </div>
                     )
                 ) : (

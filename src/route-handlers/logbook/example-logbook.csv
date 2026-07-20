@@ -1,0 +1,125 @@
+type,name,previousCount,jumpNumber,jumpDate,exitAltitude,openingAltitude,freefallTime,location,aircraft,gear,jumpTypes,description
+aircraft,Cessna 182,0,,,,,,,,,,Small single used for hop and pops
+aircraft,Cessna Caravan,0,,,,,,,,,,Common turbine dropzone aircraft
+aircraft,Twin Otter,0,,,,,,,,,,Twin turbine for larger loads
+aircraft,Skyvan,0,,,,,,,,,,Rear-ramp freefall aircraft
+gear,Navigator 260,0,,,,,,,,,,Student main canopy
+gear,Sabre2 190,0,,,,,,,,,,First sport main after student gear
+gear,Sabre2 170,0,,,,,,,,,,Downsized intermediate main
+gear,Spectre 150,0,,,,,,,,,,All-around main canopy
+gear,Katana 135,0,,,,,,,,,,Higher performance main
+gear,Birdman Classic,0,,,,,,,,,,Wingsuit
+jumpType,AFF,0,,,,,,,,,,Accelerated freefall student training
+jumpType,Coach jump,0,,,,,,,,,,One-on-one coaching
+jumpType,Formation skydiving,0,,,,,,,,,,Belly flying relative work
+jumpType,Freefly,0,,,,,,,,,,Sit and head-down freefly
+jumpType,Tracking,0,,,,,,,,,,Angle and tracking dives
+jumpType,Wingsuit,0,,,,,,,,,,Wingsuit flight
+jumpType,Hop and pop,0,,,,,,,,,,Low altitude deployment
+jumpType,Cutaway,0,,,,,,,,,,Main canopy cutaway
+location,Skydive Chicago,0,,,,,,,,,,Home drop zone near Chicago
+location,Skydive City,0,,,,,,,,,,Florida winter boogie DZ
+location,Empuriabrava,0,,,,,,,,,,Spain summer boogie
+location,Perris Valley,0,,,,,,,,,,Southern California DZ
+jump,,,1,2023-04-08,4100,1500,45,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Level 1 — big smile on landing
+jump,,,2,2023-04-08,4100,1500,45,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Level 2 — better altitude awareness
+jump,,,3,2023-04-08,4100,1500,45,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Level 3 — stable freefall the whole way
+jump,,,4,2023-04-08,4100,1500,44,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Level 4 — practice turns
+jump,,,5,2023-04-08,4100,1500,47,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Level 5 — forward movement
+jump,,,6,2023-04-26,4200,1500,46,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Level 6 — docks with instructor
+jump,,,7,2023-04-26,4200,1500,48,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Level 7 — almost ready to graduate
+jump,,,8,2023-04-26,4200,1500,44,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,AFF graduation jump
+jump,,,9,2023-04-26,4200,1500,44,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Extra AFF practice load
+jump,,,10,2023-04-27,4100,1500,48,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Waved at the camera mid-freefall like I was on a cruise ship. Forgot to fall. Instructor docked while crying with laughter and later said I looked like a golden retriever who just discovered gravity.
+jump,,,11,2023-04-27,4100,1500,44,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Still working on leg position
+jump,,,12,2023-04-27,4100,1500,47,Skydive Chicago,Cessna Caravan,Navigator 260,AFF,Solid pull sequence
+jump,,,13,2023-05-29,4100,1200,53,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Coaching on exits
+jump,,,14,2023-05-29,4100,1200,49,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Docking drills with coach
+jump,,,15,2023-05-29,4100,1200,53,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Fall rate matching practice
+jump,,,16,2023-05-29,4100,1200,51,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Breakoff and tracking review
+jump,,,17,2023-05-29,4100,1200,53,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Canopy flight debrief after
+jump,,,18,2023-06-05,4000,1200,52,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Worked on heading control
+jump,,,19,2023-06-05,4000,1200,50,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Relaxed and smoother this time
+jump,,,20,2023-06-05,4000,1200,51,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Textbook landing into a standing ovation from my own ego — then high-fived a packing mat at full strut and faceplanted into the peas like a lawn dart. The packing area gave me a slow clap. I deserved it.
+jump,,,21,2023-07-23,4100,1200,51,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Coaching on exits
+jump,,,22,2023-07-23,4100,1200,50,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Docking drills with coach
+jump,,,23,2023-07-23,4100,1200,49,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Fall rate matching practice
+jump,,,24,2023-07-23,4100,1200,52,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Breakoff and tracking review
+jump,,,25,2023-07-23,4100,1200,50,Skydive Chicago,Cessna Caravan,Navigator 260,Coach jump,Canopy flight debrief after
+jump,,,26,2023-08-12,4200,1000,54,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Four-way randoms
+jump,,,27,2023-08-12,4200,1000,58,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Clean base and dirty docks
+jump,,,28,2023-08-12,4200,1000,54,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Fun jump with friends
+jump,,,29,2023-08-30,4000,1000,57,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Practice 8-way block
+jump,,,30,2023-08-30,4000,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Sidebody exit went rogue. Gripped a stranger's boot instead of their hand and rode them like a confused koala for the entire freefall. They still don't make eye contact in the packing hangar.
+jump,,,31,2023-08-30,4000,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Good grips the whole jump
+jump,,,32,2023-09-19,4100,1000,54,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Lost visual for a second
+jump,,,33,2023-09-19,4100,1000,58,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Smooth points
+jump,,,34,2023-09-25,4200,1000,58,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Sunset load
+jump,,,35,2023-09-25,4200,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Cold morning load
+jump,,,36,2023-09-25,4200,1000,57,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Last load of the day
+jump,,,37,2023-09-25,4200,1000,56,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Big-way attempt
+jump,,,38,2023-09-25,4200,1000,54,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Four-way randoms
+jump,,,39,2023-09-26,4000,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Clean base and dirty docks
+jump,,,40,2023-09-26,4000,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Altimeter yeeted itself into the void at exit. Spent the whole freefall screaming "WHAT TIME IS IT" at the formation like a deranged town crier. Nobody answered. Pull altitude was a vibe check.
+jump,,,41,2023-09-26,4000,1000,54,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Practice 8-way block
+jump,,,42,2023-09-26,4000,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Sidebody exit
+jump,,,43,2023-09-26,4000,1000,58,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Good grips the whole jump
+jump,,,44,2023-09-26,4000,1000,56,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Lost visual for a second
+jump,,,45,2023-10-23,4000,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Smooth points
+jump,,,46,2023-10-23,4000,1000,56,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Sunset load
+jump,,,47,2023-10-23,4000,1000,56,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Cold morning load
+jump,,,48,2023-10-23,4000,1000,57,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Last load of the day
+jump,,,49,2023-10-23,4000,1000,55,Skydive Chicago,Twin Otter,Sabre2 190,Formation skydiving,Big-way attempt
+jump,,,50,2023-10-31,4100,1000,56,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Halloween load. Genius in a cape exited and instantly became a 120 mph nylon banshee thrashing through the formation. We scattered like pigeons hit by a leaf blower. Cape later found wrapped around a windsock. Legend status: cursed.
+jump,,,51,2023-10-31,4100,1000,56,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Clean base and dirty docks
+jump,,,52,2023-10-31,4100,1000,55,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Fun jump with friends
+jump,,,53,2023-10-31,4100,1000,55,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Practice 8-way block
+jump,,,54,2023-10-31,4100,1000,55,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Sidebody exit
+jump,,,55,2023-11-08,4200,1000,55,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Good grips the whole jump
+jump,,,56,2023-11-08,4200,1000,54,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Lost visual for a second
+jump,,,57,2023-11-14,4100,1000,55,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Smooth points
+jump,,,58,2023-11-14,4100,1000,57,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Sunset load
+jump,,,59,2023-11-14,4100,1000,58,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Cold morning load
+jump,,,60,2023-12-22,4100,1000,58,Skydive Chicago,Twin Otter,Sabre2 170,Formation skydiving,Last load of the season. Landed directly into the beer line like a precision strike. Entire packing tent erupted into a full-volume chant of my name for reasons science cannot explain. I bowed. Someone handed me a hot dog. Peak civilization.
+jump,,,61,2024-01-30,4200,1100,58,Skydive City,Twin Otter,Spectre 150,Freefly,Sitfly practice
+jump,,,62,2024-01-30,4200,1100,58,Skydive City,Twin Otter,Spectre 150,Freefly,Head-down with coach
+jump,,,63,2024-01-30,4200,1100,59,Skydive City,Twin Otter,Spectre 150,Freefly,Transition work
+jump,,,64,2024-03-10,4200,1100,57,Skydive City,Twin Otter,Spectre 150,Freefly,Backflying warm-up
+jump,,,65,2024-03-10,4200,1100,57,Skydive City,Twin Otter,Spectre 150,Freefly,Carving practice
+jump,,,66,2024-03-11,4200,1100,61,Skydive City,Twin Otter,Spectre 150,Freefly,Lost altitude awareness briefly
+jump,,,67,2024-03-11,4200,1100,61,Skydive City,Twin Otter,Spectre 150,Freefly,Solid sit dock
+jump,,,68,2024-03-11,4200,1100,60,Skydive City,Twin Otter,Spectre 150,Freefly,Fun freefly flock
+jump,,,69,2024-03-11,4200,1100,61,Skydive City,Twin Otter,Spectre 150,Freefly,Sitfly practice
+jump,,,70,2024-03-11,4200,1100,61,Skydive City,Twin Otter,Spectre 150,Freefly,Committed to head-down with the confidence of a man who has never known fear — immediately cartwheeled into a sit like a washing machine on spin cycle. Coach high-fived me mid-air like it was intentional. I nodded solemnly. We both knew.
+jump,,,71,2024-03-26,4200,1100,58,Skydive City,Twin Otter,Spectre 150,Freefly,Transition work
+jump,,,72,2024-03-26,4200,1100,61,Skydive City,Twin Otter,Spectre 150,Freefly,Backflying warm-up
+jump,,,73,2024-03-26,4200,1100,60,Skydive City,Twin Otter,Spectre 150,Freefly,Carving practice
+jump,,,74,2024-04-03,4000,1100,57,Skydive City,Twin Otter,Spectre 150,Freefly,Lost altitude awareness briefly
+jump,,,75,2024-04-03,4000,1100,60,Skydive City,Twin Otter,Spectre 150,Freefly,Solid sit dock
+jump,,,76,2024-04-03,4000,1100,60,Skydive City,Twin Otter,Spectre 150,Freefly,Fun freefly flock
+jump,,,77,2024-04-03,4000,1100,61,Skydive City,Twin Otter,Spectre 150,Freefly,Sitfly practice
+jump,,,78,2024-05-12,4000,1200,59,Empuriabrava,Skyvan,Spectre 150,Tracking,Angle dive over the runway
+jump,,,79,2024-05-13,4100,1200,62,Empuriabrava,Skyvan,Spectre 150,Tracking,Long track to the open field
+jump,,,80,2024-05-13,4100,1200,62,Empuriabrava,Skyvan,Spectre 150,Tracking,Locked onto a Mediterranean seagull like it owed me money. Full-commitment track. Bird banked left with contempt. I overshot into empty sky. Seagull is still telling this story in the bars of Empuriabrava.
+jump,,,81,2024-05-13,4100,1200,62,Empuriabrava,Skyvan,Spectre 150,Tracking,Over the lake and back
+jump,,,82,2024-05-13,4100,1200,59,Empuriabrava,Skyvan,Spectre 150,Tracking,Breakoff was late
+jump,,,83,2024-05-13,4100,1200,62,Empuriabrava,Skyvan,Spectre 150,Tracking,Great horizontal separation
+jump,,,84,2024-05-20,4100,1200,60,Empuriabrava,Skyvan,Spectre 150,Tracking,Angle dive over the runway
+jump,,,85,2024-05-20,4100,1200,60,Empuriabrava,Skyvan,Spectre 150,Tracking,Long track to the open field
+jump,,,86,2024-05-20,4100,1200,59,Empuriabrava,Skyvan,Spectre 150,Tracking,Tight group tracking
+jump,,,87,2024-05-20,4100,1200,61,Empuriabrava,Skyvan,Spectre 150,Tracking,Over the lake and back
+jump,,,88,2024-05-20,4100,1200,60,Empuriabrava,Skyvan,Spectre 150,Tracking,Breakoff was late
+jump,,,89,2024-05-27,4000,1000,54,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Big-way attempt
+jump,,,90,2024-05-27,4000,1000,54,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Nailed every grip. Hit every point. Felt unstoppable. Ground debrief: I had been facing completely backwards the entire freefall. The formation had just built around my confused rear end. Video evidence exists. I have seen it. I can never unsee it.
+jump,,,91,2024-06-19,4100,1000,54,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Clean base and dirty docks
+jump,,,92,2024-06-19,4100,1000,58,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Fun jump with friends
+jump,,,93,2024-06-19,4100,1000,54,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Practice 8-way block
+jump,,,94,2024-06-19,4100,1000,55,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Sidebody exit
+jump,,,95,2024-06-19,4100,1000,55,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Good grips the whole jump
+jump,,,96,2024-06-19,4100,1000,57,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Lost visual for a second
+jump,,,99,2024-07-02,4100,1000,57,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Smooth points
+jump,,,100,2024-07-02,4100,1000,56,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,100th jump cake load. Attempted a celebratory canopy high-five at 200 feet. Physics declined. Both of us nearly collapsed into the peas like poorly stacked lawn furniture. Survived. Cake happened. Frosting was in my ears. Worth every second.
+jump,,,101,2024-08-13,4000,1000,54,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Cold morning load
+jump,,,102,2024-08-13,4000,1000,55,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving;Cutaway,"Four-way randoms went great until it didn't. Pulled at 1000 m and the main came out looking like a cinnamon roll with opinions. Spun right like it had somewhere important to be. Kicked twice. The canopy kicked back harder. Cut away around 700 m while inventing several new words. Reserve opened like a saint. Then I flared into the only cow pie in a three-county radius. Soft landing. Fragrance: bold. Gear check later found a misrouted rear riser. No injuries. Dignity not recovered. Main found in a tree looking embarrassed."
+jump,,,103,2024-08-13,4000,1000,57,Skydive Chicago,Twin Otter,Katana 135,Formation skydiving,Big-way attempt
+jump,,,104,2024-08-24,4000,1500,92,Skydive Chicago,Twin Otter,Birdman Classic,Wingsuit,Flew like a majestic eagle for approximately four seconds then entered what experts are calling a "dramatic tumbling burrito phase." Screamed the entire way. A crop duster pilot later asked if I was okay. I was not. Still the best jump ever.

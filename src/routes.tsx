@@ -53,6 +53,7 @@ export const todo = route("/todo");
 export const logbook = {
     index: route("/logbook"),
     jumpFragment: route("/logbook/__jumps"),
+    injectExampleData: route("/logbook/inject-example-data"),
     transfer: {
         index: route("/logbook/transfer"),
         export: route("/logbook/export"),

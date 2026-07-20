@@ -9,6 +9,7 @@ import { register as registerInstallRoutes } from "@/route-handlers/install";
 import { register as registerAboutRoutes } from "@/route-handlers/about";
 import { register as registerTodoRoutes } from "@/route-handlers/todo";
 import { register as registerLogbookRoutes } from "@/route-handlers/logbook/index";
+import { register as registerInjectExampleDataRoutes } from "@/route-handlers/logbook/inject-example-data";
 import { register as registerJumpFragmentRoutes } from "@/route-handlers/logbook/jump-fragment";
 import { register as registerNewJumpRoutes } from "@/route-handlers/logbook/jumps/new";
 import { register as registerEditJumpRoutes } from "@/route-handlers/logbook/jumps/edit";
@@ -53,6 +54,7 @@ export function registerRoutes(app: App) {
     registerAboutRoutes(app);
     registerTodoRoutes(app);
     registerLogbookRoutes(app);
+    registerInjectExampleDataRoutes(app);
     registerJumpFragmentRoutes(app);
     registerNewJumpRoutes(app);
     registerRemoveJumpGapsRoutes(app);
