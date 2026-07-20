@@ -151,10 +151,10 @@ function ClampedDescription(props: { description: string; jumpUuid: string }) {
     const descriptionId = `${idPrefix}-description`;
     const buttonId = `${idPrefix}-show-all`;
     return (
-        <>
+        <div className="mx-5 mb-3">
             <p
                 id={descriptionId}
-                className="mx-5 mb-4 line-clamp-2 text-sm text-slate-500 dark:text-slate-400"
+                className="line-clamp-2 text-sm text-slate-500 dark:text-slate-400"
             >
                 {props.description}
             </p>
@@ -164,7 +164,7 @@ function ClampedDescription(props: { description: string; jumpUuid: string }) {
                 hidden
                 aria-controls={descriptionId}
                 aria-expanded="false"
-                className="mx-5 -mt-2 mb-3 text-xs font-medium text-indigo-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 dark:text-indigo-400"
+                className="mt-0.5 text-xs font-medium text-indigo-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 dark:text-indigo-400"
             >
                 Show all
             </button>
@@ -193,7 +193,7 @@ function ClampedDescription(props: { description: string; jumpUuid: string }) {
                     });
                 }}
             />
-        </>
+        </div>
     );
 }
 
@@ -283,20 +283,20 @@ export function JumpCard(props: JumpListItem) {
                         />
                     </JumpStat>
                 </dl>
-                {props.gearItems.length > 0 && (
-                    <p className="mt-3 border-t border-slate-200 pt-2 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                        <span className="font-medium text-slate-600 dark:text-slate-300">
-                            Gear:
-                        </span>{" "}
-                        <JumpItemNames items={props.gearItems} />
-                    </p>
-                )}
             </a>
             {props.description && (
                 <ClampedDescription
                     description={props.description}
                     jumpUuid={props.uuid}
                 />
+            )}
+            {props.gearItems.length > 0 && (
+                <p className="mx-5 mb-4 border-t border-slate-200 pt-2 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                    <span className="font-medium text-slate-600 dark:text-slate-300">
+                        Gear:
+                    </span>{" "}
+                    <JumpItemNames items={props.gearItems} />
+                </p>
             )}
         </li>
     );
