@@ -10,11 +10,15 @@ import {
     TransferIcon,
 } from "@/components/menu-icons";
 import { CameraIcon, ClipboardIcon } from "@/components/icons";
+import { Code } from "@/components/ui/code";
 import * as routes from "@/routes";
 
 const REPOSITORY_URL = "https://github.com/esamattis/loki";
 const RELEASES_URL = `${REPOSITORY_URL}/releases`;
 const YOUTUBE_EMBED_URL = "https://www.youtube.com/embed/wph46K999hQ";
+const INSTALL_COMMAND =
+    'bash -c "$(curl -fsSL https://raw.githubusercontent.com/esamattis/loki/main/install.sh)"';
+const INSTALL_SCRIPT_URL = `${REPOSITORY_URL}/blob/main/install.sh`;
 
 const cardClassName =
     "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900";
@@ -141,6 +145,45 @@ function Hero(props: { loggedIn: boolean }) {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <LandingActions loggedIn={props.loggedIn} />
             </div>
+        </section>
+    );
+}
+
+function InstallCommand() {
+    return (
+        <section className="mx-auto mt-8 max-w-3xl px-4">
+            <p className="mb-2 text-center text-sm font-medium text-slate-600 dark:text-slate-400">
+                Install on Linux or macOS with
+            </p>
+            <Code className="p-4 pr-20 text-xs sm:p-5 sm:pr-24">
+                {INSTALL_COMMAND}
+            </Code>
+            <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                Installs to{" "}
+                <code className="font-mono text-slate-600 dark:text-slate-300">
+                    ~/.local/bin/loki
+                </code>{" "}
+                (or{" "}
+                <code className="font-mono text-slate-600 dark:text-slate-300">
+                    /usr/local/bin/loki
+                </code>{" "}
+                as root).{" "}
+                <a
+                    href={INSTALL_SCRIPT_URL}
+                    className="font-medium text-indigo-600 underline decoration-indigo-300 underline-offset-2 hover:text-indigo-700 dark:text-indigo-400 dark:decoration-indigo-700 dark:hover:text-indigo-300"
+                >
+                    View install script
+                </a>
+                . <br />
+                On Windows, download loki.exe from the{" "}
+                <a
+                    href={RELEASES_URL}
+                    className="font-medium text-indigo-600 underline decoration-indigo-300 underline-offset-2 hover:text-indigo-700 dark:text-indigo-400 dark:decoration-indigo-700 dark:hover:text-indigo-300"
+                >
+                    releases page
+                </a>
+                .
+            </p>
         </section>
     );
 }
@@ -401,6 +444,7 @@ function LandingPage(props: { loggedIn: boolean }) {
             <LandingHeader loggedIn={props.loggedIn} />
             <main>
                 <Hero loggedIn={props.loggedIn} />
+                <InstallCommand />
                 <VideoEmbed />
                 <Features />
                 <SelfHosting />
