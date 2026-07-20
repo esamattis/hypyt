@@ -15,7 +15,7 @@ tar -xzf loki-<version>-<platform>-<architecture>.tar.gz
 ```
 
 On Linux and macOS, you can use this shortcut instead to install the latest
-binary to `~/.local/bin/loki`:
+binary to `~/.local/bin/loki` (or `/usr/local/bin/loki` when run as root):
 
 ```sh
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/esamattis/loki/main/install.sh)"

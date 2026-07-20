@@ -2,8 +2,13 @@
 set -euo pipefail
 
 REPO="esamattis/loki"
-INSTALL_DIR="${HOME}/.local/bin"
 BINARY_NAME="loki"
+
+if [[ "$(id -u)" -eq 0 ]]; then
+    INSTALL_DIR="/usr/local/bin"
+else
+    INSTALL_DIR="${HOME}/.local/bin"
+fi
 
 function log() {
     printf '%s\n' "$*"
