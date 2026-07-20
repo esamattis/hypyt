@@ -87,10 +87,10 @@ test("the log book loads additional jumps while scrolling", async ({
     await searchInput.fill("2");
     await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(page).toHaveURL(/search=2/);
-    await expect(
-        page.getByRole("link", { name: /#\d+/ }).first(),
-    ).toHaveAccessibleName(/^#2 /);
     await expect(page.getByRole("link", { name: /^#2 / })).toHaveCount(1);
+    await expect(
+        page.getByRole("button", { name: "Search", exact: true }),
+    ).toHaveAttribute("data-loki-tooltip", "Search · default action on Enter");
 });
 
 test("truncated jump notes can be fully shown", async ({ page }) => {

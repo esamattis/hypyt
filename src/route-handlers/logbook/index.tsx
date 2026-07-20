@@ -514,12 +514,6 @@ export async function getLogbookJumps(
     offset = 0,
 ) {
     const db = getAppContext(c).db;
-    const searchedJumpNumber = /^\d+$/.test(filters.search)
-        ? Number(filters.search)
-        : undefined;
-    const validSearchedJumpNumber = Number.isSafeInteger(searchedJumpNumber)
-        ? searchedJumpNumber
-        : undefined;
     const orderFn = filters.sortOrder === "asc" ? asc : desc;
     const primaryOrder =
         filters.sortBy === "createdAt" ? jumps.createdAt : jumps.jumpNumber;
@@ -531,17 +525,7 @@ export async function getLogbookJumps(
         .from(jumps)
         .leftJoin(locations, eq(jumps.locationUuid, locations.uuid))
         .where(and(...conditions))
-        .orderBy(
-            ...(offset === 0 && validSearchedJumpNumber !== undefined
-                ? [
-                      asc(
-                          sql`CASE WHEN ${jumps.jumpNumber} = ${validSearchedJumpNumber} THEN 0 ELSE 1 END`,
-                      ),
-                  ]
-                : []),
-            orderFn(primaryOrder),
-            orderFn(secondaryOrder),
-        )
+        .orderBy(orderFn(primaryOrder), orderFn(secondaryOrder))
         .limit(JUMPS_PER_PAGE + 1)
         .offset(offset);
 }

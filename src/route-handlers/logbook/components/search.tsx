@@ -251,6 +251,7 @@ export function JumpSearch(props: { filters: LogbookFilters }) {
                 <Button
                     type="submit"
                     aria-label="Search"
+                    data-loki-tooltip="Search · default action on Enter"
                     className="h-10 rounded-l-none border-l border-indigo-400 px-3 dark:border-indigo-300/50"
                 >
                     <SearchIcon className="h-4 w-4" />
