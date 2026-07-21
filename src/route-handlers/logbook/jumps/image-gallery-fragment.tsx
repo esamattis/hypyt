@@ -77,7 +77,7 @@ function GalleryImage(props: { imageId: string; selected: boolean }) {
             </button>
             <span
                 data-loki-created-jumps
-                className="hidden px-1 pb-2 text-xs text-indigo-700 dark:text-indigo-300"
+                className="invisible block min-h-4 px-1 pb-2 text-xs leading-4 text-indigo-700 dark:text-indigo-300"
             >
                 Created: <span data-loki-created-jump-links />
             </span>
@@ -85,7 +85,7 @@ function GalleryImage(props: { imageId: string; selected: boolean }) {
                 type="button"
                 data-loki-delete-image={props.imageId}
                 aria-label="Delete image"
-                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-950/75 text-sm font-bold text-white shadow hover:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                className="absolute right-1.5 top-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/75 text-base font-bold text-white shadow hover:bg-red-600 active:scale-95 active:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
             >
                 X
             </button>

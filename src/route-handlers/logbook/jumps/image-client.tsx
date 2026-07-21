@@ -391,7 +391,7 @@ export class $JumpImageGalleryController {
             createdJumpLinks.appendChild(link);
         }
         createdJumps.classList.toggle(
-            "hidden",
+            "invisible",
             draft.createdJumps.length === 0,
         );
     }

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useAppContext } from "@/app/app";
 import { Script } from "@/components/script";
 import { $idb, $select } from "@/utils";
@@ -22,7 +23,11 @@ export function JumpImage(props: {
 
     return (
         <>
-            <img id={elementId} className={props.className} alt={props.alt} />
+            <img
+                id={elementId}
+                className={clsx("invisible", props.className)}
+                alt={props.alt}
+            />
             <Script
                 $deps={[$idb, $select, $loadImage]}
                 $args={[
@@ -53,6 +58,7 @@ function $loadJumpImageElement(config: {
             }
             const url = URL.createObjectURL(draft.file);
             image.src = url;
+            image.classList.remove("invisible");
             if (config.revealElementId) {
                 $select
                     .id(config.revealElementId, HTMLElement)
