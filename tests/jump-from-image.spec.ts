@@ -388,6 +388,7 @@ test("from image form lists latest images first and can clear them", async ({
     await expect(galleryNames).toHaveCount(2);
     for (const img of await galleryNames.all()) {
         await expect(img).toHaveAttribute("src", /^blob:/);
+        await expect(img).toBeVisible();
     }
     await expect
         .poll(() =>
@@ -402,20 +403,49 @@ test("from image form lists latest images first and can clear them", async ({
     await expect(
         page.getByRole("button", { name: "Select first-image.png" }),
     ).toBeVisible();
+
+    // A later batch must keep earlier drafts visible after the HTMX swap.
+    await page.locator("input[multiple]").setInputFiles({
+        name: "third-image.png",
+        mimeType: "image/png",
+        buffer: imageBuffer,
+    });
+    await expect(page.getByText(/^3 images\./)).toBeVisible();
+    await expect(galleryNames).toHaveCount(3);
+    for (const img of await galleryNames.all()) {
+        await expect(img).toHaveAttribute("src", /^blob:/);
+        await expect(img).toBeVisible();
+    }
+    await expect(
+        page.getByRole("button", { name: "Select first-image.png" }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole("button", { name: "Select second-image.png" }),
+    ).toBeVisible();
+    await expect(
+        page.getByRole("button", { name: "Select third-image.png" }),
+    ).toBeVisible();
+
     await page.getByRole("button", { name: "Delete first-image.png" }).click();
-    await expect(page.getByText(/^1 image\./)).toBeVisible();
+    await expect(page.getByText(/^2 images\./)).toBeVisible();
     await page.reload();
     await expect(
         page.getByText("second-image.png", { exact: false }),
+    ).toBeVisible();
+    await expect(
+        page.getByText("third-image.png", { exact: false }),
     ).toBeVisible();
     await expect(
         page.getByText("first-image.png", { exact: false }),
     ).toHaveCount(0);
 
     await page.getByRole("button", { name: "Clear all images" }).click();
-    await expect(page.getByText(/^1 image\./)).toHaveCount(0);
+    await expect(page.getByText(/^2 images\./)).toHaveCount(0);
     await expect(
         page.getByText("second-image.png", { exact: false }),
+    ).toHaveCount(0);
+    await expect(
+        page.getByText("third-image.png", { exact: false }),
     ).toHaveCount(0);
     await expect(
         page.getByRole("button", { name: "Clear all images" }),

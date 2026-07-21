@@ -7,9 +7,13 @@ import {
     jumpImageDbName,
 } from "@/route-handlers/logbook/jumps/image-storage-client";
 
-/** Stable DOM id for a draft image; must not use useId() (HTMX fragments collide). */
-export function jumpImageElementId(imageId: string): string {
-    return `loki-jump-image-${imageId}`;
+/**
+ * Unique DOM id per render. Must not use useId() (collides with parent-page
+ * templates in HTMX fragments) or the draft id (collides with the outgoing
+ * gallery node during swap so getElementById can target the old img).
+ */
+export function jumpImageElementId(): string {
+    return `loki-jump-image-${crypto.randomUUID()}`;
 }
 
 export function JumpImage(props: {
@@ -18,7 +22,7 @@ export function JumpImage(props: {
     className?: string;
     revealElementId?: string;
 }) {
-    const elementId = jumpImageElementId(props.imageId);
+    const elementId = jumpImageElementId();
     const dbName = jumpImageDbName(useAppContext().getUser().uuid);
 
     return (
@@ -53,7 +57,7 @@ function $loadJumpImageElement(config: {
     const image = $select.id(config.elementId, HTMLImageElement);
     void $loadImage(config.imageId, config.dbName)
         .then((draft) => {
-            if (!draft) {
+            if (!draft || !image.isConnected) {
                 return;
             }
             const url = URL.createObjectURL(draft.file);
