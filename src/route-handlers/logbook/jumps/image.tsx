@@ -54,6 +54,8 @@ function $loadJumpImageElement(config: {
                     .id(config.revealElementId, HTMLElement)
                     .classList.remove("hidden");
             }
+            // Bubbles to ImageGallery listeners so they can enrich items with
+            // IndexedDB-only draft metadata after the blob URL is set.
             image.dispatchEvent(
                 new CustomEvent("loki:jump-image-loaded", {
                     bubbles: true,

@@ -76,6 +76,7 @@ export function ImageGallery(props: {
                 name="selectedId"
                 data-loki-gallery-query
             />
+            {/* jump-images-changed is dispatched by renderGalleryState(). */}
             <div
                 id={galleryId}
                 className="space-y-2"
@@ -104,12 +105,7 @@ export function ImageGallery(props: {
                     $loadImage,
                     $loadJumpImageDrafts,
                     $updateJumpImageDrafts,
-                    $resizeJumpImageIfNeeded,
                     $formatJumpImageBytes,
-                    $enrichJumpImageGalleryItem,
-                    $prepareJumpImageFiles,
-                    $setupCameraImageInput,
-                    $setupClipboardImageInput,
                     $imageMimeTypeToExtension,
                     $JumpImageGalleryController,
                 ]}
@@ -145,121 +141,6 @@ export function ImageGallery(props: {
     );
 }
 
-/**
- * Reduces image dimensions and JPEG/WebP quality before IndexedDB storage so
- * large camera images do not make the draft gallery unnecessarily expensive.
- */
-export async function $resizeJumpImageIfNeeded(
-    file: File,
-    maxDimension: number,
-    targetBytes: number,
-): Promise<{
-    file: File;
-    originalWidth: number;
-    originalHeight: number;
-    width: number;
-    height: number;
-    resized: boolean;
-}> {
-    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const url = URL.createObjectURL(file);
-        const element = new Image();
-        element.onload = () => {
-            URL.revokeObjectURL(url);
-            resolve(element);
-        };
-        element.onerror = () => {
-            URL.revokeObjectURL(url);
-            reject(new Error("Failed to load image for preview"));
-        };
-        element.src = url;
-    });
-
-    const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
-    const needsResize = longestSide > maxDimension || file.size > targetBytes;
-    if (!needsResize) {
-        return {
-            file,
-            originalWidth: image.naturalWidth,
-            originalHeight: image.naturalHeight,
-            width: image.naturalWidth,
-            height: image.naturalHeight,
-            resized: false,
-        };
-    }
-
-    let width = image.naturalWidth;
-    let height = image.naturalHeight;
-    if (longestSide > maxDimension) {
-        const scale = maxDimension / longestSide;
-        width = Math.max(1, Math.round(width * scale));
-        height = Math.max(1, Math.round(height * scale));
-    }
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext("2d");
-    if (!context) {
-        return {
-            file,
-            originalWidth: image.naturalWidth,
-            originalHeight: image.naturalHeight,
-            width: image.naturalWidth,
-            height: image.naturalHeight,
-            resized: false,
-        };
-    }
-    context.drawImage(image, 0, 0, width, height);
-
-    const outputType =
-        file.type === "image/png" || file.type === "image/webp"
-            ? file.type
-            : "image/jpeg";
-
-    async function encode(quality: number): Promise<Blob> {
-        return new Promise((resolve, reject) => {
-            canvas.toBlob(
-                (blob) => {
-                    if (!blob) {
-                        reject(new Error("Failed to encode image"));
-                        return;
-                    }
-                    resolve(blob);
-                },
-                outputType,
-                quality,
-            );
-        });
-    }
-
-    let quality = 0.92;
-    let blob = await encode(quality);
-    while (blob.size > targetBytes && quality > 0.5) {
-        quality -= 0.1;
-        blob = await encode(quality);
-    }
-
-    const baseName = file.name.replace(/\.[^.]+$/, "") || "jump-image";
-    const extension =
-        outputType === "image/png"
-            ? "png"
-            : outputType === "image/webp"
-              ? "webp"
-              : "jpg";
-    return {
-        file: new File([blob], `${baseName}.${extension}`, {
-            type: outputType,
-            lastModified: Date.now(),
-        }),
-        originalWidth: image.naturalWidth,
-        originalHeight: image.naturalHeight,
-        width,
-        height,
-        resized: true,
-    };
-}
-
 /** Formats file sizes consistently for resize notices and gallery metadata. */
 export function $formatJumpImageBytes(bytes: number): string {
     if (bytes < 1024) {
@@ -278,192 +159,6 @@ export function $imageMimeTypeToExtension(mimeType: string): string {
         return "jpg";
     }
     return sub || "img";
-}
-
-/**
- * Sends images from explicit clipboard reads and page-level paste events to
- * the gallery while preserving normal paste behavior inside form controls.
- */
-export function $setupClipboardImageInput(
-    clipboardButton: HTMLButtonElement,
-    handleSelectedFiles: (files: File[]) => void,
-) {
-    function makeClipboardImage(blob: Blob, mimeType: string) {
-        const ext = $imageMimeTypeToExtension(mimeType);
-        return new File([blob], `pasted-image.${ext}`, {
-            type: mimeType,
-            lastModified: Date.now(),
-        });
-    }
-
-    clipboardButton.addEventListener("click", async () => {
-        try {
-            if (typeof navigator.clipboard?.read !== "function") {
-                return;
-            }
-            const clipboardItems = await navigator.clipboard.read();
-            const files: File[] = [];
-            for (const item of clipboardItems) {
-                const imageType = item.types.find((t) =>
-                    t.startsWith("image/"),
-                );
-                if (imageType) {
-                    const blob = await item.getType(imageType);
-                    files.push(makeClipboardImage(blob, imageType));
-                }
-            }
-            handleSelectedFiles(files);
-        } catch (error) {
-            console.error("Failed to read an image from the clipboard", error);
-        }
-    });
-
-    window.addEventListener("paste", (event) => {
-        const data = event.clipboardData;
-        if (data == null) {
-            return;
-        }
-        const target = event.target;
-        if (
-            target instanceof HTMLInputElement ||
-            target instanceof HTMLTextAreaElement ||
-            target instanceof HTMLSelectElement
-        ) {
-            return;
-        }
-        const files: File[] = [];
-        for (const item of data.items) {
-            if (item.kind === "file" && item.type.startsWith("image/")) {
-                const file = item.getAsFile();
-                if (file) {
-                    files.push(
-                        makeClipboardImage(file, file.type || "image/png"),
-                    );
-                }
-            }
-        }
-        if (files.length > 0) {
-            event.preventDefault();
-            handleSelectedFiles(files);
-        }
-    });
-}
-
-/** Connects the camera trigger and its hidden file input to gallery ingestion. */
-export function $setupCameraImageInput(
-    cameraInput: HTMLInputElement,
-    cameraButton: HTMLButtonElement,
-    handleSelectedFiles: (files: File[]) => void,
-) {
-    cameraInput.addEventListener("change", () => {
-        const files = Array.from(cameraInput.files ?? []);
-        cameraInput.value = "";
-        handleSelectedFiles(files);
-    });
-    cameraButton.addEventListener("click", () => cameraInput.click());
-}
-
-/**
- * Adds IndexedDB-only draft metadata to an item after its image has loaded;
- * the server-rendered gallery fragment cannot access that browser-side data.
- */
-export function $enrichJumpImageGalleryItem(options: {
-    event: Event;
-    jumpLinkTemplateId: string;
-    jumpEditUrlTemplate: string;
-}) {
-    if (!(options.event instanceof CustomEvent)) {
-        return;
-    }
-    const image = options.event.target;
-    $assertElement(image, HTMLImageElement);
-    const item = image.closest("[data-loki-gallery-image]");
-    $assertElement(item, HTMLElement);
-    const draft = options.event.detail;
-    const selectButton = $select.el(
-        "[data-loki-select-image]",
-        HTMLButtonElement,
-        item,
-    );
-    const deleteButton = $select.el(
-        "[data-loki-delete-image]",
-        HTMLButtonElement,
-        item,
-    );
-    const meta = $select.el("[data-loki-image-meta]", HTMLElement, item);
-    const readIndicator = $select.el(
-        "[data-loki-read-image]",
-        HTMLElement,
-        item,
-    );
-    const createdJumps = $select.el(
-        "[data-loki-created-jumps]",
-        HTMLElement,
-        item,
-    );
-    const createdJumpLinks = $select.el(
-        "[data-loki-created-jump-links]",
-        HTMLElement,
-        item,
-    );
-    selectButton.setAttribute("aria-label", `Select ${draft.file.name}`);
-    deleteButton.setAttribute("aria-label", `Delete ${draft.file.name}`);
-    if (!image.alt.startsWith("Selected")) {
-        image.alt = `Jump image preview: ${draft.file.name}`;
-    }
-    meta.textContent = `${draft.file.name} · ${$formatJumpImageBytes(draft.file.size)}`;
-    readIndicator.classList.toggle("hidden", !draft.read);
-    for (const [index, jump] of draft.createdJumps.entries()) {
-        const linkContainer = document.createElement("span");
-        $renderTemplate(linkContainer, options.jumpLinkTemplateId, {
-            label: `Jump #${jump.jumpNumber}`,
-        });
-        const link = $select.el(":scope > *", HTMLAnchorElement, linkContainer);
-        link.href = options.jumpEditUrlTemplate.replace(
-            "__JUMP_UUID__",
-            encodeURIComponent(jump.uuid),
-        );
-        if (index > 0) {
-            createdJumpLinks.appendChild(document.createTextNode(", "));
-        }
-        createdJumpLinks.appendChild(link);
-    }
-    createdJumps.classList.toggle("hidden", draft.createdJumps.length === 0);
-}
-
-/**
- * Resizes a batch, stores it as drafts, and returns user-facing notes together
- * with the persisted records needed to update gallery state.
- */
-export async function $prepareJumpImageFiles(
-    files: File[],
-    props: JumpImageInputProps,
-) {
-    const results = await Promise.all(
-        files.map((file) =>
-            $resizeJumpImageIfNeeded(
-                file,
-                props.maxDimension,
-                props.targetBytes,
-            ).then((result) => ({ original: file, result })),
-        ),
-    );
-    const appended = await $appendJumpImageDrafts(
-        {
-            files: results.map((item) => item.result.file),
-            dbName: props.dbName,
-            storeName: props.storeName,
-            storageKey: props.storageKey,
-        },
-        $idb,
-    );
-    const notes = results
-        .filter((item) => item.result.resized)
-        .map(
-            (item) =>
-                `Resized from ${$formatJumpImageBytes(item.original.size)} (${item.result.originalWidth} x ${item.result.originalHeight}) to ${$formatJumpImageBytes(item.result.file.size)} (${item.result.width} x ${item.result.height}).`,
-        );
-    return { appended, notes };
 }
 
 /** Owns the gallery's DOM references, mutable state, and browser interactions. */
@@ -531,21 +226,14 @@ export class $JumpImageGalleryController {
             this.input.value = "";
             void this.appendFiles(files);
         });
-        $setupCameraImageInput(this.cameraInput, this.cameraButton, (files) => {
-            void this.appendFiles(files);
-        });
-        $setupClipboardImageInput(this.clipboardButton, (files) => {
-            void this.appendFiles(files);
-        });
+        this.setupCameraImageInput();
+        this.setupClipboardImageInput();
         this.gallery.addEventListener("click", (event) => {
             this.handleGalleryClick(event);
         });
+        // Emitted by $loadJumpImageElement in image.tsx after each draft loads.
         this.gallery.addEventListener("loki:jump-image-loaded", (event) => {
-            $enrichJumpImageGalleryItem({
-                event,
-                jumpLinkTemplateId: this.props.jumpLinkTemplateId,
-                jumpEditUrlTemplate: this.props.jumpEditUrlTemplate,
-            });
+            this.enrichJumpImageGalleryItem(event);
         });
         this.form.addEventListener("submit", (event) => {
             if (this.processingCount > 0) {
@@ -554,6 +242,158 @@ export class $JumpImageGalleryController {
             }
         });
         this.restoreDrafts();
+    }
+
+    /**
+     * Sends images from explicit clipboard reads and page-level paste events to
+     * the gallery while preserving normal paste behavior inside form controls.
+     */
+    setupClipboardImageInput() {
+        function makeClipboardImage(blob: Blob, mimeType: string) {
+            const ext = $imageMimeTypeToExtension(mimeType);
+            return new File([blob], `pasted-image.${ext}`, {
+                type: mimeType,
+                lastModified: Date.now(),
+            });
+        }
+
+        this.clipboardButton.addEventListener("click", async () => {
+            try {
+                if (typeof navigator.clipboard?.read !== "function") {
+                    return;
+                }
+                const clipboardItems = await navigator.clipboard.read();
+                const files: File[] = [];
+                for (const item of clipboardItems) {
+                    const imageType = item.types.find((t) =>
+                        t.startsWith("image/"),
+                    );
+                    if (imageType) {
+                        const blob = await item.getType(imageType);
+                        files.push(makeClipboardImage(blob, imageType));
+                    }
+                }
+                void this.appendFiles(files);
+            } catch (error) {
+                console.error(
+                    "Failed to read an image from the clipboard",
+                    error,
+                );
+            }
+        });
+
+        window.addEventListener("paste", (event) => {
+            const data = event.clipboardData;
+            if (data == null) {
+                return;
+            }
+            const target = event.target;
+            if (
+                target instanceof HTMLInputElement ||
+                target instanceof HTMLTextAreaElement ||
+                target instanceof HTMLSelectElement
+            ) {
+                return;
+            }
+            const files: File[] = [];
+            for (const item of data.items) {
+                if (item.kind === "file" && item.type.startsWith("image/")) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        files.push(
+                            makeClipboardImage(file, file.type || "image/png"),
+                        );
+                    }
+                }
+            }
+            if (files.length > 0) {
+                event.preventDefault();
+                void this.appendFiles(files);
+            }
+        });
+    }
+
+    /** Connects the camera trigger and its hidden file input to gallery ingestion. */
+    setupCameraImageInput() {
+        this.cameraInput.addEventListener("change", () => {
+            const files = Array.from(this.cameraInput.files ?? []);
+            this.cameraInput.value = "";
+            void this.appendFiles(files);
+        });
+        this.cameraButton.addEventListener("click", () =>
+            this.cameraInput.click(),
+        );
+    }
+
+    /**
+     * Adds IndexedDB-only draft metadata to an item after loki:jump-image-loaded
+     * (from image.tsx); the server-rendered fragment cannot access that data.
+     */
+    enrichJumpImageGalleryItem(event: Event) {
+        if (!(event instanceof CustomEvent)) {
+            return;
+        }
+        const image = event.target;
+        $assertElement(image, HTMLImageElement);
+        const item = image.closest("[data-loki-gallery-image]");
+        $assertElement(item, HTMLElement);
+        const draft = event.detail;
+        const selectButton = $select.el(
+            "[data-loki-select-image]",
+            HTMLButtonElement,
+            item,
+        );
+        const deleteButton = $select.el(
+            "[data-loki-delete-image]",
+            HTMLButtonElement,
+            item,
+        );
+        const meta = $select.el("[data-loki-image-meta]", HTMLElement, item);
+        const readIndicator = $select.el(
+            "[data-loki-read-image]",
+            HTMLElement,
+            item,
+        );
+        const createdJumps = $select.el(
+            "[data-loki-created-jumps]",
+            HTMLElement,
+            item,
+        );
+        const createdJumpLinks = $select.el(
+            "[data-loki-created-jump-links]",
+            HTMLElement,
+            item,
+        );
+        selectButton.setAttribute("aria-label", `Select ${draft.file.name}`);
+        deleteButton.setAttribute("aria-label", `Delete ${draft.file.name}`);
+        if (!image.alt.startsWith("Selected")) {
+            image.alt = `Jump image preview: ${draft.file.name}`;
+        }
+        meta.textContent = `${draft.file.name} · ${$formatJumpImageBytes(draft.file.size)}`;
+        readIndicator.classList.toggle("hidden", !draft.read);
+        for (const [index, jump] of draft.createdJumps.entries()) {
+            const linkContainer = document.createElement("span");
+            $renderTemplate(linkContainer, this.props.jumpLinkTemplateId, {
+                label: `Jump #${jump.jumpNumber}`,
+            });
+            const link = $select.el(
+                ":scope > *",
+                HTMLAnchorElement,
+                linkContainer,
+            );
+            link.href = this.props.jumpEditUrlTemplate.replace(
+                "__JUMP_UUID__",
+                encodeURIComponent(jump.uuid),
+            );
+            if (index > 0) {
+                createdJumpLinks.appendChild(document.createTextNode(", "));
+            }
+            createdJumpLinks.appendChild(link);
+        }
+        createdJumps.classList.toggle(
+            "hidden",
+            draft.createdJumps.length === 0,
+        );
     }
 
     /** Routes delegated item actions because HTMX replaces gallery children. */
@@ -580,6 +420,7 @@ export class $JumpImageGalleryController {
     /**
      * Mirrors state into HTMX query inputs and requests a fresh server-rendered
      * fragment so selection and ordering stay authoritative in one place.
+     * Dispatches jump-images-changed; the gallery div listens via hx-trigger.
      */
     renderGalleryState() {
         this.galleryImageIdsInput.value = this.imageIds.join(",");
@@ -618,6 +459,151 @@ export class $JumpImageGalleryController {
         }
     }
 
+    /**
+     * Reduces image dimensions and JPEG/WebP quality before IndexedDB storage so
+     * large camera images do not make the draft gallery unnecessarily expensive.
+     */
+    async resizeJumpImageIfNeeded(file: File): Promise<{
+        file: File;
+        originalWidth: number;
+        originalHeight: number;
+        width: number;
+        height: number;
+        resized: boolean;
+    }> {
+        const maxDimension = this.props.maxDimension;
+        const targetBytes = this.props.targetBytes;
+        const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const element = new Image();
+            element.onload = () => {
+                URL.revokeObjectURL(url);
+                resolve(element);
+            };
+            element.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error("Failed to load image for preview"));
+            };
+            element.src = url;
+        });
+
+        const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
+        const needsResize =
+            longestSide > maxDimension || file.size > targetBytes;
+        if (!needsResize) {
+            return {
+                file,
+                originalWidth: image.naturalWidth,
+                originalHeight: image.naturalHeight,
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+                resized: false,
+            };
+        }
+
+        let width = image.naturalWidth;
+        let height = image.naturalHeight;
+        if (longestSide > maxDimension) {
+            const scale = maxDimension / longestSide;
+            width = Math.max(1, Math.round(width * scale));
+            height = Math.max(1, Math.round(height * scale));
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext("2d");
+        if (!context) {
+            return {
+                file,
+                originalWidth: image.naturalWidth,
+                originalHeight: image.naturalHeight,
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+                resized: false,
+            };
+        }
+        context.drawImage(image, 0, 0, width, height);
+
+        const outputType =
+            file.type === "image/png" || file.type === "image/webp"
+                ? file.type
+                : "image/jpeg";
+
+        async function encode(quality: number): Promise<Blob> {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            reject(new Error("Failed to encode image"));
+                            return;
+                        }
+                        resolve(blob);
+                    },
+                    outputType,
+                    quality,
+                );
+            });
+        }
+
+        let quality = 0.92;
+        let blob = await encode(quality);
+        while (blob.size > targetBytes && quality > 0.5) {
+            quality -= 0.1;
+            blob = await encode(quality);
+        }
+
+        const baseName = file.name.replace(/\.[^.]+$/, "") || "jump-image";
+        const extension =
+            outputType === "image/png"
+                ? "png"
+                : outputType === "image/webp"
+                  ? "webp"
+                  : "jpg";
+        return {
+            file: new File([blob], `${baseName}.${extension}`, {
+                type: outputType,
+                lastModified: Date.now(),
+            }),
+            originalWidth: image.naturalWidth,
+            originalHeight: image.naturalHeight,
+            width,
+            height,
+            resized: true,
+        };
+    }
+
+    /**
+     * Resizes a batch, stores it as drafts, and returns user-facing notes together
+     * with the persisted records needed to update gallery state.
+     */
+    async prepareJumpImageFiles(files: File[]) {
+        const results = await Promise.all(
+            files.map((file) =>
+                this.resizeJumpImageIfNeeded(file).then((result) => ({
+                    original: file,
+                    result,
+                })),
+            ),
+        );
+        const appended = await $appendJumpImageDrafts(
+            {
+                files: results.map((item) => item.result.file),
+                dbName: this.props.dbName,
+                storeName: this.props.storeName,
+                storageKey: this.props.storageKey,
+            },
+            $idb,
+        );
+        const notes = results
+            .filter((item) => item.result.resized)
+            .map(
+                (item) =>
+                    `Resized from ${$formatJumpImageBytes(item.original.size)} (${item.result.originalWidth} x ${item.result.originalHeight}) to ${$formatJumpImageBytes(item.result.file.size)} (${item.result.width} x ${item.result.height}).`,
+            );
+        return { appended, notes };
+    }
+
     /** Prepares new files, prepends their drafts, and selects the newest image. */
     async appendFiles(files: File[]) {
         if (files.length === 0) {
@@ -625,7 +611,7 @@ export class $JumpImageGalleryController {
         }
         this.setProcessing(true);
         try {
-            const prepared = await $prepareJumpImageFiles(files, this.props);
+            const prepared = await this.prepareJumpImageFiles(files);
             const appended = prepared.appended;
             this.imageIds = [
                 ...appended.map((draft) => draft.id),
