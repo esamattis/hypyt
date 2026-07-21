@@ -145,7 +145,7 @@ export function AgentMigrationCard() {
                 <Code
                     codeId={codeId}
                     codeProps={{ "data-loki-upload-path": uploadPath }}
-                    className="max-h-[32rem] whitespace-pre-wrap"
+                    className="max-h-[32rem] whitespace-pre-wrap p-3 pr-16 text-xs"
                 >
                     {$agentInstructions(uploadPath, username)}
                 </Code>

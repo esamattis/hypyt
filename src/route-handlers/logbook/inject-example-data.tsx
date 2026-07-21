@@ -6,7 +6,7 @@ import {
     importRecords,
     parseCsvImport,
 } from "@/route-handlers/logbook/transfer/index";
-import exampleLogbookCsv from "@/route-handlers/logbook/example-logbook.csv?raw";
+import exampleLogbookCsv from "@/example-logbook.csv?raw";
 
 export async function handleInjectExampleData(c: AppRequestContext) {
     const context = getAppContext(c);

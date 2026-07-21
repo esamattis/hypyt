@@ -70,6 +70,16 @@ export function TransferFormatHelp() {
         >
             <div className="mt-3 space-y-3">
                 <p>
+                    Here is an{" "}
+                    <a
+                        href="https://github.com/esamattis/loki/blob/main/src/example-logbook.csv"
+                        className="font-medium text-indigo-600 underline decoration-indigo-300 underline-offset-2 hover:text-indigo-700 dark:text-indigo-400 dark:decoration-indigo-700 dark:hover:text-indigo-300"
+                    >
+                        example export
+                    </a>{" "}
+                    on GitHub.
+                </p>
+                <p>
                     Export files use CSV with a fixed header. Resource rows
                     appear before jump rows. Jumps refer to gear, locations,
                     aircraft, and jump types by name.
