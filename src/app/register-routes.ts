@@ -15,6 +15,7 @@ import { register as registerNewJumpRoutes } from "@/route-handlers/logbook/jump
 import { register as registerEditJumpRoutes } from "@/route-handlers/logbook/jumps/edit";
 import { register as registerRemoveJumpGapsRoutes } from "@/route-handlers/logbook/jumps/gaps";
 import { register as registerImageRoutes } from "@/route-handlers/logbook/jumps/from-image";
+import { register as registerImageGalleryFragmentRoutes } from "@/route-handlers/logbook/jumps/image-gallery-fragment";
 import { register as registerAircraftIndexRoutes } from "@/route-handlers/logbook/aircraft/index";
 import { register as registerNewAircraftRoutes } from "@/route-handlers/logbook/aircraft/new";
 import { register as registerEditAircraftRoutes } from "@/route-handlers/logbook/aircraft/edit";
@@ -60,6 +61,7 @@ export function registerRoutes(app: App) {
     registerRemoveJumpGapsRoutes(app);
     registerEditJumpRoutes(app);
     registerImageRoutes(app);
+    registerImageGalleryFragmentRoutes(app);
     registerAircraftIndexRoutes(app);
     registerNewAircraftRoutes(app);
     registerEditAircraftRoutes(app);

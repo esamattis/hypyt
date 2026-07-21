@@ -3,13 +3,13 @@ import { useAppContext } from "@/app/app";
 import { Script } from "@/components/script";
 import { $idb, $select } from "@/utils";
 import {
-    $loadImage,
     $loadJumpImageDrafts,
     $markImageRead,
     $updateJumpImageDrafts,
     jumpImageDbName,
 } from "@/route-handlers/logbook/jumps/image-storage-client";
 import { $loadImageForJump } from "@/route-handlers/logbook/jumps/image-jump-storage-client";
+import { JumpImage } from "@/route-handlers/logbook/jumps/image";
 
 export function JumpImageSource(props: {
     imageId?: string;
@@ -37,64 +37,68 @@ export function JumpImageSource(props: {
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {props.title}
             </h2>
-            <img
-                id={imageId}
-                className="max-h-96 w-full rounded-lg bg-slate-100 object-contain dark:bg-slate-950"
-                alt="Image used to read jump values"
-            />
+            {props.imageId ? (
+                <JumpImage
+                    imageId={props.imageId}
+                    revealElementId={containerId}
+                    className="max-h-96 w-full rounded-lg bg-slate-100 object-contain dark:bg-slate-950"
+                    alt="Image used to read jump values"
+                />
+            ) : (
+                <img
+                    id={imageId}
+                    className="max-h-96 w-full rounded-lg bg-slate-100 object-contain dark:bg-slate-950"
+                    alt="Image used to read jump values"
+                />
+            )}
             <p className="text-sm text-slate-500 dark:text-slate-400">
                 This image is stored and shown only in this device.
             </p>
-            <Script
-                $deps={[
-                    $idb,
-                    $select,
-                    $loadImage,
-                    $loadJumpImageDrafts,
-                    $loadImageForJump,
-                    $markImageRead,
-                    $updateJumpImageDrafts,
-                ]}
-                $args={[
-                    {
-                        storedImageId: props.imageId ?? null,
-                        jumpUuid: props.jumpUuid ?? null,
-                        containerId,
-                        imageId,
-                        dbName,
-                    },
-                ]}
-                $exec={$showJumpImageSource}
-            />
+            {props.imageId && (
+                <Script
+                    $deps={[$idb, $markImageRead, $updateJumpImageDrafts]}
+                    $args={[props.imageId, dbName]}
+                    $exec={$markJumpImageRead}
+                />
+            )}
+            {props.jumpUuid && (
+                <Script
+                    $deps={[
+                        $idb,
+                        $select,
+                        $loadJumpImageDrafts,
+                        $loadImageForJump,
+                    ]}
+                    $args={[
+                        {
+                            jumpUuid: props.jumpUuid,
+                            containerId,
+                            imageId,
+                            dbName,
+                        },
+                    ]}
+                    $exec={$showJumpImageForJump}
+                />
+            )}
         </section>
     );
 }
 
-function $showJumpImageSource(config: {
-    storedImageId: string | null;
-    jumpUuid: string | null;
+function $markJumpImageRead(imageId: string, dbName: string) {
+    void $markImageRead(imageId, dbName).catch((error) => {
+        console.error("Failed to mark the source jump image as read", error);
+    });
+}
+
+function $showJumpImageForJump(config: {
+    jumpUuid: string;
     containerId: string;
     imageId: string;
     dbName: string;
 }) {
     const container = $select.id(config.containerId, HTMLElement);
     const image = $select.id(config.imageId, HTMLImageElement);
-    if (config.storedImageId) {
-        void $markImageRead(config.storedImageId, config.dbName).catch(
-            (error) => {
-                console.error(
-                    "Failed to mark the source jump image as read",
-                    error,
-                );
-            },
-        );
-    }
-    const loadImage = config.storedImageId
-        ? $loadImage(config.storedImageId, config.dbName)
-        : config.jumpUuid
-          ? $loadImageForJump(config.jumpUuid, config.dbName)
-          : Promise.resolve(null);
-    void loadImage
+    void $loadImageForJump(config.jumpUuid, config.dbName)
         .then((draft) => {
             if (!draft) {
                 return;

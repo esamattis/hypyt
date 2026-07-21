@@ -1,7 +1,7 @@
 import { useId } from "hono/jsx";
 import { useAppContext } from "@/app/app";
 import { Script } from "@/components/script";
-import { $idb, $renderTemplate, $select } from "@/utils";
+import { $assertElement, $idb, $renderTemplate, $select } from "@/utils";
 import * as routes from "@/routes";
 import {
     $appendJumpImageDrafts,
@@ -11,7 +11,6 @@ import {
     JUMP_IMAGE_KEY,
     JUMP_IMAGE_STORE,
     jumpImageDbName,
-    type JumpImageDraft,
 } from "@/route-handlers/logbook/jumps/image-storage-client";
 
 export {
@@ -30,12 +29,10 @@ interface JumpImageInputProps {
     cameraInputId: string;
     cameraButtonId: string;
     clipboardButtonId: string;
-    clearAllButtonId: string;
-    galleryHeaderId: string;
     galleryId: string;
-    metaId: string;
+    galleryImageIdsInputId: string;
+    gallerySelectedIdInputId: string;
     resizeNoteId: string;
-    galleryItemTemplateId: string;
     jumpLinkTemplateId: string;
     jumpEditUrlTemplate: string;
     maxDimension: number;
@@ -55,70 +52,38 @@ export function ImageGallery(props: {
     clipboardButtonId: string;
 }) {
     const dbName = jumpImageDbName(useAppContext().getUser().uuid);
-    const clearAllButtonId = useId();
-    const galleryHeaderId = useId();
     const galleryId = useId();
-    const metaId = useId();
+    const galleryImageIdsInputId = useId();
+    const gallerySelectedIdInputId = useId();
     const resizeNoteId = useId();
-    const galleryItemTemplateId = useId();
     const jumpLinkTemplateId = useId();
 
     return (
         <>
-            <div
-                id={galleryHeaderId}
-                className="hidden flex flex-wrap items-center justify-between gap-2"
-            >
-                <p
-                    id={metaId}
-                    className="hidden text-sm text-slate-500 dark:text-slate-400"
-                />
-                <button
-                    type="button"
-                    id={clearAllButtonId}
-                    className="hidden text-sm font-medium text-red-700 underline hover:no-underline dark:text-red-400"
-                >
-                    Clear all images
-                </button>
-            </div>
+            <input
+                id={galleryImageIdsInputId}
+                type="hidden"
+                name="imageIds"
+                data-loki-gallery-query
+            />
+            <input
+                id={gallerySelectedIdInputId}
+                type="hidden"
+                name="selectedId"
+                data-loki-gallery-query
+            />
             <div
                 id={galleryId}
-                className="hidden grid grid-cols-2 gap-3 md:grid-cols-3"
+                className="space-y-2"
+                hx-get={routes.logbook.jumps.imageGalleryFragment({}, {})}
+                hx-include="[data-loki-gallery-query]"
+                hx-trigger="load, jump-images-changed"
+                hx-swap="innerHTML"
             />
             <p
                 id={resizeNoteId}
                 className="hidden rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-200"
             />
-            <template id={galleryItemTemplateId}>
-                <div className="group relative min-w-0">
-                    <button type="button" data-loki-select-image>
-                        <img className="h-36 w-full rounded object-contain sm:h-44" />
-                        <span
-                            data-loki-read-image
-                            className="absolute left-2 top-2 hidden rounded-full bg-emerald-700 px-2 py-1 text-xs font-semibold text-white shadow"
-                        >
-                            Read
-                        </span>
-                        <span
-                            data-loki-template-slot="meta"
-                            className="block truncate px-1 py-1 text-xs text-slate-600 dark:text-slate-300"
-                        ></span>
-                    </button>
-                    <span
-                        data-loki-created-jumps
-                        className="hidden px-1 pb-2 text-xs text-indigo-700 dark:text-indigo-300"
-                    >
-                        Created: <span data-loki-created-jump-links />
-                    </span>
-                    <button
-                        type="button"
-                        data-loki-delete-image
-                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-slate-950/75 text-sm font-bold text-white shadow hover:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-                    >
-                        X
-                    </button>
-                </div>
-            </template>
             <template id={jumpLinkTemplateId}>
                 <a
                     data-loki-template-slot="label"
@@ -127,6 +92,7 @@ export function ImageGallery(props: {
             </template>
             <Script
                 $deps={[
+                    $assertElement,
                     $idb,
                     $select,
                     $renderTemplate,
@@ -137,14 +103,14 @@ export function ImageGallery(props: {
                     $resizeJumpImageIfNeeded,
                     $formatJumpImageBytes,
                     $getJumpImageElements,
-                    $renderJumpImageGallery,
+                    $updateJumpImageGallery,
+                    $enrichJumpImageGalleryItem,
                     $prepareJumpImageFiles,
                     $setupCameraImageInput,
                     $setupClipboardImageInput,
                     $imageMimeTypeToExtension,
                     $setJumpImageUploadFile,
                     $setJumpImageProcessing,
-                    $revokeJumpImagePreviewUrl,
                     $deleteJumpImageDraft,
                     $clearAllJumpImageDrafts,
                     $appendJumpImageFiles,
@@ -159,12 +125,10 @@ export function ImageGallery(props: {
                         cameraInputId: props.cameraInputId,
                         cameraButtonId: props.cameraButtonId,
                         clipboardButtonId: props.clipboardButtonId,
-                        clearAllButtonId,
-                        galleryHeaderId,
                         galleryId,
-                        metaId,
+                        galleryImageIdsInputId,
+                        gallerySelectedIdInputId,
                         resizeNoteId,
-                        galleryItemTemplateId,
                         jumpLinkTemplateId,
                         jumpEditUrlTemplate: routes.logbook.jumps.edit({
                             uuid: "__JUMP_UUID__",
@@ -400,13 +364,15 @@ export function $getJumpImageElements(props: JumpImageInputProps) {
         props.clipboardButtonId,
         HTMLButtonElement,
     );
-    const clearAllButtonEl = $select.id(
-        props.clearAllButtonId,
-        HTMLButtonElement,
-    );
-    const galleryHeaderEl = $select.id(props.galleryHeaderId, HTMLElement);
     const galleryEl = $select.id(props.galleryId, HTMLElement);
-    const metaEl = $select.id(props.metaId, HTMLElement);
+    const galleryImageIdsInputEl = $select.id(
+        props.galleryImageIdsInputId,
+        HTMLInputElement,
+    );
+    const gallerySelectedIdInputEl = $select.id(
+        props.gallerySelectedIdInputId,
+        HTMLInputElement,
+    );
     const resizeNoteEl = $select.id(props.resizeNoteId, HTMLElement);
     return {
         input: inputEl,
@@ -416,138 +382,89 @@ export function $getJumpImageElements(props: JumpImageInputProps) {
         cameraInput: cameraInputEl,
         cameraButton: cameraButtonEl,
         clipboardButton: clipboardButtonEl,
-        clearAllButton: clearAllButtonEl,
-        galleryHeader: galleryHeaderEl,
         gallery: galleryEl,
-        meta: metaEl,
+        galleryImageIdsInput: galleryImageIdsInputEl,
+        gallerySelectedIdInput: gallerySelectedIdInputEl,
         resizeNote: resizeNoteEl,
     };
 }
 
-export function $renderJumpImageGallery(options: {
+export function $updateJumpImageGallery(options: {
     gallery: HTMLElement;
-    meta: HTMLElement;
-    clearAllButton: HTMLButtonElement;
-    galleryHeader: HTMLElement;
-    drafts: JumpImageDraft[];
+    imageIdsInput: HTMLInputElement;
+    selectedIdInput: HTMLInputElement;
+    imageIds: string[];
     selectedId: string | null;
-    previewUrls: Map<string, string>;
-    templateId: string;
+}) {
+    options.imageIdsInput.value = options.imageIds.join(",");
+    options.selectedIdInput.value = options.selectedId ?? "";
+    options.gallery.dispatchEvent(
+        new CustomEvent("jump-images-changed", { bubbles: true }),
+    );
+}
+
+export function $enrichJumpImageGalleryItem(options: {
+    event: Event;
     jumpLinkTemplateId: string;
     jumpEditUrlTemplate: string;
-    selectDraft: (id: string) => void;
-    deleteDraft: (id: string) => void;
 }) {
-    options.gallery.replaceChildren();
-    for (const draft of options.drafts) {
-        let url = options.previewUrls.get(draft.id);
-        if (!url) {
-            url = URL.createObjectURL(draft.file);
-            options.previewUrls.set(draft.id, url);
-        }
-        const selected = draft.id === options.selectedId;
-        const selectClass = selected
-            ? "block w-full overflow-hidden rounded-lg border-2 border-indigo-500 bg-indigo-50 p-1 text-left ring-2 ring-indigo-200 dark:bg-indigo-950/30 dark:ring-indigo-900"
-            : "block w-full overflow-hidden rounded-lg border-2 border-transparent bg-slate-100 p-1 text-left hover:border-slate-300 dark:bg-slate-800 dark:hover:border-slate-600";
-        const alt = selected
-            ? "Selected jump image preview"
-            : `Jump image preview: ${draft.file.name}`;
-        const container = document.createElement("div");
-        $renderTemplate(container, options.templateId, {
-            meta: `${draft.file.name} · ${$formatJumpImageBytes(draft.file.size)}`,
-        });
-        const item = $select.el(":scope > *", HTMLElement, container);
-        const selectButton = $select.el(
-            "[data-loki-select-image]",
-            HTMLButtonElement,
-            item,
-        );
-        const image = $select.el("img", HTMLImageElement, item);
-        const deleteButton = $select.el(
-            "[data-loki-delete-image]",
-            HTMLButtonElement,
-            item,
-        );
-        const readIndicator = $select.el(
-            "[data-loki-read-image]",
-            HTMLElement,
-            item,
-        );
-        const createdJumps = $select.el(
-            "[data-loki-created-jumps]",
-            HTMLElement,
-            item,
-        );
-        const createdJumpLinks = $select.el(
-            "[data-loki-created-jump-links]",
-            HTMLElement,
-            item,
-        );
-        selectButton.className = selectClass;
-        selectButton.dataset.lokiSelectImage = draft.id;
-        selectButton.setAttribute("aria-label", `Select ${draft.file.name}`);
-        image.src = url;
-        image.alt = alt;
-        readIndicator.classList.toggle("hidden", !draft.read);
-        for (const [index, jump] of draft.createdJumps.entries()) {
-            const linkContainer = document.createElement("span");
-            $renderTemplate(linkContainer, options.jumpLinkTemplateId, {
-                label: `Jump #${jump.jumpNumber}`,
-            });
-            const link = $select.el(
-                ":scope > *",
-                HTMLAnchorElement,
-                linkContainer,
-            );
-            link.href = options.jumpEditUrlTemplate.replace(
-                "__JUMP_UUID__",
-                encodeURIComponent(jump.uuid),
-            );
-            if (index > 0) {
-                createdJumpLinks.appendChild(document.createTextNode(", "));
-            }
-            createdJumpLinks.appendChild(link);
-        }
-        createdJumps.classList.toggle(
-            "hidden",
-            draft.createdJumps.length === 0,
-        );
-        deleteButton.dataset.lokiDeleteImage = draft.id;
-        deleteButton.setAttribute("aria-label", `Delete ${draft.file.name}`);
-        options.gallery.appendChild(item);
+    if (!(options.event instanceof CustomEvent)) {
+        return;
     }
-    for (const button of $select.all(
+    const image = options.event.target;
+    $assertElement(image, HTMLImageElement);
+    const item = image.closest("[data-loki-gallery-image]");
+    $assertElement(item, HTMLElement);
+    const draft = options.event.detail;
+    const selectButton = $select.el(
         "[data-loki-select-image]",
         HTMLButtonElement,
-        options.gallery,
-    )) {
-        button.addEventListener("click", () => {
-            options.selectDraft(button.dataset.lokiSelectImage ?? "");
-        });
-    }
-    for (const button of $select.all(
+        item,
+    );
+    const deleteButton = $select.el(
         "[data-loki-delete-image]",
         HTMLButtonElement,
-        options.gallery,
-    )) {
-        button.addEventListener("click", () => {
-            options.deleteDraft(button.dataset.lokiDeleteImage ?? "");
-        });
+        item,
+    );
+    const meta = $select.el("[data-loki-image-meta]", HTMLElement, item);
+    const readIndicator = $select.el(
+        "[data-loki-read-image]",
+        HTMLElement,
+        item,
+    );
+    const createdJumps = $select.el(
+        "[data-loki-created-jumps]",
+        HTMLElement,
+        item,
+    );
+    const createdJumpLinks = $select.el(
+        "[data-loki-created-jump-links]",
+        HTMLElement,
+        item,
+    );
+    selectButton.setAttribute("aria-label", `Select ${draft.file.name}`);
+    deleteButton.setAttribute("aria-label", `Delete ${draft.file.name}`);
+    if (!image.alt.startsWith("Selected")) {
+        image.alt = `Jump image preview: ${draft.file.name}`;
     }
-    options.gallery.classList.toggle("hidden", options.drafts.length === 0);
-    options.meta.textContent =
-        options.drafts.length === 0
-            ? ""
-            : `${options.drafts.length} image${options.drafts.length === 1 ? "" : "s"}. Tap an image to select it for AI recognition.`;
-    options.meta.classList.toggle("hidden", options.drafts.length === 0);
-    options.clearAllButton.classList.toggle(
-        "hidden",
-        options.drafts.length === 0,
-    );
-    options.galleryHeader.classList.toggle(
-        "hidden",
-        options.drafts.length === 0,
-    );
+    meta.textContent = `${draft.file.name} · ${$formatJumpImageBytes(draft.file.size)}`;
+    readIndicator.classList.toggle("hidden", !draft.read);
+    for (const [index, jump] of draft.createdJumps.entries()) {
+        const linkContainer = document.createElement("span");
+        $renderTemplate(linkContainer, options.jumpLinkTemplateId, {
+            label: `Jump #${jump.jumpNumber}`,
+        });
+        const link = $select.el(":scope > *", HTMLAnchorElement, linkContainer);
+        link.href = options.jumpEditUrlTemplate.replace(
+            "__JUMP_UUID__",
+            encodeURIComponent(jump.uuid),
+        );
+        if (index > 0) {
+            createdJumpLinks.appendChild(document.createTextNode(", "));
+        }
+        createdJumpLinks.appendChild(link);
+    }
+    createdJumps.classList.toggle("hidden", draft.createdJumps.length === 0);
 }
 
 export async function $prepareJumpImageFiles(
@@ -582,10 +499,9 @@ export async function $prepareJumpImageFiles(
 }
 
 interface JumpImageGalleryState {
-    drafts: JumpImageDraft[];
+    imageIds: string[];
     selectedId: string | null;
     processingCount: number;
-    previewUrls: Map<string, string>;
 }
 
 function $setJumpImageUploadFile(
@@ -620,14 +536,6 @@ function $setJumpImageProcessing(
     }
 }
 
-function $revokeJumpImagePreviewUrl(state: JumpImageGalleryState, id: string) {
-    const url = state.previewUrls.get(id);
-    if (url) {
-        URL.revokeObjectURL(url);
-        state.previewUrls.delete(id);
-    }
-}
-
 async function $deleteJumpImageDraft(options: {
     props: JumpImageInputProps;
     elements: ReturnType<typeof $getJumpImageElements>;
@@ -635,12 +543,10 @@ async function $deleteJumpImageDraft(options: {
     id: string;
     renderGalleryState: () => void;
 }) {
-    const remaining = options.state.drafts.filter(
-        (item) => item.id !== options.id,
-    );
+    const remaining = options.state.imageIds.filter((id) => id !== options.id);
     const nextSelectedId =
         options.state.selectedId === options.id
-            ? (remaining[0]?.id ?? null)
+            ? (remaining[0] ?? null)
             : options.state.selectedId;
     try {
         await $updateJumpImageDrafts({
@@ -650,16 +556,16 @@ async function $deleteJumpImageDraft(options: {
             selectedId: nextSelectedId,
             deletedId: options.id,
         });
-        options.state.drafts = remaining;
+        options.state.imageIds = remaining;
         options.state.selectedId = nextSelectedId;
+        const selected = nextSelectedId
+            ? await $loadImage(nextSelectedId, options.props.dbName)
+            : null;
         $setJumpImageUploadFile(
             options.elements,
             options.state,
-            options.state.drafts.find(
-                (item) => item.id === options.state.selectedId,
-            )?.file,
+            selected?.file,
         );
-        $revokeJumpImagePreviewUrl(options.state, options.id);
         options.renderGalleryState();
     } catch (error) {
         console.error("Failed to delete the jump image", error);
@@ -683,11 +589,7 @@ async function $clearAllJumpImageDrafts(options: {
     } catch (error) {
         console.error("Failed to clear jump images", error);
     } finally {
-        for (const url of options.state.previewUrls.values()) {
-            URL.revokeObjectURL(url);
-        }
-        options.state.previewUrls.clear();
-        options.state.drafts = [];
+        options.state.imageIds = [];
         options.state.selectedId = null;
         $setJumpImageUploadFile(options.elements, options.state, undefined);
         options.elements.resizeNote.textContent = "";
@@ -713,14 +615,15 @@ async function $appendJumpImageFiles(options: {
             options.props,
         );
         const appended = prepared.appended;
-        options.state.drafts = [...appended, ...options.state.drafts];
+        options.state.imageIds = [
+            ...appended.map((draft) => draft.id),
+            ...options.state.imageIds,
+        ];
         options.state.selectedId = appended[0]?.id ?? options.state.selectedId;
         $setJumpImageUploadFile(
             options.elements,
             options.state,
-            options.state.drafts.find(
-                (item) => item.id === options.state.selectedId,
-            )?.file,
+            appended.find((item) => item.id === options.state.selectedId)?.file,
         );
         options.elements.resizeNote.textContent = prepared.notes.join(" ");
         options.elements.resizeNote.classList.toggle(
@@ -730,9 +633,9 @@ async function $appendJumpImageFiles(options: {
         options.renderGalleryState();
     } catch (error) {
         console.error("Failed to process the selected jump images", error);
-        options.elements.meta.textContent =
+        options.elements.resizeNote.textContent =
             "Could not process the selected images.";
-        options.elements.meta.classList.remove("hidden");
+        options.elements.resizeNote.classList.remove("hidden");
     } finally {
         $setJumpImageProcessing(options.elements, options.state, false);
     }
@@ -743,38 +646,23 @@ function $createJumpImageGalleryController(
     elements: ReturnType<typeof $getJumpImageElements>,
 ) {
     const state: JumpImageGalleryState = {
-        drafts: [],
+        imageIds: [],
         selectedId: null,
         processingCount: 0,
-        previewUrls: new Map(),
     };
 
     function renderGalleryState() {
-        $renderJumpImageGallery({
+        $updateJumpImageGallery({
             gallery: elements.gallery,
-            meta: elements.meta,
-            clearAllButton: elements.clearAllButton,
-            galleryHeader: elements.galleryHeader,
-            drafts: state.drafts,
+            imageIdsInput: elements.galleryImageIdsInput,
+            selectedIdInput: elements.gallerySelectedIdInput,
+            imageIds: state.imageIds,
             selectedId: state.selectedId,
-            previewUrls: state.previewUrls,
-            templateId: props.galleryItemTemplateId,
-            jumpLinkTemplateId: props.jumpLinkTemplateId,
-            jumpEditUrlTemplate: props.jumpEditUrlTemplate,
-            selectDraft,
-            deleteDraft: (id) =>
-                void $deleteJumpImageDraft({
-                    props,
-                    elements,
-                    state,
-                    id,
-                    renderGalleryState,
-                }),
         });
     }
 
-    function selectDraft(id: string) {
-        const draft = state.drafts.find((item) => item.id === id);
+    async function selectDraft(id: string) {
+        const draft = await $loadImage(id, props.dbName);
         if (!draft) {
             return;
         }
@@ -798,16 +686,16 @@ function $createJumpImageGalleryController(
             props.storageKey,
         )
             .then((stored) => {
-                state.drafts = stored.drafts;
-                state.selectedId = state.drafts.some(
-                    (item) => item.id === stored.selectedId,
+                state.imageIds = stored.drafts.map((draft) => draft.id);
+                state.selectedId = state.imageIds.some(
+                    (id) => id === stored.selectedId,
                 )
                     ? stored.selectedId
-                    : (state.drafts[0]?.id ?? null);
+                    : (state.imageIds[0] ?? null);
                 $setJumpImageUploadFile(
                     elements,
                     state,
-                    state.drafts.find((item) => item.id === state.selectedId)
+                    stored.drafts.find((item) => item.id === state.selectedId)
                         ?.file,
                 );
                 renderGalleryState();
@@ -839,11 +727,16 @@ function $createJumpImageGalleryController(
             return state.processingCount > 0;
         },
         restoreDrafts,
-        revokePreviewUrls() {
-            for (const url of state.previewUrls.values()) {
-                URL.revokeObjectURL(url);
-            }
+        deleteDraft(id: string) {
+            return $deleteJumpImageDraft({
+                props,
+                elements,
+                state,
+                id,
+                renderGalleryState,
+            });
         },
+        selectDraft,
     };
 }
 
@@ -863,8 +756,33 @@ export function $initJumpImageInput(props: JumpImageInputProps) {
         controller.appendFiles,
     );
     $setupClipboardImageInput(elements.clipboardButton, controller.appendFiles);
-    elements.clearAllButton.addEventListener("click", () => {
-        void controller.clearAllDrafts();
+    elements.gallery.addEventListener("click", (event) => {
+        const target = event.target;
+        $assertElement(target, Element);
+        const selectButton = target.closest("[data-loki-select-image]");
+        if (selectButton) {
+            const button = selectButton;
+            $assertElement(button, HTMLButtonElement);
+            void controller.selectDraft(button.dataset.lokiSelectImage ?? "");
+            return;
+        }
+        const deleteButton = target.closest("[data-loki-delete-image]");
+        if (deleteButton) {
+            const button = deleteButton;
+            $assertElement(button, HTMLButtonElement);
+            void controller.deleteDraft(button.dataset.lokiDeleteImage ?? "");
+            return;
+        }
+        if (target.closest("[data-loki-clear-images]")) {
+            void controller.clearAllDrafts();
+        }
+    });
+    elements.gallery.addEventListener("loki:jump-image-loaded", (event) => {
+        $enrichJumpImageGalleryItem({
+            event,
+            jumpLinkTemplateId: props.jumpLinkTemplateId,
+            jumpEditUrlTemplate: props.jumpEditUrlTemplate,
+        });
     });
 
     elements.form.addEventListener("submit", (event) => {
@@ -876,8 +794,4 @@ export function $initJumpImageInput(props: JumpImageInputProps) {
     });
 
     controller.restoreDrafts();
-
-    window.addEventListener("pagehide", () => {
-        controller.revokePreviewUrls();
-    });
 }
