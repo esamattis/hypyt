@@ -31,6 +31,7 @@ interface JumpImageInputProps {
     cameraButtonId: string;
     clipboardButtonId: string;
     clearAllButtonId: string;
+    galleryHeaderId: string;
     galleryId: string;
     metaId: string;
     resizeNoteId: string;
@@ -55,6 +56,7 @@ export function ImageGallery(props: {
 }) {
     const dbName = jumpImageDbName(useAppContext().getUser().uuid);
     const clearAllButtonId = useId();
+    const galleryHeaderId = useId();
     const galleryId = useId();
     const metaId = useId();
     const resizeNoteId = useId();
@@ -63,7 +65,10 @@ export function ImageGallery(props: {
 
     return (
         <>
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div
+                id={galleryHeaderId}
+                className="hidden flex flex-wrap items-center justify-between gap-2"
+            >
                 <p
                     id={metaId}
                     className="hidden text-sm text-slate-500 dark:text-slate-400"
@@ -155,6 +160,7 @@ export function ImageGallery(props: {
                         cameraButtonId: props.cameraButtonId,
                         clipboardButtonId: props.clipboardButtonId,
                         clearAllButtonId,
+                        galleryHeaderId,
                         galleryId,
                         metaId,
                         resizeNoteId,
@@ -398,6 +404,7 @@ export function $getJumpImageElements(props: JumpImageInputProps) {
         props.clearAllButtonId,
         HTMLButtonElement,
     );
+    const galleryHeaderEl = $select.id(props.galleryHeaderId, HTMLElement);
     const galleryEl = $select.id(props.galleryId, HTMLElement);
     const metaEl = $select.id(props.metaId, HTMLElement);
     const resizeNoteEl = $select.id(props.resizeNoteId, HTMLElement);
@@ -410,6 +417,7 @@ export function $getJumpImageElements(props: JumpImageInputProps) {
         cameraButton: cameraButtonEl,
         clipboardButton: clipboardButtonEl,
         clearAllButton: clearAllButtonEl,
+        galleryHeader: galleryHeaderEl,
         gallery: galleryEl,
         meta: metaEl,
         resizeNote: resizeNoteEl,
@@ -420,6 +428,7 @@ export function $renderJumpImageGallery(options: {
     gallery: HTMLElement;
     meta: HTMLElement;
     clearAllButton: HTMLButtonElement;
+    galleryHeader: HTMLElement;
     drafts: JumpImageDraft[];
     selectedId: string | null;
     previewUrls: Map<string, string>;
@@ -532,6 +541,10 @@ export function $renderJumpImageGallery(options: {
             : `${options.drafts.length} image${options.drafts.length === 1 ? "" : "s"}. Tap an image to select it for AI recognition.`;
     options.meta.classList.toggle("hidden", options.drafts.length === 0);
     options.clearAllButton.classList.toggle(
+        "hidden",
+        options.drafts.length === 0,
+    );
+    options.galleryHeader.classList.toggle(
         "hidden",
         options.drafts.length === 0,
     );
@@ -667,6 +680,9 @@ async function $clearAllJumpImageDrafts(options: {
             selectedId: null,
             clearAll: true,
         });
+    } catch (error) {
+        console.error("Failed to clear jump images", error);
+    } finally {
         for (const url of options.state.previewUrls.values()) {
             URL.revokeObjectURL(url);
         }
@@ -677,8 +693,6 @@ async function $clearAllJumpImageDrafts(options: {
         options.elements.resizeNote.textContent = "";
         options.elements.resizeNote.classList.add("hidden");
         options.renderGalleryState();
-    } catch (error) {
-        console.error("Failed to clear jump images", error);
     }
 }
 
@@ -740,6 +754,7 @@ function $createJumpImageGalleryController(
             gallery: elements.gallery,
             meta: elements.meta,
             clearAllButton: elements.clearAllButton,
+            galleryHeader: elements.galleryHeader,
             drafts: state.drafts,
             selectedId: state.selectedId,
             previewUrls: state.previewUrls,

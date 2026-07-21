@@ -15,6 +15,8 @@ export const JUMP_IMAGE_MODEL_IDS = [
 
 export type JumpImageModelId = (typeof JUMP_IMAGE_MODEL_IDS)[number];
 
+export const JUMP_IMAGE_ADDITIONAL_CONTEXT_MAX = 500;
+
 export const JUMP_IMAGE_MODELS: {
     id: JumpImageModelId;
     label: string;
@@ -92,7 +94,13 @@ export const UserOptionsSchema = z.object({
     jumpImageModel: z
         .enum(JUMP_IMAGE_MODEL_IDS)
         .default(DEFAULT_JUMP_IMAGE_MODEL),
-    jumpImageAdditionalContext: z.string().default(""),
+    jumpImageAdditionalContext: z
+        .string()
+        .max(
+            JUMP_IMAGE_ADDITIONAL_CONTEXT_MAX,
+            "Additional context must be 500 characters or fewer.",
+        )
+        .default(""),
     htmlCacheEnabled: z.boolean().default(true),
 });
 

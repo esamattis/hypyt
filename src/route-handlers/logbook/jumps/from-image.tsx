@@ -15,7 +15,9 @@ import {
 } from "@/components/form";
 import {
     DEFAULT_JUMP_IMAGE_MODEL,
+    JUMP_IMAGE_ADDITIONAL_CONTEXT_MAX,
     JUMP_IMAGE_MODELS,
+    UserOptionsSchema,
     altitudeInputValue,
     resolveJumpImageModel,
     type UserOptions,
@@ -277,6 +279,7 @@ function AdditionalContextField(props: { value: string }) {
                     id={textareaId}
                     name="additionalContext"
                     rows={2}
+                    maxLength={JUMP_IMAGE_ADDITIONAL_CONTEXT_MAX}
                     placeholder="Jump 41"
                     className={clsx("resize-y pr-10", controlClassName)}
                 >
@@ -446,10 +449,10 @@ async function saveJumpImageReadOptions(
         jumpImageModel: options.model,
         jumpImageAdditionalContext: options.additionalContext,
     };
-    user.options = nextOptions;
+    const parsed = UserOptionsSchema.parse(nextOptions);
     await ctx.db
         .update(users)
-        .set({ options: JSON.stringify(nextOptions) })
+        .set({ options: JSON.stringify(parsed) })
         .where(eq(users.uuid, user.uuid));
 }
 
