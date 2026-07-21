@@ -28,7 +28,7 @@ test("offset controls can show previous jumps and clear the offset", async ({
     await expect(page).toHaveURL(/[?&]offset=\d+/);
 
     const showPrevious = page.getByRole("link", {
-        name: "Show previous jumps",
+        name: "Load earlier jumps",
     });
     const clearOffset = page.getByRole("link", { name: "Clear offset" });
     await expect(showPrevious).toBeVisible();
@@ -36,7 +36,7 @@ test("offset controls can show previous jumps and clear the offset", async ({
 
     await expect(showPrevious).toHaveAttribute(
         "data-loki-tooltip",
-        "Show more jumps above · keeps scroll near the current top jump",
+        "Load more jumps from earlier in the logbook",
     );
     await expect(clearOffset).toHaveAttribute(
         "data-loki-tooltip",
@@ -75,7 +75,7 @@ test("offset controls can show previous jumps and clear the offset", async ({
     await expect(page).not.toHaveURL(/[?&]offset=/);
     await expect(page).not.toHaveURL(/#jump-/);
     await expect(
-        page.getByRole("link", { name: "Show previous jumps" }),
+        page.getByRole("link", { name: "Load earlier jumps" }),
     ).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Clear offset" })).toHaveCount(
         0,

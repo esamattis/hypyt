@@ -729,9 +729,9 @@ function LogbookOffsetControls(props: {
             <ButtonLink
                 href={previousHref}
                 variant="secondary"
-                data-loki-tooltip="Show more jumps above · keeps scroll near the current top jump"
+                data-loki-tooltip="Load more jumps from earlier in the logbook"
             >
-                Show previous jumps
+                Load earlier jumps
             </ButtonLink>
             <ButtonLink
                 href={buildLogbookUrl(props.filters)}
