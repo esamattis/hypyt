@@ -1,18 +1,22 @@
 import { useAppContext } from "@/app/app";
 
 type ClientFunction = ((...args: any[]) => any) & { displayName?: string };
+type ClientClass = (abstract new (...args: any[]) => unknown) & {
+    displayName?: string;
+};
+type ClientCode = ClientFunction | ClientClass;
 type ClientValue =
     | null
     | boolean
     | number
     | string
-    | ClientFunction
+    | ClientCode
     | readonly ClientValue[]
     | { readonly [key: string]: ClientValue };
 type ClientObject = { displayName?: string } & {
     readonly [key: string]: ClientValue | undefined;
 };
-type ClientDependency = ClientFunction | ClientObject;
+type ClientDependency = ClientCode | ClientObject;
 const nameCache = new WeakMap<object, string>();
 
 function getDependencyName(dependency: ClientDependency): string {
