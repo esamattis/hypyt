@@ -147,6 +147,7 @@ function Hero(props: { loggedIn: boolean }) {
                 </ExternalLink>{" "}
                 whenever you want - your logbook data always stays yours.
             </p>
+            <VideoEmbed />
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <LandingActions loggedIn={props.loggedIn} />
             </div>
@@ -186,7 +187,7 @@ function InstallCommand() {
 
 function VideoEmbed() {
     return (
-        <section className="mx-auto mt-12 max-w-5xl px-4 sm:mt-16">
+        <div className="mx-auto mt-8 max-w-5xl sm:mt-10">
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <div className="relative aspect-video w-full">
                     <iframe
@@ -201,7 +202,7 @@ function VideoEmbed() {
             <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
                 Quick glance at Loki's features
             </p>
-        </section>
+        </div>
     );
 }
 
@@ -438,7 +439,6 @@ function LandingPage(props: { loggedIn: boolean }) {
             <main>
                 <Hero loggedIn={props.loggedIn} />
                 <InstallCommand />
-                <VideoEmbed />
                 <Features />
                 <SelfHosting />
                 <FooterCta loggedIn={props.loggedIn} />
