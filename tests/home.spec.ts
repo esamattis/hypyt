@@ -12,8 +12,24 @@ test("shows download and invite actions in both calls to action", async ({
         "href",
         "https://github.com/esamattis/loki/releases",
     );
+    await expect(
+        page.locator('iframe[title="Loki product video"]'),
+    ).toBeInViewport();
+    expect(
+        await page
+            .locator(
+                'iframe[title="Loki product video"], a[href="https://github.com/esamattis/loki/releases"]',
+            )
+            .evaluateAll((elements) => elements[0]?.tagName),
+    ).toBe("IFRAME");
     await expect(signups).toHaveCount(2);
     await expect(signups.first()).toHaveAttribute("href", "/register");
+    await expect(
+        page.getByRole("link", { name: "(.csv) backup", exact: true }),
+    ).toHaveAttribute(
+        "href",
+        "https://github.com/esamattis/loki/blob/main/src/example-logbook.csv",
+    );
 });
 
 test("fits the landing page within a small viewport", async ({ page }) => {

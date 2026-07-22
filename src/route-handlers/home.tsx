@@ -20,6 +20,7 @@ const YOUTUBE_EMBED_URL = "https://www.youtube.com/embed/wph46K999hQ";
 const INSTALL_COMMAND =
     'bash -c "$(curl -fsSL https://raw.githubusercontent.com/esamattis/loki/main/install.sh)"';
 const INSTALL_SCRIPT_URL = `${REPOSITORY_URL}/blob/main/install.sh`;
+const EXAMPLE_LOGBOOK_URL = `${REPOSITORY_URL}/blob/main/src/example-logbook.csv`;
 
 const cardClassName =
     "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900";
@@ -140,9 +141,13 @@ function Hero(props: { loggedIn: boolean }) {
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-400">
                 Loki is an open source digital logbook for skydivers. Self-host,
                 run it locally on your laptop, or possibly use the invite-only
-                hosted version. Export an Excel compatible (.csv) backup
-                whenever you want - your logbook data always stays yours.{" "}
+                hosted version. Export an Excel compatible{" "}
+                <ExternalLink href={EXAMPLE_LOGBOOK_URL}>
+                    (.csv) backup
+                </ExternalLink>{" "}
+                whenever you want - your logbook data always stays yours.
             </p>
+            <VideoEmbed />
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <LandingActions loggedIn={props.loggedIn} />
             </div>
@@ -182,7 +187,7 @@ function InstallCommand() {
 
 function VideoEmbed() {
     return (
-        <section className="mx-auto mt-12 max-w-5xl px-4 sm:mt-16">
+        <div className="mx-auto mt-8 max-w-5xl sm:mt-10">
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <div className="relative aspect-video w-full">
                     <iframe
@@ -197,7 +202,7 @@ function VideoEmbed() {
             <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
                 Quick glance at Loki's features
             </p>
-        </section>
+        </div>
     );
 }
 
@@ -434,7 +439,6 @@ function LandingPage(props: { loggedIn: boolean }) {
             <main>
                 <Hero loggedIn={props.loggedIn} />
                 <InstallCommand />
-                <VideoEmbed />
                 <Features />
                 <SelfHosting />
                 <FooterCta loggedIn={props.loggedIn} />
