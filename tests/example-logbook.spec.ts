@@ -42,7 +42,7 @@ test("empty logbook can load example data with a jump number gap", async ({
     ).toBeVisible();
     await expect(
         page
-            .getByText("Gear: Mirage G4, Squirrel Aura 3, Velocity 111")
+            .getByText("Gear: Mirage G4, PD Horizon 120, Squirrel Aura 3")
             .first(),
     ).toBeVisible();
 
