@@ -6,6 +6,7 @@ import {
     openMainMenu,
     openManageLogbook,
     openJumpItemSelect,
+    resetFormDirtyForTest,
     selectJumpItems,
 } from "./helpers";
 
@@ -40,9 +41,6 @@ test("the log book loads additional jumps while scrolling", async ({
     ).toBeVisible();
     await expect(
         emptyLocationDialog.getByRole("radio", { name: "None" }),
-    ).toHaveCount(0);
-    await expect(
-        emptyLocationDialog.getByRole("button", { name: "Clear all" }),
     ).toHaveCount(0);
     await emptyLocationDialog.getByRole("button", { name: "Close" }).click();
     await page
@@ -244,10 +242,12 @@ test("a skydiver can register and record their first jump", async ({
     await aircraftDialog.getByRole("button", { name: "OK" }).click();
     await selectJumpItems(page, "Aircraft", ["Cessna 182", "OH-DZF"]);
     const selectedAircraftDialog = await openJumpItemSelect(page, "Aircraft");
-    const clearAircraft = selectedAircraftDialog.getByRole("button", {
-        name: "Clear all",
+    const clearAircraft = selectedAircraftDialog.getByText("Clear all", {
+        exact: true,
     });
     await expect(clearAircraft).toBeEnabled();
+    const jumpForm = page.locator('form[data-loki-confirm="Add Jump"]');
+    await resetFormDirtyForTest(jumpForm);
     await clearAircraft.click();
     await expect(
         selectedAircraftDialog.getByLabel("Cessna 182", { exact: true }),
@@ -257,6 +257,7 @@ test("a skydiver can register and record their first jump", async ({
     ).not.toBeChecked();
     await expect(clearAircraft).toBeDisabled();
     await expect(jumpItemSummary(page, "Aircraft")).toHaveText("None selected");
+    await expect(jumpForm).toHaveAttribute("data-loki-form-dirty", "true");
     await selectedAircraftDialog.getByRole("button", { name: "OK" }).click();
     await selectJumpItems(page, "Aircraft", ["Cessna 182", "OH-DZF"]);
     await selectJumpItems(page, "Gear used", ["Main canopy"]);

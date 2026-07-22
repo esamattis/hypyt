@@ -222,12 +222,18 @@ function JumpItemSelectScript(props: {
                             HTMLButtonElement,
                         );
                         clearButton.addEventListener("click", () => {
-                            for (const input of selectedInputs()) {
+                            const selected = selectedInputs();
+                            for (const input of selected) {
                                 input.checked = false;
                             }
-                            options.dispatchEvent(
-                                new Event("change", { bubbles: true }),
-                            );
+                            for (const input of selected) {
+                                input.dispatchEvent(
+                                    new Event("input", { bubbles: true }),
+                                );
+                                input.dispatchEvent(
+                                    new Event("change", { bubbles: true }),
+                                );
+                            }
                         });
                     }
                 }}
