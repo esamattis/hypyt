@@ -148,7 +148,7 @@ export function JumpNumberField(props: {
                         {},
                         errorQuery,
                     )}
-                    hx-trigger="input changed delay:300ms"
+                    hx-trigger="input changed delay:300ms, blur"
                     hx-target={`[id='${errorId}']`}
                     hx-swap="innerHTML"
                     hx-sync="this:replace"
