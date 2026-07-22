@@ -41,6 +41,9 @@ test("the log book loads additional jumps while scrolling", async ({
     await expect(
         emptyLocationDialog.getByRole("radio", { name: "None" }),
     ).toHaveCount(0);
+    await expect(
+        emptyLocationDialog.getByRole("button", { name: "Clear all" }),
+    ).toHaveCount(0);
     await emptyLocationDialog.getByRole("button", { name: "Close" }).click();
     await page
         .getByRole("link", { name: /Scrolling Skydiver's logbook/ })
@@ -239,6 +242,22 @@ test("a skydiver can register and record their first jump", async ({
     await expect(page.getByRole("tooltip")).toHaveText("Aircraft type");
     await expect(page.getByRole("tooltip")).toBeVisible();
     await aircraftDialog.getByRole("button", { name: "OK" }).click();
+    await selectJumpItems(page, "Aircraft", ["Cessna 182", "OH-DZF"]);
+    const selectedAircraftDialog = await openJumpItemSelect(page, "Aircraft");
+    const clearAircraft = selectedAircraftDialog.getByRole("button", {
+        name: "Clear all",
+    });
+    await expect(clearAircraft).toBeEnabled();
+    await clearAircraft.click();
+    await expect(
+        selectedAircraftDialog.getByLabel("Cessna 182", { exact: true }),
+    ).not.toBeChecked();
+    await expect(
+        selectedAircraftDialog.getByLabel("OH-DZF", { exact: true }),
+    ).not.toBeChecked();
+    await expect(clearAircraft).toBeDisabled();
+    await expect(jumpItemSummary(page, "Aircraft")).toHaveText("None selected");
+    await selectedAircraftDialog.getByRole("button", { name: "OK" }).click();
     await selectJumpItems(page, "Aircraft", ["Cessna 182", "OH-DZF"]);
     await selectJumpItems(page, "Gear used", ["Main canopy"]);
     const jumpTypeDialog = await openJumpItemSelect(page, "Jump types");
