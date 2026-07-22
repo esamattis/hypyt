@@ -19,14 +19,14 @@ instructions otherwise restrict git commands.
 - If the branch has **no local commits of your own yet** (no changes committed
   for this work), reset it to `origin/main`:
 
-  ```bash
-  git fetch origin
-  git checkout -B <branch> origin/main
-  ```
+    ```bash
+    git fetch origin
+    git checkout -B <branch> origin/main
+    ```
 
-  Use `checkout -B` so an existing local branch name is recreated on top of
-  `origin/main`. If you are already on a fresh branch with no commits ahead of
-  main and a clean intent to start over, `git reset --hard origin/main` is fine.
+    Use `checkout -B` so an existing local branch name is recreated on top of
+    `origin/main`. If you are already on a fresh branch with no commits ahead of
+    main and a clean intent to start over, `git reset --hard origin/main` is fine.
 
 - Do **not** reset if the branch already has commits that belong to this PR.
 
@@ -39,9 +39,9 @@ instructions otherwise restrict git commands.
 
 - Run the project test command and fix failures before committing:
 
-  ```bash
-  pn test
-  ```
+    ```bash
+    pn test
+    ```
 
 - Do not open or update a PR with failing tests unless the user explicitly
   asks to proceed anyway.
