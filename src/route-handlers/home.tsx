@@ -281,7 +281,7 @@ function LocalInstallation() {
                 <LandingCard
                     className="min-w-0"
                     icon={<InstallIcon className={cardIconClassName} />}
-                    title="Windows & binaries"
+                    title="Binaries and Source Code"
                 >
                     <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
                         Prebuilt binaries for Linux, macOS, and Windows from
@@ -291,8 +291,18 @@ function LocalInstallation() {
                         </code>
                         .
                     </p>
-                    <div className="mt-5">
+                    <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                         <DownloadButton />
+                        <a
+                            href={REPOSITORY_URL}
+                            className={buttonClassName({
+                                variant: "secondary",
+                                className:
+                                    "w-full px-6 py-3 text-base sm:w-auto",
+                            })}
+                        >
+                            Source on GitHub
+                        </a>
                     </div>
                 </LandingCard>
             </div>
