@@ -76,6 +76,12 @@ test("serves the app with an initialized SQLite database", async ({
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL("/logbook");
 
+    await page.goto("/preferences");
+    await expect(
+        page.getByRole("heading", { name: "Performance" }),
+    ).toHaveCount(0);
+    await expect(page.getByLabel("Enable page caching")).toHaveCount(0);
+
     const manifestResponse = await request.get("/manifest.json");
     expect(manifestResponse.status()).toBe(200);
     await expect(manifestResponse.json()).resolves.toMatchObject({

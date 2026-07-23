@@ -1,7 +1,12 @@
 import { and, eq, ne } from "drizzle-orm";
 import { useId } from "hono/jsx";
 import { z } from "zod";
-import { getAppContext, type App, type AppRequestContext } from "@/app/app";
+import {
+    getAppContext,
+    type App,
+    type AppRequestContext,
+    useAppContext,
+} from "@/app/app";
 import { Button, Checkbox, Input, Select, Textarea } from "@/components/form";
 import { ErrorList } from "@/components/feedback";
 import { Script } from "@/components/script";
@@ -320,6 +325,7 @@ function PreferencesForm(props: {
     values: PreferencesFormValues;
     errors?: string[];
 }) {
+    const selfHosted = useAppContext().isSelfHosted();
     return (
         <form
             id={props.formId}
@@ -367,7 +373,9 @@ function PreferencesForm(props: {
             <DateTimeSection options={props.values.options} />
             <JumpFromImageSection options={props.values.options} />
             <PasswordSection />
-            <PerformanceSection options={props.values.options} />
+            {!selfHosted && (
+                <PerformanceSection options={props.values.options} />
+            )}
             <div className="hidden sm:block">
                 <Button type="submit" variant="primary">
                     Save preferences
@@ -430,6 +438,7 @@ function getFormDataValues(formData: FormData): Record<string, string> {
 function optionsFromRawForm(
     raw: Record<string, string>,
     current: UserOptions,
+    selfHosted: boolean,
 ): UserOptions {
     const partial = UserOptionsSchema.safeParse({
         altitudeUnits: raw.altitudeUnits ?? current.altitudeUnits,
@@ -440,7 +449,9 @@ function optionsFromRawForm(
         jumpImagePrompt: raw.jumpImagePrompt ?? current.jumpImagePrompt,
         jumpImageModel: current.jumpImageModel,
         jumpImageAdditionalContext: current.jumpImageAdditionalContext,
-        htmlCacheEnabled: raw.htmlCacheEnabled === "true",
+        htmlCacheEnabled: selfHosted
+            ? current.htmlCacheEnabled
+            : raw.htmlCacheEnabled === "true",
         privacyPolicyAccepted: current.privacyPolicyAccepted,
         readonly: current.readonly,
         exampleDataChecksum: current.exampleDataChecksum,
@@ -492,17 +503,21 @@ async function handlePreferences(c: AppRequestContext) {
 
     const raw = getFormDataValues(formData);
     const result = PreferencesSchema.safeParse(raw);
+    const ctx = getAppContext(c);
     const values = getFormValues(c);
     values.username = raw.username ?? values.username;
     values.displayName = raw.displayName ?? values.displayName;
     values.email = raw.email ?? values.email;
-    values.options = optionsFromRawForm(raw, values.options);
+    values.options = optionsFromRawForm(
+        raw,
+        values.options,
+        ctx.isSelfHosted(),
+    );
 
     if (!result.success) {
         return renderPreferences(c, values, getErrorMessages(result));
     }
 
-    const ctx = getAppContext(c);
     const user = ctx.getUser();
     const existingUsername = await ctx.db
         .select({ uuid: users.uuid })
@@ -542,7 +557,9 @@ async function handlePreferences(c: AppRequestContext) {
             result.data.jumpImagePrompt.trim() || DEFAULT_JUMP_IMAGE_PROMPT,
         jumpImageModel: user.options.jumpImageModel,
         jumpImageAdditionalContext: user.options.jumpImageAdditionalContext,
-        htmlCacheEnabled: result.data.htmlCacheEnabled === "true",
+        htmlCacheEnabled: ctx.isSelfHosted()
+            ? user.options.htmlCacheEnabled
+            : result.data.htmlCacheEnabled === "true",
         privacyPolicyAccepted: user.options.privacyPolicyAccepted,
         readonly: user.options.readonly,
         exampleDataChecksum: user.options.exampleDataChecksum,
