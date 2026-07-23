@@ -64,7 +64,9 @@ export async function acceptPrivacyPolicyIfRequired(page: Page) {
         return;
     }
     await page.locator('input[name="accepted"]').check();
-    await page.getByRole("button", { name: "Accept privacy policy" }).click();
+    await page
+        .getByRole("button", { name: "Accept terms & privacy policy" })
+        .click();
 }
 
 export function jumpItemSummary(page: Page, label: string): Locator {

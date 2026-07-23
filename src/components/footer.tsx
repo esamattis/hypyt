@@ -50,9 +50,9 @@ export function Footer(props: {
                     {props.showPrivacyPolicy && (
                         <Link
                             href={routes.privacy({}, {})}
-                            aria-label="Footer privacy policy"
+                            aria-label="Footer terms & privacy policy"
                         >
-                            Privacy
+                            Terms & Privacy
                         </Link>
                     )}
                     <ExternalLink

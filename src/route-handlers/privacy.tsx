@@ -27,35 +27,58 @@ function PrivacyContent() {
     return (
         <article className="space-y-6 text-base leading-7 text-slate-700 dark:text-slate-300">
             <p>
-                This privacy policy applies only to the hosted service at{" "}
+                This Terms & Privacy Policy applies only to the free hosted
+                service at{" "}
                 <ExternalLink href="https://loki.hyppykeli.fi">
                     loki.hyppykeli.fi
                 </ExternalLink>
-                . In short: we do not use your data for anything beyond running
-                the logbook. We also{" "}
+                , a best-effort convenience instance of{" "}
+                <ExternalLink href={repositoryUrl}>
+                    open-source Loki
+                </ExternalLink>
+                offered out of goodwill. It is not a commercial product. We{" "}
                 <strong className="font-bold">
                     do not guarantee any data durability, security, backups, or
                     availability of the service
                 </strong>
-                . Do regular exports or self-host.
-            </p>
-            <p>
-                Loki is{" "}
-                <ExternalLink href={repositoryUrl}>open source</ExternalLink>,
-                so you can inspect how the software handles data.
+                . Use it at your own risk; export regularly or self-host if you
+                need stronger guarantees.
             </p>
 
-            <Section title="Data controller">
+            <Section title="Terms">
                 <p>
-                    The service is operated by{" "}
+                    The service is provided free, “as is”, and “as available”,
+                    with no warranties and no support contract. Features may
+                    change or stop at any time. To the fullest extent permitted
+                    by law, the operator accepts no liability for any loss or
+                    damage from using—or being unable to use—the service,
+                    including lost data, downtime, security incidents, and
+                    third-party outages. Where liability cannot be excluded, it
+                    is limited to zero for this free service.
+                </p>
+                <p>
+                    You are responsible for backups (regular CSV export), your
+                    credentials, content you enter, and any third-party keys or
+                    services you connect. Do not treat the hosted instance as
+                    your only copy of data.
+                </p>
+                <p>
+                    Operated by{" "}
                     <ExternalLink href="https://esamatti.fi/">
                         Esa-Matti Suuronen
                     </ExternalLink>
-                    . Contact via the details on that site.
+                    . Contact via that site. The instance may pause, change, or
+                    shut down without notice.
                 </p>
             </Section>
 
-            <Section title="What we collect">
+            <Section title="Privacy">
+                <p>
+                    We use your data only to run the logbook. We do not sell
+                    data or profile users. We do not run analytics, advertising,
+                    or tracking.
+                </p>
+                <p>We may store:</p>
                 <ul className="list-disc space-y-1 pl-6">
                     <li>
                         Account data you provide (username, display name, email,
@@ -66,40 +89,23 @@ function PrivacyContent() {
                         aircraft, jump types, images, and related notes)
                     </li>
                     <li>
-                        Technical session data needed to keep you signed in
+                        Session data needed for required login state handling
                         (session cookie and server-side session records)
                     </li>
                 </ul>
                 <p>
-                    We do not run analytics, advertising, or any form of user
-                    tracking.
-                </p>
-            </Section>
-
-            <Section title="Why we process data">
-                <p>
-                    We process your data only to provide and maintain the
-                    logbook service you signed up for (contract / legitimate
-                    interest in operating the service). We do not sell data,
-                    profile users, or use logbook content for marketing or
-                    training.
-                </p>
-            </Section>
-
-            <Section title="Sharing">
-                <p>
                     We do not sell or share your personal data with third
                     parties for their own purposes. Infrastructure providers
-                    that host the service may process data solely to run the
-                    platform under our instructions.
+                    process data only to run the platform under our
+                    instructions.
                 </p>
                 <p>
                     AI Vision is opt-in and bring-your-own-key (BYOK): if you
                     configure an OpenAI API key and use the feature, images and
-                    related prompts you submit are sent to OpenAI under OpenAI’s
-                    terms. The service may support other AI providers in the
-                    future at the operator’s choice. We do not send data to AI
-                    providers unless you use this feature.
+                    prompts go to OpenAI under OpenAI’s terms. Other AI
+                    providers may be added later. We do not send data to AI
+                    providers unless you use this feature; they act under their
+                    own terms.
                 </p>
             </Section>
 
@@ -111,56 +117,35 @@ function PrivacyContent() {
                 </p>
             </Section>
 
-            <Section title="Retention">
+            <Section title="Retention and rights">
                 <p>
-                    Account and logbook data are kept while your account exists.
-                    You can delete your account in preferences, which removes
-                    your data from the service.
+                    Data is kept while your account exists and the service runs.
+                    You can export your logbook and delete your account in
+                    preferences. Accounts or the whole instance may also be
+                    removed at any time.
                 </p>
-            </Section>
-
-            <Section title="Data durability">
                 <p>
-                    We do not guarantee that your data will be stored
-                    indefinitely. The service may disappear any time for any
-                    reason. You should export your logbook regularly as a CSV
-                    backup. If you need stronger control, you can also self-host
-                    Loki on your own infrastructure.
-                </p>
-            </Section>
-
-            <Section title="Your rights">
-                <p>
-                    Under applicable EU data protection law (including the
-                    GDPR), you may request access, correction, deletion,
-                    restriction, or portability of your personal data, and you
-                    may object to certain processing. You can export your
-                    logbook from the app and delete your account yourself. You
-                    may also lodge a complaint with your local supervisory
-                    authority.
-                </p>
-            </Section>
-
-            <Section title="Cookies">
-                <p>
-                    Cookies are used only for required login state handling: a
-                    session cookie keeps you signed in. We do not set cookies
-                    for analytics, advertising, or tracking.
+                    Under applicable EU law (including the GDPR), you may
+                    request access, correction, deletion, restriction, or
+                    portability of your personal data, and object to certain
+                    processing. You may lodge a complaint with your local
+                    supervisory authority.
                 </p>
             </Section>
 
             <Section title="Self-hosted instances">
                 <p>
-                    This policy applies only to loki.hyppykeli.fi. If you run
-                    Loki yourself or use another deployment, that operator is
-                    responsible for its privacy practices.
+                    This document covers only loki.hyppykeli.fi. Other
+                    deployments are solely that operator’s responsibility.
                 </p>
             </Section>
 
-            <Section title="Changes">
+            <Section title="Acceptance and changes">
                 <p>
-                    We may update this policy from time to time. The current
-                    version is always available on this page.
+                    Creating an account or continuing to use the hosted service
+                    means you accept this Terms & Privacy Policy. If you do not,
+                    delete your account or self-host. We may update this page;
+                    continued use after a change accepts the new version.
                 </p>
             </Section>
 
@@ -187,7 +172,7 @@ function PublicPrivacyPage() {
                 <span>Loki – Skydiving Logbook</span>
             </a>
             <h1 className="text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
-                Privacy Policy
+                Terms & Privacy Policy
             </h1>
             <PrivacyContent />
         </main>
@@ -210,16 +195,17 @@ function PrivacyPolicyDecision(props: { back?: string; errors?: string[] }) {
                 <Checkbox
                     name="accepted"
                     value="true"
-                    label="I have read and accept the privacy policy"
+                    label="I have read and accept the terms & privacy policy"
                 />
                 <Button type="submit" variant="primary">
-                    Accept privacy policy
+                    Accept terms & privacy policy
                 </Button>
             </form>
             <div className="space-y-3 border-t border-slate-200 pt-5 dark:border-slate-800">
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                    If you do not accept the policy, you can permanently delete
-                    your account and all logbook data instead.
+                    If you do not accept the terms & privacy policy, you can
+                    permanently delete your account and all logbook data
+                    instead.
                 </p>
                 <ConfirmDeleteButton label="Delete account" />
             </div>
@@ -230,7 +216,7 @@ function PrivacyPolicyDecision(props: { back?: string; errors?: string[] }) {
 function PrivacyPolicyWarning() {
     return (
         <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
-            You must accept the privacy policy to continue using Loki.
+            You must accept the terms & privacy policy to continue using Loki.
         </p>
     );
 }
@@ -244,7 +230,7 @@ function renderPrivacyPage(c: AppRequestContext, errors?: string[]) {
         !appContext.isSelfHosted() &&
         !appContext.user.options.privacyPolicyAccepted;
     return c.render(
-        <LogbookPage title="Privacy Policy">
+        <LogbookPage title="Terms & Privacy Policy">
             {mustDecide && <PrivacyPolicyWarning />}
             <PrivacyContent />
             {mustDecide && (
@@ -271,7 +257,7 @@ async function handlePrivacyPage(c: AppRequestContext) {
     }
     if (formData.get("accepted") !== "true") {
         return renderPrivacyPage(c, [
-            "You must check the box to accept the privacy policy.",
+            "You must check the box to accept the terms & privacy policy.",
         ]);
     }
 

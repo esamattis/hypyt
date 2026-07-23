@@ -80,7 +80,9 @@ function RegisterForm(props: {
             {!selfHosted && (
                 <p>
                     Please read the{" "}
-                    <Link href={routes.privacy({}, {})}>Privacy Policy</Link>{" "}
+                    <Link href={routes.privacy({}, {})}>
+                        Terms & Privacy Policy
+                    </Link>{" "}
                     before creating an account.
                 </p>
             )}

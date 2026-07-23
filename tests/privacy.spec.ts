@@ -11,17 +11,17 @@ async function registerUnacceptedUser(page: Page, username: string) {
     await page.getByRole("button", { name: "Create account" }).click();
 }
 
-test("shows privacy policy and footer link", async ({ page }) => {
+test("shows terms & privacy policy and footer link", async ({ page }) => {
     await page.goto("/");
 
     await page
         .getByRole("navigation", { name: "Footer" })
-        .getByRole("link", { name: "Privacy" })
+        .getByRole("link", { name: "Terms & Privacy" })
         .click();
 
     await expect(page).toHaveURL("/privacy");
     await expect(
-        page.getByRole("heading", { name: "Privacy Policy" }),
+        page.getByRole("heading", { name: "Terms & Privacy Policy" }),
     ).toBeVisible();
     await expect(
         page.getByText(
@@ -52,19 +52,21 @@ test("shows privacy policy and footer link", async ({ page }) => {
     ).toBeVisible();
 });
 
-test("requires hosted users to accept the privacy policy", async ({ page }) => {
+test("requires hosted users to accept the terms & privacy policy", async ({
+    page,
+}) => {
     const username = "privacy-acceptance-user";
     await registerUnacceptedUser(page, username);
 
     await expect(page).toHaveURL("/privacy?back=%2Flogbook");
     await expect(
         page.getByText(
-            "You must accept the privacy policy to continue using Loki.",
+            "You must accept the terms & privacy policy to continue using Loki.",
         ),
     ).toBeVisible();
     const acceptanceForm = page.locator("form").filter({
         has: page.getByRole("button", {
-            name: "Accept privacy policy",
+            name: "Accept terms & privacy policy",
         }),
     });
     await expect(acceptanceForm.locator('input[type="checkbox"]')).toHaveCount(
@@ -74,13 +76,19 @@ test("requires hosted users to accept the privacy policy", async ({ page }) => {
         acceptanceForm.locator('input[name="__loki_redirect_back_after_post"]'),
     ).toHaveValue("true");
 
-    await page.getByRole("button", { name: "Accept privacy policy" }).click();
+    await page
+        .getByRole("button", { name: "Accept terms & privacy policy" })
+        .click();
     await expect(
-        page.getByText("You must check the box to accept the privacy policy."),
+        page.getByText(
+            "You must check the box to accept the terms & privacy policy.",
+        ),
     ).toBeVisible();
 
     await page.locator('input[name="accepted"]').check();
-    await page.getByRole("button", { name: "Accept privacy policy" }).click();
+    await page
+        .getByRole("button", { name: "Accept terms & privacy policy" })
+        .click();
     await expect(page).toHaveURL("/logbook");
 
     const accepted = await queryPlaywrightDb(`
