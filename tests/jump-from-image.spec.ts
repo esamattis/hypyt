@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 import fs from "node:fs";
 import path from "node:path";
@@ -23,6 +24,7 @@ test("a skydiver can create a jump from an image", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();
@@ -345,6 +347,7 @@ test("from image form lists latest images first and can clear them", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await page.getByRole("link", { name: "AI Vision", exact: true }).click();
     await expect(page).toHaveURL("/logbook/jumps/new/from-image");
@@ -473,6 +476,7 @@ test("from image form saves model and additional context to user options", async
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
@@ -524,6 +528,7 @@ test("from image form describes resized images", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await page.getByRole("link", { name: "AI Vision", exact: true }).click();
 
     await page.evaluate(() => {
@@ -591,6 +596,7 @@ test("from image rejects oversized files on the server", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
@@ -628,6 +634,7 @@ test("a skydiver can paste a jump image from the clipboard", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
@@ -692,6 +699,7 @@ test("installed service worker restores a shared image into the from-image reade
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 
     await page.evaluate(async () => {

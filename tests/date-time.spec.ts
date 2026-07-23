@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import path from "node:path";
 import { expect, test, type Page } from "./fixtures";
 import { openMainMenu, openManageLogbook } from "./helpers";
@@ -19,6 +20,7 @@ async function registerUser(page: Page) {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 }
 

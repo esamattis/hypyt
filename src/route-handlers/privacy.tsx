@@ -1,8 +1,17 @@
 import type { Child } from "hono/jsx";
+import { eq } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import { LogbookPage } from "@/app/logbook-page";
+import { deleteAccount } from "@/delete-account";
+import { ErrorList } from "@/components/feedback";
+import { Button, Checkbox } from "@/components/form";
 import { ExternalLink } from "@/components/link";
+import { RedirectBackAfterPost } from "@/components/return-after-form-post";
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
+import { isSafeRedirectPath } from "@/auth";
+import { UserOptionsSchema } from "@/options";
 import * as routes from "@/routes";
+import { users } from "@/schema";
 
 const repositoryUrl = "https://github.com/esamattis/loki";
 
@@ -26,9 +35,12 @@ function PrivacyContent() {
                     loki.hyppykeli.fi
                 </ExternalLink>
                 . In short: we do not use your data for anything beyond running
-                the logbook. We also do not guarantee any data durability,
-                security, backups, or availability of the service. Do regular
-                exports or self-host.
+                the logbook. We also{" "}
+                <strong className="font-bold">
+                    do not guarantee any data durability, security, backups, or
+                    availability of the service
+                </strong>
+                . Do regular exports or self-host.
             </p>
             <p>
                 Loki is{" "}
@@ -85,12 +97,12 @@ function PrivacyContent() {
                     platform under our instructions.
                 </p>
                 <p>
-                    AI Vision is opt-in and bring-your-own-key (BYOK):
-                    if you configure an OpenAI API key and use the feature,
-                    images and related prompts you submit are sent to OpenAI
-                    under OpenAI’s terms. The service may support other AI
-                    providers in the future at the operator’s choice. We do not
-                    send data to AI providers unless you use this feature.
+                    AI Vision is opt-in and bring-your-own-key (BYOK): if you
+                    configure an OpenAI API key and use the feature, images and
+                    related prompts you submit are sent to OpenAI under OpenAI’s
+                    terms. The service may support other AI providers in the
+                    future at the operator’s choice. We do not send data to AI
+                    providers unless you use this feature.
                 </p>
             </Section>
 
@@ -185,18 +197,105 @@ function PublicPrivacyPage() {
     );
 }
 
-function renderPrivacyPage(c: AppRequestContext) {
+function PrivacyPolicyDecision(props: { back?: string; errors?: string[] }) {
+    return (
+        <section className="mt-8 space-y-5 border-t border-slate-200 pt-8 dark:border-slate-800">
+            <ErrorList
+                errors={props.errors ?? []}
+                className="border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+            />
+            <form
+                method="post"
+                action={routes.privacy({}, { back: props.back })}
+                className="space-y-4"
+            >
+                <RedirectBackAfterPost />
+                <Checkbox
+                    name="accepted"
+                    value="true"
+                    label="I have read and accept the privacy policy"
+                />
+                <Button type="submit" variant="primary">
+                    Accept privacy policy
+                </Button>
+            </form>
+            <div className="space-y-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                    If you do not accept the policy, you can permanently delete
+                    your account and all logbook data instead.
+                </p>
+                <ConfirmDeleteButton label="Delete account" />
+            </div>
+        </section>
+    );
+}
+
+function PrivacyPolicyWarning() {
+    return (
+        <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
+            You must accept the privacy policy to continue using Loki.
+        </p>
+    );
+}
+
+function renderPrivacyPage(c: AppRequestContext, errors?: string[]) {
     const appContext = getAppContext(c);
     if (!appContext.user) {
         return c.render(<PublicPrivacyPage />);
     }
+    const mustDecide =
+        !appContext.isSelfHosted() &&
+        !appContext.user.options.privacyPolicyAccepted;
     return c.render(
         <LogbookPage title="Privacy Policy">
+            {mustDecide && <PrivacyPolicyWarning />}
             <PrivacyContent />
+            {mustDecide && (
+                <PrivacyPolicyDecision
+                    back={c.req.query("back")}
+                    errors={errors}
+                />
+            )}
         </LogbookPage>,
     );
 }
 
+async function handlePrivacyPage(c: AppRequestContext) {
+    const appContext = getAppContext(c);
+    const user = appContext.user;
+    if (!user || appContext.isSelfHosted()) {
+        return c.redirect(routes.privacy({}, {}));
+    }
+
+    const formData = await c.req.formData();
+    if (formData.get("action") === "delete") {
+        await deleteAccount(c);
+        return c.redirect(routes.auth.login({}));
+    }
+    if (formData.get("accepted") !== "true") {
+        return renderPrivacyPage(c, [
+            "You must check the box to accept the privacy policy.",
+        ]);
+    }
+
+    const options = UserOptionsSchema.parse({
+        ...user.options,
+        privacyPolicyAccepted: true,
+    });
+    await appContext.db
+        .update(users)
+        .set({ options: JSON.stringify(options) })
+        .where(eq(users.uuid, user.uuid));
+
+    const back = c.req.query("back");
+    return c.redirect(
+        isSafeRedirectPath(back) && back !== routes.privacy.route
+            ? back
+            : routes.logbook.index({}),
+    );
+}
+
 export function register(app: App) {
-    app.get(routes.privacy.route, renderPrivacyPage);
+    app.get(routes.privacy.route, (c) => renderPrivacyPage(c));
+    app.post(routes.privacy.route, handlePrivacyPage);
 }

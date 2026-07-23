@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "../helpers";
 import { expect, test } from "../fixtures";
 import {
     expectLogbookAroundJump,
@@ -22,6 +23,7 @@ test("adding a jump with an existing jump number shows an overwrite warning and 
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();

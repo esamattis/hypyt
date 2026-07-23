@@ -59,6 +59,14 @@ export async function logOut(page: Page) {
     await page.getByRole("button", { name: "Log out" }).click();
 }
 
+export async function acceptPrivacyPolicyIfRequired(page: Page) {
+    if (new URL(page.url()).pathname !== "/privacy") {
+        return;
+    }
+    await page.locator('input[name="accepted"]').check();
+    await page.getByRole("button", { name: "Accept privacy policy" }).click();
+}
+
 export function jumpItemSummary(page: Page, label: string): Locator {
     return page
         .getByRole("group", { name: label, exact: true })

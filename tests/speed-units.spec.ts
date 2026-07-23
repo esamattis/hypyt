@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 import { expectLogbookAroundJump, openMainMenu } from "./helpers";
 
@@ -12,6 +13,7 @@ test("speed can be displayed and entered in miles per hour", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();

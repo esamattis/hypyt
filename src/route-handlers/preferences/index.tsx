@@ -8,22 +8,14 @@ import { Script } from "@/components/script";
 import { RedirectBackAfterPost } from "@/components/return-after-form-post";
 import { hashPassword } from "@/auth";
 import { Password } from "@/route-handlers/auth/components";
-import { destroySession } from "@/route-handlers/auth/sessions";
 import { DEFAULT_JUMP_IMAGE_PROMPT } from "@/jump-image";
 import { UserOptionsSchema, type UserOptions } from "@/options";
 import * as routes from "@/routes";
-import {
-    aiUsage,
-    aircrafts,
-    gear,
-    jumps,
-    jumpTypes,
-    locations,
-    users,
-} from "@/schema";
+import { aircrafts, gear, jumps, jumpTypes, locations, users } from "@/schema";
 import { LogbookPage } from "@/app/logbook-page";
 import { $select } from "@/utils";
 import { DangerZoneSection } from "@/route-handlers/preferences/danger-zone";
+import { deleteAccount } from "@/delete-account";
 
 const PreferencesSchema = z
     .object({
@@ -448,6 +440,7 @@ function optionsFromRawForm(
         jumpImageModel: current.jumpImageModel,
         jumpImageAdditionalContext: current.jumpImageAdditionalContext,
         htmlCacheEnabled: raw.htmlCacheEnabled === "true",
+        privacyPolicyAccepted: current.privacyPolicyAccepted,
         readonly: current.readonly,
         exampleDataChecksum: current.exampleDataChecksum,
     });
@@ -470,19 +463,8 @@ function getErrorMessages(result: { error: z.ZodError }): string[] {
     return result.error.issues.map((issue) => issue.message);
 }
 
-const DELETED_ACCOUNT_AI_USAGE_TITLE = "Deleted account";
-
 async function handleDeleteAccount(c: AppRequestContext) {
-    const ctx = getAppContext(c);
-    const user = ctx.getUser();
-    // Scrub AI usage titles before delete. ai_usage keeps rows (ON DELETE SET NULL);
-    // jumps, gear, jump types, locations, aircrafts, and sessions cascade-delete.
-    await ctx.db
-        .update(aiUsage)
-        .set({ title: DELETED_ACCOUNT_AI_USAGE_TITLE })
-        .where(eq(aiUsage.userUuid, user.uuid));
-    await ctx.db.delete(users).where(eq(users.uuid, user.uuid));
-    await destroySession(c);
+    await deleteAccount(c);
     return c.redirect(routes.auth.login({}));
 }
 
@@ -559,6 +541,7 @@ async function handlePreferences(c: AppRequestContext) {
         jumpImageModel: user.options.jumpImageModel,
         jumpImageAdditionalContext: user.options.jumpImageAdditionalContext,
         htmlCacheEnabled: result.data.htmlCacheEnabled === "true",
+        privacyPolicyAccepted: user.options.privacyPolicyAccepted,
         readonly: user.options.readonly,
         exampleDataChecksum: user.options.exampleDataChecksum,
     });

@@ -1,4 +1,4 @@
-import { logOut, openMainMenu } from "./helpers";
+import { acceptPrivacyPolicyIfRequired, logOut, openMainMenu } from "./helpers";
 import { expect, test } from "./fixtures";
 
 test("bootstrap admin and require invitations for later users", async ({
@@ -23,6 +23,7 @@ test("bootstrap admin and require invitations for later users", async ({
         .locator('input[name="confirmPassword"]')
         .fill("test-admin-password");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 
     await openMainMenu(page);
@@ -83,6 +84,7 @@ test("bootstrap admin and require invitations for later users", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
     await openMainMenu(page);
     await expect(

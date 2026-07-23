@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 import {
     expectLogbookAroundJump,
@@ -21,6 +22,7 @@ test("the log book loads additional jumps while scrolling", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();
@@ -124,6 +126,7 @@ test("a skydiver can register and record their first jump", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await expect(page).toHaveURL("/logbook");
 
@@ -620,6 +623,7 @@ test("a jump can be added without measurements or jump items", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await expect(page.locator('input[name="exitAltitude"]')).toHaveValue("");
@@ -651,6 +655,7 @@ test("gear can be converted to a jump type with its jump references", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage gear" }).click();
@@ -744,6 +749,7 @@ test("a skydiver can create jump items from the add jump form", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await page.locator('input[name="jumpNumber"]').fill("1");
@@ -831,6 +837,7 @@ test("next jump number button restores max plus one", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage locations" }).click();
@@ -883,6 +890,7 @@ test("freefall time can be estimated from freefall type", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await page.locator('input[name="exitAltitude"]').fill("4000");
@@ -929,6 +937,7 @@ test("freefall time estimate respects feet altitude units", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openMainMenu(page);
     await page.getByRole("link", { name: "Preferences", exact: true }).click();
@@ -987,6 +996,7 @@ test("freefall time can be estimated with custom speed", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await page.getByRole("link", { name: "Add jump", exact: true }).click();
     await page.locator('input[name="exitAltitude"]').fill("4000");
