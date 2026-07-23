@@ -1,4 +1,5 @@
 import { Script } from "@/components/script";
+import * as routes from "@/routes";
 import { $select } from "@/utils";
 
 const REDIRECT_BACK_AFTER_POST_FIELD = "__loki_redirect_back_after_post";
@@ -41,6 +42,7 @@ function $returnAfterFormPost(config: {
     formFieldName: string;
     ignoreReturnRouteSelector: string;
     clearReturnRouteSelector: string;
+    keepServerDestinationPaths: string[];
 }) {
     const storageKey = config.storageKey;
     const destinationStorageKey = config.destinationStorageKey;
@@ -55,6 +57,7 @@ function $returnAfterFormPost(config: {
     const returnRoute = sessionStorage.getItem(storageKey);
     const expectedDestination = sessionStorage.getItem(destinationStorageKey);
     const currentRoute = window.location.pathname + window.location.search;
+    const currentPathname = window.location.pathname;
     if (returnRoute && sessionStorage.getItem(pendingStorageKey) === "true") {
         // Clear the one-shot flag first so a failed or interrupted redirect
         // cannot create a redirect loop on reload.
@@ -65,6 +68,10 @@ function $returnAfterFormPost(config: {
             // replacing that server-selected destination with the return route.
             sessionStorage.removeItem(storageKey);
             sessionStorage.removeItem(destinationStorageKey);
+            // Keep destinations that must not be overridden (e.g. read-only).
+            if (config.keepServerDestinationPaths.includes(currentPathname)) {
+                return;
+            }
             if (returnRoute !== currentRoute && "navigation" in window) {
                 window.navigation.navigate(returnRoute, {
                     history: "replace",
@@ -190,6 +197,7 @@ export function ReturnAfterFormPost() {
                     formFieldName: REDIRECT_BACK_AFTER_POST_FIELD,
                     ignoreReturnRouteSelector: IGNORE_RETURN_ROUTE_SELECTOR,
                     clearReturnRouteSelector: CLEAR_RETURN_ROUTE_SELECTOR,
+                    keepServerDestinationPaths: [routes.readonly.route],
                 },
             ]}
             $exec={$returnAfterFormPost}

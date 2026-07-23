@@ -1,6 +1,6 @@
 import { Context, Hono } from "hono";
 import { TrieRouter } from "hono/router/trie-router";
-import { eq, lte } from "drizzle-orm";
+import { eq, lte, sql } from "drizzle-orm";
 import { jsxRenderer, useRequestContext } from "hono/jsx-renderer";
 import { deleteCookie, getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
@@ -83,6 +83,8 @@ export interface User {
     displayName: string | null;
     email: string;
     options: UserOptions;
+    /** From options.readonly; set at auth so middleware needs no extra query. */
+    readonly: boolean;
     admin: boolean;
     htmlCacheGeneration: number;
     getDisplayName(): string;
@@ -618,6 +620,7 @@ const PUBLIC_PATHS = [
     routes.home.route,
     routes.auth.login.route,
     routes.auth.register.route,
+    routes.demo.try.route,
     routes.about.route,
     routes.todo.route,
 ];
@@ -637,13 +640,15 @@ function isPublicAssetPath(path: string) {
     return path.startsWith(PUBLIC_ASSET_PREFIX) || PUBLIC_ROOT_ASSETS.has(path);
 }
 
-function setAuthenticatedUser(ctx: AppContext, user: AuthenticatedUser) {
+export function setAuthenticatedUser(ctx: AppContext, user: AuthenticatedUser) {
+    const options = parseUserOptions(user.options);
     ctx.user = {
         uuid: user.uuid,
         username: user.username,
         displayName: user.displayName,
         email: user.email,
-        options: parseUserOptions(user.options),
+        options,
+        readonly: options.readonly,
         admin: user.admin,
         htmlCacheGeneration: user.htmlCacheGeneration,
         getDisplayName() {
@@ -663,6 +668,9 @@ async function hasRegisteredUsers(db: AppDatabase): Promise<boolean> {
     const user = await db
         .select({ uuid: users.uuid })
         .from(users)
+        .where(
+            sql`coalesce(json_extract(${users.options}, '$.readonly'), 0) = 0`,
+        )
         .limit(1)
         .get();
     return Boolean(user);
@@ -753,6 +761,7 @@ async function authenticateMiddleware(
         !ctx.user &&
         path !== routes.auth.register.route &&
         path !== routes.about.route &&
+        path !== routes.demo.try.route &&
         !(await hasRegisteredUsers(ctx.db))
     ) {
         return c.redirect(routes.auth.register({}));
@@ -790,7 +799,31 @@ async function authenticateMiddleware(
 
 app.use("*", authenticateMiddleware);
 
+app.use("*", readonlyMiddleware);
+
 app.use("*", htmlCacheMiddleware);
+
+const READONLY_ALLOWED_POST_PATHS = new Set<string>([
+    routes.auth.logout.route,
+    routes.demo.try.route,
+]);
+
+async function readonlyMiddleware(
+    c: AppRequestContext,
+    next: () => Promise<void>,
+) {
+    if (c.req.method !== "POST") {
+        return next();
+    }
+    const user = getAppContext(c).user;
+    if (!user?.readonly) {
+        return next();
+    }
+    if (READONLY_ALLOWED_POST_PATHS.has(c.req.path)) {
+        return next();
+    }
+    return c.redirect(routes.readonly({}));
+}
 
 app.use(
     "*",

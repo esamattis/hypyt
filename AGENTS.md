@@ -108,6 +108,10 @@ pn test
 
 Note that this does automatic prettier formatting.
 
+For local D1 access in Playwright tests, use `executePlaywrightDb` and
+`queryPlaywrightDb` from `tests/helpers.ts`. Do not reimplement wrangler D1
+commands in individual specs.
+
 # Lints
 
 Lint-skip comments are allowed only in test files. Production code must be lint-clean.

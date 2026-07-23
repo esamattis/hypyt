@@ -30,7 +30,10 @@ async function insertFirstUser(
             ${uuid}, ${values.username}, ${values.displayName || null},
             ${values.passwordHash}, ${values.email}, NULL,
             ${JSON.stringify(values.options)}, 1, unixepoch()
-        WHERE NOT EXISTS (SELECT 1 FROM users)
+        WHERE NOT EXISTS (
+            SELECT 1 FROM users
+            WHERE coalesce(json_extract(options, '$.readonly'), 0) = 0
+        )
         RETURNING uuid
     `);
     return created?.uuid;
