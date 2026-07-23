@@ -319,6 +319,7 @@ function PreferencesForm(props: {
     formId: string;
     values: PreferencesFormValues;
     errors?: string[];
+    selfHosted: boolean;
 }) {
     return (
         <form
@@ -367,7 +368,9 @@ function PreferencesForm(props: {
             <DateTimeSection options={props.values.options} />
             <JumpFromImageSection options={props.values.options} />
             <PasswordSection />
-            <PerformanceSection options={props.values.options} />
+            {!props.selfHosted && (
+                <PerformanceSection options={props.values.options} />
+            )}
             <div className="hidden sm:block">
                 <Button type="submit" variant="primary">
                     Save preferences
@@ -380,6 +383,7 @@ function PreferencesForm(props: {
 function PreferencesPage(props: {
     values: PreferencesFormValues;
     errors?: string[];
+    selfHosted: boolean;
 }) {
     const formId = useId();
 
@@ -401,6 +405,7 @@ function PreferencesPage(props: {
                 formId={formId}
                 values={props.values}
                 errors={props.errors}
+                selfHosted={props.selfHosted}
             />
             <DangerZoneSection />
         </LogbookPage>
@@ -430,6 +435,7 @@ function getFormDataValues(formData: FormData): Record<string, string> {
 function optionsFromRawForm(
     raw: Record<string, string>,
     current: UserOptions,
+    selfHosted: boolean,
 ): UserOptions {
     const partial = UserOptionsSchema.safeParse({
         altitudeUnits: raw.altitudeUnits ?? current.altitudeUnits,
@@ -440,7 +446,9 @@ function optionsFromRawForm(
         jumpImagePrompt: raw.jumpImagePrompt ?? current.jumpImagePrompt,
         jumpImageModel: current.jumpImageModel,
         jumpImageAdditionalContext: current.jumpImageAdditionalContext,
-        htmlCacheEnabled: raw.htmlCacheEnabled === "true",
+        htmlCacheEnabled: selfHosted
+            ? current.htmlCacheEnabled
+            : raw.htmlCacheEnabled === "true",
         privacyPolicyAccepted: current.privacyPolicyAccepted,
         readonly: current.readonly,
         exampleDataChecksum: current.exampleDataChecksum,
@@ -454,7 +462,13 @@ function renderPreferences(
     values = getFormValues(c),
     errors?: string[],
 ) {
-    return c.render(<PreferencesPage values={values} errors={errors} />);
+    return c.render(
+        <PreferencesPage
+            values={values}
+            errors={errors}
+            selfHosted={getAppContext(c).isSelfHosted()}
+        />,
+    );
 }
 
 function renderPreferencesPage(c: AppRequestContext) {
@@ -492,17 +506,21 @@ async function handlePreferences(c: AppRequestContext) {
 
     const raw = getFormDataValues(formData);
     const result = PreferencesSchema.safeParse(raw);
+    const ctx = getAppContext(c);
     const values = getFormValues(c);
     values.username = raw.username ?? values.username;
     values.displayName = raw.displayName ?? values.displayName;
     values.email = raw.email ?? values.email;
-    values.options = optionsFromRawForm(raw, values.options);
+    values.options = optionsFromRawForm(
+        raw,
+        values.options,
+        ctx.isSelfHosted(),
+    );
 
     if (!result.success) {
         return renderPreferences(c, values, getErrorMessages(result));
     }
 
-    const ctx = getAppContext(c);
     const user = ctx.getUser();
     const existingUsername = await ctx.db
         .select({ uuid: users.uuid })
@@ -542,7 +560,9 @@ async function handlePreferences(c: AppRequestContext) {
             result.data.jumpImagePrompt.trim() || DEFAULT_JUMP_IMAGE_PROMPT,
         jumpImageModel: user.options.jumpImageModel,
         jumpImageAdditionalContext: user.options.jumpImageAdditionalContext,
-        htmlCacheEnabled: result.data.htmlCacheEnabled === "true",
+        htmlCacheEnabled: ctx.isSelfHosted()
+            ? user.options.htmlCacheEnabled
+            : result.data.htmlCacheEnabled === "true",
         privacyPolicyAccepted: user.options.privacyPolicyAccepted,
         readonly: user.options.readonly,
         exampleDataChecksum: user.options.exampleDataChecksum,
