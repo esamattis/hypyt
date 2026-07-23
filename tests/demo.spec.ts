@@ -1,5 +1,10 @@
 import { expect, test } from "./fixtures";
-import { executePlaywrightDb, logOut } from "./helpers";
+import {
+    executePlaywrightDb,
+    logOut,
+    openMainMenu,
+    queryPlaywrightDb,
+} from "./helpers";
 
 async function tryDemo(page: import("./fixtures").Page) {
     await page.goto("/");
@@ -90,6 +95,81 @@ test("try demo skips re-import when example data checksum matches", async ({
     await expect(
         page.getByText("Long flock at sunset. Clean flight, clean open"),
     ).toHaveCount(0);
+});
+
+test("try demo creates a non-admin read-only user", async ({ page }) => {
+    await tryDemo(page);
+
+    const rows = await queryPlaywrightDb(`
+        SELECT admin, json_extract(options, '$.readonly') AS readonly
+        FROM users
+        WHERE username = 'demo'
+    `);
+    expect(rows).toEqual([{ admin: 0, readonly: 1 }]);
+});
+
+test("first account is admin when only readonly users exist", async ({
+    page,
+}) => {
+    await tryDemo(page);
+    await logOut(page);
+
+    // Treat every existing account as readonly so registration looks empty,
+    // without deleting the shared bootstrap admin used by later tests.
+    await executePlaywrightDb(`
+        UPDATE users
+        SET options = json_set(options, '$.readonly', json('true'))
+        WHERE username != 'demo';
+    `);
+
+    try {
+        await page.goto("/register");
+        await expect(
+            page.getByRole("heading", {
+                name: "First account: administrator",
+            }),
+        ).toBeVisible();
+        await expect(page.locator('input[name="invitationCode"]')).toHaveCount(
+            0,
+        );
+
+        await page.locator('input[name="username"]').fill("post-demo-admin");
+        await page.locator('input[name="displayName"]').fill("Post Demo Admin");
+        await page
+            .locator('input[name="email"]')
+            .fill("post-demo-admin@example.test");
+        await page.locator('input[name="password"]').fill("parachute");
+        await page.locator('input[name="confirmPassword"]').fill("parachute");
+        await page.getByRole("button", { name: "Create account" }).click();
+        await expect(page).toHaveURL("/logbook");
+
+        await openMainMenu(page);
+        await expect(
+            page.getByRole("link", { name: "Admin", exact: true }),
+        ).toBeVisible();
+
+        const rows = await queryPlaywrightDb(`
+            SELECT username, admin
+            FROM users
+            WHERE username IN ('demo', 'post-demo-admin')
+            ORDER BY username
+        `);
+        expect(rows).toEqual([
+            { username: "demo", admin: 0 },
+            { username: "post-demo-admin", admin: 1 },
+        ]);
+    } finally {
+        await executePlaywrightDb(`
+            DELETE FROM sessions
+            WHERE user_uuid = (
+                SELECT uuid FROM users WHERE username = 'post-demo-admin'
+            );
+            DELETE FROM users WHERE username = 'post-demo-admin';
+            UPDATE users
+            SET options = json_set(options, '$.readonly', json('false'))
+            WHERE username != 'demo';
+        `);
+    }
 });
 
 test("try demo re-imports when example data checksum changes", async ({

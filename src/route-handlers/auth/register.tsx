@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import { users } from "@/schema";
 import { z } from "zod";
@@ -130,6 +130,9 @@ async function hasRegisteredUsers(c: AppRequestContext): Promise<boolean> {
     const user = await getAppContext(c)
         .db.select({ uuid: users.uuid })
         .from(users)
+        .where(
+            sql`coalesce(json_extract(${users.options}, '$.readonly'), 0) = 0`,
+        )
         .limit(1)
         .get();
     return Boolean(user);

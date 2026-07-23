@@ -1,6 +1,6 @@
 import { Context, Hono } from "hono";
 import { TrieRouter } from "hono/router/trie-router";
-import { eq, lte } from "drizzle-orm";
+import { eq, lte, sql } from "drizzle-orm";
 import { jsxRenderer, useRequestContext } from "hono/jsx-renderer";
 import { deleteCookie, getCookie } from "hono/cookie";
 import { ViteClient } from "vite-ssr-components/hono";
@@ -668,6 +668,9 @@ async function hasRegisteredUsers(db: AppDatabase): Promise<boolean> {
     const user = await db
         .select({ uuid: users.uuid })
         .from(users)
+        .where(
+            sql`coalesce(json_extract(${users.options}, '$.readonly'), 0) = 0`,
+        )
         .limit(1)
         .get();
     return Boolean(user);
