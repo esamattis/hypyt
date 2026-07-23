@@ -206,16 +206,13 @@ function Hero(props: { loggedIn: boolean }) {
 
 function LocalInstallation() {
     return (
-        <FullWidthLandingCard
-            sectionClassName="mt-8 sm:mt-10"
-            className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
-        >
+        <section className="mx-auto mt-12 max-w-5xl px-4 sm:mt-16">
             <h2 className={sectionHeadingClassName}>Local Installation</h2>
-            <div className="mt-8 grid gap-6 text-left lg:grid-cols-2 lg:gap-8 lg:items-stretch">
-                <div className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6 dark:border-slate-700 dark:bg-slate-950/50">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <div className="mt-8 grid gap-5 lg:grid-cols-2 lg:items-stretch">
+                <div className={`min-w-0 ${cardClassName}`}>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Linux or macOS
-                    </p>
+                    </h3>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         One-line install script
                     </p>
@@ -240,10 +237,12 @@ function LocalInstallation() {
                         .
                     </p>
                 </div>
-                <div className="flex min-w-0 flex-col justify-center rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6 dark:border-slate-700 dark:bg-slate-950/50">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <div
+                    className={`flex min-w-0 flex-col justify-center ${cardClassName}`}
+                >
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         Windows &amp; binaries
-                    </p>
+                    </h3>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         Prebuilt binaries for Linux, macOS, and Windows from
                         GitHub Releases. On Windows, grab{" "}
@@ -257,7 +256,7 @@ function LocalInstallation() {
                     </div>
                 </div>
             </div>
-        </FullWidthLandingCard>
+        </section>
     );
 }
 
