@@ -56,6 +56,8 @@ export class User {
             .update(users)
             .set({
                 options: JSON.stringify(options),
+                // Options may change during GETs such as CSV export, where the
+                // POST middleware cannot invalidate option-dependent HTML.
                 htmlCacheGeneration: sql`${users.htmlCacheGeneration} + 1`,
             })
             .where(eq(users.uuid, this.uuid))
