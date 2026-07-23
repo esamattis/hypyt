@@ -1,34 +1,26 @@
 import { getAppContext, type App, type AppRequestContext } from "@/app/app";
 import { LogbookPage } from "@/app/logbook-page";
-import { ButtonLink } from "@/components/form";
+import { Button } from "@/components/form";
+import { LockIcon } from "@/components/icons";
 import * as routes from "@/routes";
 
 function ReadonlyPage() {
     return (
         <LogbookPage title="Read-only account">
             <div className="flex flex-col items-center gap-6 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-2xl dark:bg-amber-950/60">
-                    🔒
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                    <LockIcon className="h-8 w-8" />
                 </div>
                 <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
                     This account is read-only. You can browse the logbook, but
-                    changes cannot be saved. Sign up for your own account to
-                    start logging jumps.
+                    changes cannot be saved. Log out and create your own account
+                    to start logging jumps.
                 </p>
-                <div className="flex flex-col items-center gap-3 sm:flex-row">
-                    <ButtonLink
-                        href={routes.logbook.index({})}
-                        variant="primary"
-                    >
-                        Back to logbook
-                    </ButtonLink>
-                    <ButtonLink
-                        href={routes.auth.register({})}
-                        variant="secondary"
-                    >
-                        Create account
-                    </ButtonLink>
-                </div>
+                <form method="post" action={routes.auth.logout({})}>
+                    <Button type="submit" variant="primary">
+                        Log out
+                    </Button>
+                </form>
             </div>
         </LogbookPage>
     );

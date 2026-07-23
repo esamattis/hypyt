@@ -1,5 +1,4 @@
 import { expect, test } from "./fixtures";
-import { logOut } from "./helpers";
 
 test("try demo logs in with example data and blocks writes", async ({
     page,
@@ -16,29 +15,43 @@ test("try demo logs in with example data and blocks writes", async ({
         }),
     ).toBeVisible();
 
-    await page.goto("/logbook/jumps/new");
-    await expect(page.getByRole("button", { name: "Add jump" })).toBeVisible();
-    const blocked = await page.request.post("/logbook/jumps/new", {
-        form: {
-            jumpNumber: "9999",
-            jumpDate: "2020-01-01",
-            exitAltitude: "4000",
-            openingAltitude: "1000",
-            freefallTime: "60",
-        },
-        maxRedirects: 0,
-    });
-    expect(blocked.status()).toBe(302);
-    expect(blocked.headers().location).toBe("/readonly");
-
-    await page.goto("/readonly");
+    await page
+        .getByRole("link", {
+            name: /#622\b.*Wingsuit.*Skydive Chicago.*Twin Otter/,
+        })
+        .click();
+    await expect(page).toHaveURL(/\/logbook\/jumps\/[^/]+$/);
+    await page.getByRole("button", { name: "Save jump" }).click();
+    await expect(page).toHaveURL("/readonly");
     await expect(
         page.getByRole("heading", { name: "Read-only account" }),
     ).toBeVisible();
     await expect(
         page.getByText("This account is read-only", { exact: false }),
     ).toBeVisible();
+    await expect(
+        page.getByRole("link", { name: "Create account" }),
+    ).toHaveCount(0);
+    await expect(
+        page.getByRole("link", { name: "Back to logbook" }),
+    ).toHaveCount(0);
 
-    await logOut(page);
+    await page.locator("main").getByRole("button", { name: "Log out" }).click();
     await expect(page).toHaveURL("/login");
+});
+
+test("adding a jump as demo redirects to the read-only page", async ({
+    page,
+}) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Try demo" }).first().click();
+    await expect(page).toHaveURL("/logbook");
+
+    await page.goto("/logbook/jumps/new");
+    await page.locator('input[name="jumpNumber"]').fill("9999");
+    await page.getByRole("button", { name: "Add jump" }).click();
+    await expect(page).toHaveURL("/readonly");
+    await expect(
+        page.getByRole("heading", { name: "Read-only account" }),
+    ).toBeVisible();
 });
