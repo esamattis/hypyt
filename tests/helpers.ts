@@ -1,4 +1,23 @@
+import { execFile as execFileCallback } from "node:child_process";
+import { promisify } from "node:util";
 import { expect, type Locator, type Page } from "@playwright/test";
+import { wranglerBin } from "../scripts/wrangler-bin";
+
+const execFile = promisify(execFileCallback);
+
+export async function executePlaywrightDb(sql: string): Promise<void> {
+    await execFile(process.execPath, [
+        wranglerBin(),
+        "d1",
+        "execute",
+        "DB",
+        "--local",
+        "--persist-to",
+        ".playwright/state",
+        "--command",
+        sql,
+    ]);
+}
 
 export async function expectLogbookAroundJump(
     page: Page,

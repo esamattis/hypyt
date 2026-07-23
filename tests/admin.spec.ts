@@ -129,6 +129,48 @@ test("does not allow removing the last admin", async ({ page, request }) => {
     await expect(removeButton).toBeDisabled();
 });
 
+test("admin can make a user read-only and log in as them", async ({
+    page,
+}) => {
+    await registerUser(page, "readonly-target");
+    await logOut(page);
+
+    await page.locator('input[name="usernameOrEmail"]').fill("test-admin");
+    await page.locator('input[name="password"]').fill("test-admin-password");
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL("/logbook");
+    await page.goto("/admin");
+
+    const targetUser = page.getByRole("listitem").filter({
+        hasText: "@readonly-target",
+    });
+    await expect(
+        targetUser.getByText("Read-only", { exact: true }),
+    ).toHaveCount(0);
+    await targetUser.getByRole("button", { name: "Make read-only" }).click();
+    await expect(page).toHaveURL("/admin");
+    await expect(
+        targetUser.getByText("Read-only", { exact: true }),
+    ).toBeVisible();
+    await expect(
+        targetUser.getByRole("button", { name: "Remove read-only" }),
+    ).toBeVisible();
+
+    await targetUser.getByRole("button", { name: "Log in as" }).click();
+    await expect(page).toHaveURL("/logbook");
+    await expect(
+        page.getByRole("link", { name: /readonly-target's logbook/ }),
+    ).toBeVisible();
+
+    await page.goto("/logbook/jumps/new");
+    await page.locator('input[name="jumpNumber"]').fill("1");
+    await page.getByRole("button", { name: "Add jump" }).click();
+    await expect(page).toHaveURL("/readonly");
+    await expect(
+        page.getByRole("heading", { name: "Read-only account" }),
+    ).toBeVisible();
+});
+
 test("non-admins cannot perform admin actions", async ({ page, request }) => {
     await registerUser(page, "non-admin-actions");
 
