@@ -180,7 +180,9 @@ function Hero(props: { loggedIn: boolean }) {
                 <SignUpOrLogbookButton loggedIn={props.loggedIn} />
             </div>
             <VideoEmbed />
-            <div className="mt-8 flex flex-col items-center justify-center gap-3">
+            <div
+                className={`${cardClassName} mx-auto mt-8 flex max-w-xl flex-col items-center gap-5 text-center sm:gap-6`}
+            >
                 <h2 className={sectionHeadingClassName}>Local Installation</h2>
                 <DownloadButton />
             </div>
