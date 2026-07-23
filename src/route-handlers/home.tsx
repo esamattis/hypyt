@@ -124,7 +124,11 @@ function LandingHeader(props: { loggedIn: boolean }) {
 
 function TryDemoButton() {
     return (
-        <form method="post" action={routes.demo.try({})}>
+        <form
+            method="post"
+            action={routes.demo.try({})}
+            className="w-full sm:w-auto"
+        >
             <Button
                 type="submit"
                 variant="secondary"
@@ -217,7 +221,7 @@ function Hero(props: { loggedIn: boolean }) {
                 </ExternalLink>{" "}
                 whenever you want - your logbook data always stays yours.
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
                 <TryDemoButton />
                 <SignUpOrLogbookButton loggedIn={props.loggedIn} />
             </div>
@@ -525,7 +529,7 @@ function FooterCta(props: { loggedIn: boolean }) {
                     ? "Head back to your logbook and keep recording your jumps."
                     : "Use an invitation to create a hosted account, or log in to pick up where you left off."}
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
                 <LandingActions loggedIn={props.loggedIn} showTryDemo />
             </div>
         </FullWidthLandingCard>
