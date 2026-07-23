@@ -52,6 +52,13 @@ test("serves the app with an initialized SQLite database", async ({
         .fill("executable-password");
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page).toHaveURL("/logbook");
+    await expect(
+        page.getByRole("link", { name: "Footer privacy policy" }),
+    ).toHaveCount(0);
+    await page.goto("/privacy");
+    await expect(
+        page.getByRole("button", { name: "Accept privacy policy" }),
+    ).toHaveCount(0);
     await expect(page.getByText(`SQLite database: ${sqlitePath}`)).toHaveCount(
         0,
     );

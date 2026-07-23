@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 import {
     expectLogbookAroundJump,
@@ -23,6 +24,7 @@ test("an existing and a new aircraft can be added to a new jump", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await openManageLogbook(page);
     await page.getByRole("link", { name: "Manage aircraft" }).click();

@@ -1,5 +1,10 @@
 import { eq, sql } from "drizzle-orm";
-import { getAppContext, useAppContext, type App, type AppRequestContext } from "@/app/app";
+import {
+    getAppContext,
+    useAppContext,
+    type App,
+    type AppRequestContext,
+} from "@/app/app";
 import { users } from "@/schema";
 import { z } from "zod";
 import { AuthFormShell } from "@/components/auth";
@@ -47,8 +52,7 @@ function RegisterForm(props: {
     displayName?: string;
     email?: string;
 }) {
-
-    const selfHosting = Boolean(useAppContext().sqlitePath);
+    const selfHosted = useAppContext().isSelfHosted();
 
     return (
         <AuthFormShell
@@ -73,9 +77,11 @@ function RegisterForm(props: {
                 </section>
             )}
             <RegistrationLocaleInputs />
-            {!selfHosting && (
+            {!selfHosted && (
                 <p>
-                    Please read the <Link href={routes.privacy({})}>Privacy Policy</Link> before creating an account.
+                    Please read the{" "}
+                    <Link href={routes.privacy({}, {})}>Privacy Policy</Link>{" "}
+                    before creating an account.
                 </p>
             )}
             {props.invitationRequired && (

@@ -76,6 +76,7 @@ export const DEFAULT_USER_OPTIONS = {
     jumpImageModel: DEFAULT_JUMP_IMAGE_MODEL,
     jumpImageAdditionalContext: "",
     htmlCacheEnabled: true,
+    privacyPolicyAccepted: false,
     readonly: false,
     exampleDataChecksum: "",
 } as const;
@@ -104,6 +105,7 @@ export const UserOptionsSchema = z.object({
         )
         .default(""),
     htmlCacheEnabled: z.boolean().default(true),
+    privacyPolicyAccepted: z.boolean().default(false),
     /** Only admins may change this; user preferences never write it. */
     readonly: z.boolean().default(false),
     /** SHA-256 of the last imported example CSV; demo import skips when equal. */

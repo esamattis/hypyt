@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 import { expectLogbookAroundJump } from "./helpers";
 
@@ -14,6 +15,7 @@ test("offset controls can show previous jumps and clear the offset", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 
     await page.getByRole("button", { name: "Load example data" }).click();
@@ -93,6 +95,7 @@ test("editing a jump scrolls back to that jump", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 
     await page.getByRole("button", { name: "Load example data" }).click();

@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 
 test("editing two gear items in a row returns to the gear list", async ({
@@ -15,6 +16,7 @@ test("editing two gear items in a row returns to the gear list", async ({
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 
     // Start on the list with no prior return route so a save must use the

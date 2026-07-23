@@ -54,9 +54,10 @@ async function ensureDemoUser(c: AppRequestContext) {
 
     if (existing) {
         const options = parseUserOptions(existing.options);
-        if (!options.readonly) {
+        if (!options.readonly || !options.privacyPolicyAccepted) {
             const nextOptions = UserOptionsSchema.parse({
                 ...options,
+                privacyPolicyAccepted: true,
                 readonly: true,
             });
             await ctx.db
@@ -73,7 +74,10 @@ async function ensureDemoUser(c: AppRequestContext) {
     }
 
     const uuid = crypto.randomUUID();
-    const options = UserOptionsSchema.parse({ readonly: true });
+    const options = UserOptionsSchema.parse({
+        privacyPolicyAccepted: true,
+        readonly: true,
+    });
     const optionsJson = JSON.stringify(options);
     await ctx.db
         .insert(users)

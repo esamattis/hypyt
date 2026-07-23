@@ -75,6 +75,7 @@ export interface AppContext {
     distanceFormatter(): DistanceFormatter;
     numberFormatter(): NumberFormatter;
     speedFormatter(): SpeedFormatter;
+    isSelfHosted(): boolean;
     url(): URL;
 }
 
@@ -602,6 +603,9 @@ async function setAppContextMiddleware(
                 options.numberFormat,
             );
         },
+        isSelfHosted() {
+            return Boolean(this.sqlitePath);
+        },
         url() {
             // Use the request URL as provided by the runtime (Cloudflare
             // validates Host). Do not rebuild from the Host header.
@@ -756,7 +760,7 @@ async function authenticateMiddleware(
         }
     }
 
-    if (ctx.sqlitePath && path === routes.home.route) {
+    if (ctx.isSelfHosted() && path === routes.home.route) {
         return c.redirect(routes.auth.login({}));
     }
 
@@ -803,6 +807,33 @@ async function authenticateMiddleware(
 
 app.use("*", authenticateMiddleware);
 
+const PRIVACY_POLICY_ALLOWED_PATHS = new Set<string>([
+    routes.privacy.route,
+    routes.auth.logout.route,
+    routes.serviceWorker.route,
+]);
+
+async function privacyPolicyMiddleware(
+    c: AppRequestContext,
+    next: () => Promise<void>,
+) {
+    const ctx = getAppContext(c);
+    if (
+        ctx.isSelfHosted() ||
+        isPublicAssetPath(c.req.path) ||
+        !ctx.user ||
+        ctx.user.options.privacyPolicyAccepted ||
+        PRIVACY_POLICY_ALLOWED_PATHS.has(c.req.path)
+    ) {
+        return next();
+    }
+
+    const url = ctx.url();
+    return c.redirect(routes.privacy({}, { back: url.pathname + url.search }));
+}
+
+app.use("*", privacyPolicyMiddleware);
+
 app.use("*", readonlyMiddleware);
 
 app.use("*", htmlCacheMiddleware);
@@ -810,6 +841,7 @@ app.use("*", htmlCacheMiddleware);
 const READONLY_ALLOWED_POST_PATHS = new Set<string>([
     routes.auth.logout.route,
     routes.demo.try.route,
+    routes.privacy.route,
 ]);
 
 async function readonlyMiddleware(
@@ -902,7 +934,7 @@ app.use(
                     <div className="flex-1">{props.children}</div>
                     <Footer
                         hasBottomNavigation={Boolean(user)}
-                        showPrivacyPolicy={!appContext.sqlitePath}
+                        showPrivacyPolicy={!appContext.isSelfHosted()}
                     />
                     <UnsavedChangesDialogComponent />
                     <UpdateToastComponent />

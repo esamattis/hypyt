@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 import {
     executePlaywrightDb,
@@ -141,6 +142,7 @@ test("first account is admin when only readonly users exist", async ({
         await page.locator('input[name="password"]').fill("parachute");
         await page.locator('input[name="confirmPassword"]').fill("parachute");
         await page.getByRole("button", { name: "Create account" }).click();
+        await acceptPrivacyPolicyIfRequired(page);
         await expect(page).toHaveURL("/logbook");
 
         await openMainMenu(page);

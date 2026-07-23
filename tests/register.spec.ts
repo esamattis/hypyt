@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test } from "./fixtures";
 import { openMainMenu } from "./helpers";
 
@@ -51,6 +52,7 @@ async function registerLocaleUser(
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 }
 
@@ -67,6 +69,7 @@ test("registration form keeps field values when password is too short", async ({
     await page.locator('input[name="password"]').fill("short");
     await page.locator('input[name="confirmPassword"]').fill("short");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await expect(page).toHaveURL("/register");
     await expect(
@@ -94,6 +97,7 @@ test("registration rejects a colon in the username", async ({ page }) => {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await expect(page).toHaveURL("/register");
     await expect(
@@ -115,6 +119,7 @@ test("registration form keeps field values when invitation code is wrong", async
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
 
     await expect(page).toHaveURL("/register");
     await expect(

@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import type { TestInfo } from "@playwright/test";
 import { expect, test, type Page } from "./fixtures";
 import {
@@ -32,6 +33,7 @@ async function registerUser(options: {
         .locator('input[name="confirmPassword"]')
         .fill("parachute");
     await options.page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(options.page);
     await expect(options.page).toHaveURL("/logbook");
 }
 

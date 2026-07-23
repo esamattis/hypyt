@@ -1,3 +1,4 @@
+import { acceptPrivacyPolicyIfRequired } from "./helpers";
 import { expect, test, type Page } from "./fixtures";
 import { executePlaywrightDb, openMainMenu } from "./helpers";
 
@@ -10,6 +11,7 @@ async function registerUser(page: Page, username: string, displayName: string) {
     await page.locator('input[name="password"]').fill("parachute");
     await page.locator('input[name="confirmPassword"]').fill("parachute");
     await page.getByRole("button", { name: "Create account" }).click();
+    await acceptPrivacyPolicyIfRequired(page);
     await expect(page).toHaveURL("/logbook");
 }
 
