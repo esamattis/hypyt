@@ -110,9 +110,20 @@ test("new jump prefills from highest jump number and can switch to last added", 
         "4000",
     );
 
-    await page.getByRole("button", { name: "Clear prefill notice" }).click();
+    await page.getByRole("button", { name: "Clear fields" }).click();
     await expect(page.getByText(/Fields prefilled from/)).toHaveCount(0);
-    await expect(jumpItemSummary(page, "Location")).toContainText(
-        "High Number DZ",
+    await expect(jumpItemSummary(page, "Location")).toContainText("None");
+    await expect(page.locator('input[name="exitAltitude"]')).toHaveValue("");
+    await expect(page.locator('input[name="openingAltitude"]')).toHaveValue("");
+    await expect(page.locator('input[name="freefallTime"]')).toHaveValue("");
+    const today = new Date();
+    const todayValue = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+    ].join("-");
+    await expect(page.locator('input[name="jumpDate"]')).toHaveValue(
+        todayValue,
     );
+    await expect(page.locator('input[name="jumpNumber"]')).toHaveValue("11");
 });
