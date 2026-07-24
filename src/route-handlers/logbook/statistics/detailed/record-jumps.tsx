@@ -235,6 +235,17 @@ export function fetchRecordStatistics(
                 uuid: jumps.uuid,
                 jumpNumber: jumps.jumpNumber,
                 jumpDate: jumps.jumpDate,
+                value: jumps.exitAltitude,
+            })
+            .from(jumps)
+            .where(jumpCondition)
+            .orderBy(asc(jumps.exitAltitude))
+            .limit(1),
+        db
+            .select({
+                uuid: jumps.uuid,
+                jumpNumber: jumps.jumpNumber,
+                jumpDate: jumps.jumpDate,
                 value: jumps.openingAltitude,
             })
             .from(jumps)
