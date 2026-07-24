@@ -148,7 +148,9 @@ test("mobile navigation uses the bottom bar for actions and menu", async ({
     ).toBeVisible();
 });
 
-test("restored pages clear stale navigation progress", async ({ page }) => {
+test("restored pages clear stale navigation and form progress", async ({
+    page,
+}) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await registerUser(page, "back-nav-skydiver", "Back Nav Skydiver");
     await page.locator("body").waitFor();
@@ -159,6 +161,20 @@ test("restored pages clear stale navigation progress", async ({ page }) => {
         progress.setAttribute("role", "progressbar");
         progress.setAttribute("aria-label", "Loading page");
         document.body.appendChild(progress);
+
+        const form = document.createElement("form");
+        form.id = "restored-form-test";
+        form.setAttribute("aria-busy", "true");
+        const button = document.createElement("button");
+        button.disabled = true;
+        button.setAttribute("data-loki-disabled-on-submit", "");
+        button.classList.add("form-submit-pending");
+        const spinner = document.createElement("span");
+        spinner.classList.add("form-submit-spinner");
+        button.appendChild(spinner);
+        form.appendChild(button);
+        document.body.appendChild(form);
+
         window.dispatchEvent(
             new PageTransitionEvent("pageshow", { persisted: true }),
         );
@@ -167,6 +183,10 @@ test("restored pages clear stale navigation progress", async ({ page }) => {
     await expect(
         page.getByRole("progressbar", { name: "Loading page" }),
     ).toHaveCount(0);
+    await expect(page.locator(".form-submit-spinner")).toHaveCount(0);
+    await expect(page.locator("form[aria-busy]")).toHaveCount(0);
+    await expect(page.locator("button.form-submit-pending")).toHaveCount(0);
+    await expect(page.locator("#restored-form-test button")).toBeEnabled();
 });
 
 test("Android Brave users are advised to install with Chrome", async ({

@@ -47,12 +47,36 @@ function $clearFormSubmitProgress(
         $select
             .elOrNull(".form-submit-spinner", HTMLElement, submitter)
             ?.remove();
+    for (const element of form.elements) {
+        if (
+            (element instanceof HTMLInputElement ||
+                element instanceof HTMLButtonElement ||
+                element instanceof HTMLSelectElement ||
+                element instanceof HTMLTextAreaElement) &&
+            element.hasAttribute("data-loki-disabled-on-submit")
+        ) {
+            element.disabled = false;
+            element.removeAttribute("data-loki-disabled-on-submit");
+        }
+    }
+}
+
+function $clearRestoredFormSubmitProgress() {
+    for (const form of $select.all("form[aria-busy]", HTMLFormElement)) {
+        const submitter = $select.elOrNull(
+            ".form-submit-pending",
+            HTMLElement,
+            form,
+        );
+        $clearFormSubmitProgress(form, submitter);
+    }
 }
 
 function $disableFormOnSubmit(config: {
     progressTemplateId: string;
     spinnerTemplateId: string;
 }) {
+    window.addEventListener("pageshow", $clearRestoredFormSubmitProgress);
     document.addEventListener("submit", (event) => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement)) return;
@@ -102,8 +126,10 @@ function $disableFormOnSubmit(config: {
                         element instanceof HTMLSelectElement ||
                         element instanceof HTMLTextAreaElement) &&
                     !element.hasAttribute("data-loki-keep-enabled-on-submit")
-                )
+                ) {
+                    element.setAttribute("data-loki-disabled-on-submit", "");
                     element.disabled = true;
+                }
         }, 0);
     });
 }
@@ -178,6 +204,7 @@ export function DisableFormOnSubmit() {
                     $showNavigationProgress,
                     $clearNavigationProgress,
                     $clearFormSubmitProgress,
+                    $clearRestoredFormSubmitProgress,
                 ]}
                 $args={[{ progressTemplateId, spinnerTemplateId }]}
                 $exec={$disableFormOnSubmit}

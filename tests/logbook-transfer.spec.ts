@@ -212,6 +212,10 @@ test("archiving a jump item returns to detailed statistics", async ({
     await expect(
         page.getByRole("row").filter({ hasText: "Return rig" }),
     ).toContainText("Archived");
+
+    await page.getByRole("link", { name: "Return rig", exact: true }).click();
+    await expect(page.locator(".form-submit-spinner")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Archive" })).toBeEnabled();
 });
 
 test("statistics show how long ago the last jump was", async ({ page }) => {
