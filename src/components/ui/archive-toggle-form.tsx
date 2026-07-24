@@ -1,4 +1,6 @@
 import { Button } from "@/components/form";
+import { RedirectBackAfterPost } from "@/components/return-after-form-post";
+import * as routes from "@/routes";
 
 export function ArchiveToggleForm(props: { archived: boolean }) {
     return (
@@ -6,6 +8,9 @@ export function ArchiveToggleForm(props: { archived: boolean }) {
             method="post"
             className="mt-6 flex max-w-xl flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
+            <RedirectBackAfterPost
+                returnRoutePrefix={routes.logbook.statistics.detailed.route}
+            />
             <input type="hidden" name="action" value="toggleArchive" />
             <input
                 type="hidden"

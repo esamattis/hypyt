@@ -176,6 +176,48 @@ test("saving a record jump returns to yearly statistics", async ({ page }) => {
     ).toBeVisible();
 });
 
+test("archiving a jump item returns to detailed statistics", async ({
+    page,
+}) => {
+    await registerUser(page, "archive-item-return");
+    await openManageLogbook(page);
+    await page.getByRole("link", { name: "Import or export" }).click();
+    const currentYear = new Date().getUTCFullYear();
+    const csv = [
+        CSV_HEADER,
+        `jump,,,1,${currentYear}-01-01,4000,1000,55,,,Return rig,,`,
+    ].join("\n");
+    await page.locator('input[name="file"]').setInputFiles({
+        name: "logbook.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from(csv),
+    });
+    await page.getByRole("button", { name: "Import logbook" }).click();
+
+    await page
+        .getByRole("link", { name: /archive-item-return's logbook/ })
+        .click();
+    await page.getByRole("link", { name: "Statistics", exact: true }).click();
+    await page.getByRole("link", { name: "View yearly statistics" }).click();
+    await page
+        .getByRole("link", { name: String(currentYear), exact: true })
+        .click();
+    const detailedStatisticsUrl = `/logbook/statistics/detailed?year=${currentYear}`;
+    await expect(page).toHaveURL(detailedStatisticsUrl);
+
+    await page.getByRole("link", { name: "Return rig", exact: true }).click();
+    await page.getByRole("button", { name: "Archive", exact: true }).click();
+
+    await expect(page).toHaveURL(detailedStatisticsUrl);
+    await expect(
+        page.getByRole("row").filter({ hasText: "Return rig" }),
+    ).toContainText("Archived");
+
+    await page.getByRole("link", { name: "Return rig", exact: true }).click();
+    await expect(page.locator(".form-submit-spinner")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Archive" })).toBeEnabled();
+});
+
 test("statistics show how long ago the last jump was", async ({ page }) => {
     await registerUser(page, "inactive-statistics-skydiver");
     await openManageLogbook(page);
