@@ -828,13 +828,9 @@ function JumpPrefillFromNotice(props: {
     const source = props.prefillFrom;
     const lastAdded = source.lastAdded;
     const highest = source.highest;
-    const cardId = useId();
     const clearButtonId = useId();
     return (
-        <div
-            id={cardId}
-            className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-        >
+        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <p className="text-sm text-slate-600 dark:text-slate-300">
                 Fields prefilled from{" "}
                 <Link href={routes.logbook.jumps.edit({ uuid: source.uuid })}>
@@ -881,19 +877,14 @@ function JumpPrefillFromNotice(props: {
             </div>
             <Script
                 $deps={[$select]}
-                $args={[cardId, clearButtonId, props.formId]}
+                $args={[clearButtonId, props.formId]}
                 $exec={$clearJumpPrefillFields}
             />
         </div>
     );
 }
 
-function $clearJumpPrefillFields(
-    cardId: string,
-    clearButtonId: string,
-    formId: string,
-) {
-    const card = $select.id(cardId, HTMLElement);
+function $clearJumpPrefillFields(clearButtonId: string, formId: string) {
     const clearButton = $select.id(clearButtonId, HTMLButtonElement);
 
     function dispatchInput(element: HTMLElement) {
@@ -987,7 +978,6 @@ function $clearJumpPrefillFields(
         clearTextFields(form);
         clearJumpItems(form);
         setJumpDateToToday(form);
-        card.remove();
     });
 }
 

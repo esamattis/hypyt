@@ -111,7 +111,7 @@ test("new jump prefills from highest jump number and can switch to last added", 
     );
 
     await page.getByRole("button", { name: "Clear fields" }).click();
-    await expect(page.getByText(/Fields prefilled from/)).toHaveCount(0);
+    await expect(page.getByText(/Fields prefilled from/)).toBeVisible();
     await expect(jumpItemSummary(page, "Location")).toContainText("None");
     await expect(page.locator('input[name="exitAltitude"]')).toHaveValue("");
     await expect(page.locator('input[name="openingAltitude"]')).toHaveValue("");
