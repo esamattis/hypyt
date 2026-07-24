@@ -101,11 +101,21 @@ function $returnAfterFormPost(config: {
         if (event.formData) {
             // NavigateEvent.formData identifies a form POST. Only forms with the
             // hidden RedirectBackAfterPost marker opt into this behavior.
-            if (!event.formData.has(config.formFieldName)) return;
+            const returnRoutePrefix = event.formData.get(config.formFieldName);
+            if (returnRoutePrefix === null) return;
 
             // The marker is client-only metadata. Removing it here prevents the
             // private implementation field from reaching route handlers.
             event.formData.delete(config.formFieldName);
+
+            const storedReturnRoute = sessionStorage.getItem(storageKey);
+            if (
+                returnRoutePrefix !== "true" &&
+                (typeof returnRoutePrefix !== "string" ||
+                    !storedReturnRoute?.startsWith(returnRoutePrefix))
+            ) {
+                return;
+            }
 
             // Always suppress the Chromium POST→redirect navigate in this
             // document. Without this, a save with no stored return route
@@ -210,18 +220,19 @@ export function ReturnAfterFormPost() {
  * successful POST. Render this inside saveable create and edit forms. The
  * client removes the hidden marker from FormData before submission. A
  * validation response on the form route keeps the original return route for a
- * corrected resubmission.
+ * corrected resubmission. Set `returnRoutePrefix` when the form should only
+ * opt in for return routes under a specific path.
  *
- * Do not use this for single-action, destructive, authentication,
- * import/export, or confirmation forms, or forms with an intentional canonical
- * destination. Browsers without the Navigation API use the server redirect.
+ * Do not use this for destructive, authentication, import/export, or
+ * confirmation forms, or forms with an intentional canonical destination.
+ * Browsers without the Navigation API use the server redirect.
  */
-export function RedirectBackAfterPost() {
+export function RedirectBackAfterPost(props: { returnRoutePrefix?: string }) {
     return (
         <input
             type="hidden"
             name={REDIRECT_BACK_AFTER_POST_FIELD}
-            value="true"
+            value={props.returnRoutePrefix ?? "true"}
             data-loki-keep-enabled-on-submit={
                 // HTML submits only "successful" controls; disabled controls
                 // are not successful, so NavigateEvent.formData omits them.
