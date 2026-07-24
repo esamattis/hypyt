@@ -313,6 +313,7 @@ interface DetailedStatisticsResult {
     longestFreefall: RecordJump | undefined;
     longestFreefallDistance: RecordJump | undefined;
     highestExit: RecordJump | undefined;
+    lowestExit: RecordJump | undefined;
     highestOpening: RecordJump | undefined;
     lowestOpening: RecordJump | undefined;
     fastestAverageSpeed: RecordJump | undefined;
@@ -488,6 +489,7 @@ async function fetchDetailedStatistics(
         longestFreefallRows,
         longestFreefallDistanceRows,
         highestExitRows,
+        lowestExitRows,
         highestOpeningRows,
         lowestOpeningRows,
         fastestAverageSpeedRows,
@@ -537,6 +539,12 @@ async function fetchDetailedStatistics(
                   value: formatAltitude(highestExitRows[0].value),
               }
             : undefined,
+        lowestExit: lowestExitRows[0]
+            ? {
+                  ...lowestExitRows[0],
+                  value: formatAltitude(lowestExitRows[0].value),
+              }
+            : undefined,
         highestOpening: highestOpeningRows[0]
             ? {
                   ...highestOpeningRows[0],
@@ -584,6 +592,7 @@ async function renderDetailedStatistics(c: AppRequestContext) {
         longestFreefall,
         longestFreefallDistance,
         highestExit,
+        lowestExit,
         highestOpening,
         lowestOpening,
         fastestAverageSpeed,
@@ -672,6 +681,7 @@ async function renderDetailedStatistics(c: AppRequestContext) {
                             jump: longestFreefallDistance,
                         },
                         { label: "Highest jump altitude", jump: highestExit },
+                        { label: "Lowest jump altitude", jump: lowestExit },
                         { label: "Highest opening", jump: highestOpening },
                         { label: "Lowest opening", jump: lowestOpening },
                         {

@@ -95,6 +95,11 @@ async function expectActiveLastTwelveMonthsFooter(page: Page) {
     );
 }
 
+async function expectLowestExit(page: Page) {
+    const record = page.getByText("Lowest jump altitude").locator("..");
+    await expect(record).toContainText("Jump #302");
+}
+
 test("dropping a logbook file anywhere on the import page selects it", async ({
     page,
 }) => {
@@ -297,7 +302,6 @@ test("statistics show total and recorded jump counts for every item", async ({
         .getByRole("link", { name: /statistics-skydiver's logbook/ })
         .click();
     await page.getByRole("link", { name: "Statistics", exact: true }).click();
-
     await expect(page).toHaveURL("/logbook/statistics");
     await expect(
         page.getByRole("heading", { name: "Statistics" }),
@@ -336,6 +340,7 @@ test("statistics show total and recorded jump counts for every item", async ({
     await expect(
         page.getByText("Longest freefall distance").locator(".."),
     ).toContainText("3 km");
+    await expectLowestExit(page);
     await expect(
         page.getByText("Fastest average freefall speed").locator(".."),
     ).toContainText("Jump #301");
