@@ -728,6 +728,7 @@ export function JumpFormPage(props: {
     dirty?: boolean;
     createdAt?: number;
     redirectBackAfterPost?: boolean;
+    prefillFrom?: JumpPrefillFrom;
 }) {
     const formId = useId();
 
@@ -766,6 +767,22 @@ export function JumpFormPage(props: {
                     title="Source image"
                 />
             )}
+            {props.copyHref && (
+                <ButtonLink
+                    href={props.copyHref}
+                    icon={<CopyIcon className="h-4 w-4" />}
+                    variant="secondary"
+                    className="gap-1.5"
+                >
+                    Copy to new
+                </ButtonLink>
+            )}
+            {props.prefillFrom && (
+                <JumpPrefillFromNotice
+                    prefillFrom={props.prefillFrom}
+                    formId={formId}
+                />
+            )}
             <JumpForm
                 formId={formId}
                 values={props.values}
@@ -782,16 +799,6 @@ export function JumpFormPage(props: {
                 redirectBackAfterPost={props.redirectBackAfterPost}
                 {...props.resources}
             />
-            {props.copyHref && (
-                <ButtonLink
-                    href={props.copyHref}
-                    icon={<CopyIcon className="h-4 w-4" />}
-                    variant="secondary"
-                    className="gap-1.5"
-                >
-                    Copy to new
-                </ButtonLink>
-            )}
             {props.canDelete && (
                 <DangerZone>
                     <ConfirmDeleteButton label="Delete jump" />
@@ -799,6 +806,179 @@ export function JumpFormPage(props: {
             )}
         </LogbookPage>
     );
+}
+
+export type JumpPrefillFrom = {
+    uuid: string;
+    jumpNumber: number;
+    lastAdded?: {
+        uuid: string;
+        jumpNumber: number;
+    };
+    highest?: {
+        uuid: string;
+        jumpNumber: number;
+    };
+};
+
+function JumpPrefillFromNotice(props: {
+    prefillFrom: JumpPrefillFrom;
+    formId: string;
+}) {
+    const source = props.prefillFrom;
+    const lastAdded = source.lastAdded;
+    const highest = source.highest;
+    const clearButtonId = useId();
+    return (
+        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+                Fields prefilled from{" "}
+                <Link href={routes.logbook.jumps.edit({ uuid: source.uuid })}>
+                    jump #{source.jumpNumber}
+                </Link>
+                .
+            </p>
+            <div className="flex flex-wrap gap-2">
+                {lastAdded && (
+                    <ButtonLink
+                        href={routes.logbook.jumps.new(
+                            {},
+                            { from: lastAdded.uuid },
+                        )}
+                        variant="secondary"
+                        className="gap-1.5"
+                        data-loki-tooltip={`Jump #${lastAdded.jumpNumber} was added more recently than jump #${source.jumpNumber}. Prefill from the most recently entered jump instead of the highest jump number.`}
+                    >
+                        Use last added #{lastAdded.jumpNumber}
+                    </ButtonLink>
+                )}
+                {highest && (
+                    <ButtonLink
+                        href={routes.logbook.jumps.new(
+                            {},
+                            { from: highest.uuid },
+                        )}
+                        variant="secondary"
+                        className="gap-1.5"
+                        data-loki-tooltip={`Jump #${highest.jumpNumber} has the highest jump number. Prefill from it instead of the most recently entered jump.`}
+                    >
+                        Use highest #{highest.jumpNumber}
+                    </ButtonLink>
+                )}
+                <Button
+                    type="button"
+                    id={clearButtonId}
+                    variant="secondary"
+                    className="gap-1.5"
+                    data-loki-tooltip="Clear prefilled fields and keep the next jump number"
+                >
+                    Clear fields
+                </Button>
+            </div>
+            <Script
+                $deps={[$select]}
+                $args={[clearButtonId, props.formId]}
+                $exec={$clearJumpPrefillFields}
+            />
+        </div>
+    );
+}
+
+function $clearJumpPrefillFields(clearButtonId: string, formId: string) {
+    const clearButton = $select.id(clearButtonId, HTMLButtonElement);
+
+    function dispatchInput(element: HTMLElement) {
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    function clearTextFields(form: HTMLFormElement) {
+        for (const name of [
+            "exitAltitude",
+            "openingAltitude",
+            "freefallTime",
+            "description",
+            "locationName",
+            "aircraftName",
+            "gearName",
+            "jumpTypeName",
+        ]) {
+            for (const element of $select.all(
+                `[name="${name}"]`,
+                HTMLElement,
+                form,
+            )) {
+                if (
+                    element instanceof HTMLInputElement ||
+                    element instanceof HTMLTextAreaElement
+                ) {
+                    element.value = "";
+                    dispatchInput(element);
+                }
+            }
+        }
+    }
+
+    function clearJumpItems(form: HTMLFormElement) {
+        const itemInputs = $select.all(
+            "[data-loki-jump-item-input]",
+            HTMLInputElement,
+            form,
+        );
+        for (const input of itemInputs) {
+            if (input.type === "radio") {
+                const shouldCheck = input.value === "";
+                if (input.checked !== shouldCheck) {
+                    input.checked = shouldCheck;
+                    dispatchInput(input);
+                }
+                continue;
+            }
+            if (input.checked) {
+                input.checked = false;
+                dispatchInput(input);
+            }
+        }
+    }
+
+    function setJumpDateToToday(form: HTMLFormElement) {
+        const todayButton = Array.from(
+            $select.all("button", HTMLButtonElement, form),
+        ).find((button) => button.textContent?.trim() === "Today");
+        if (todayButton) {
+            todayButton.click();
+            return;
+        }
+        const now = new Date();
+        const today = [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, "0"),
+            String(now.getDate()).padStart(2, "0"),
+        ].join("-");
+        const value = $select.el(
+            'input[name="jumpDate"]',
+            HTMLInputElement,
+            form,
+        );
+        value.value = today;
+        dispatchInput(value);
+        const display = $select.elOrNull(
+            "[data-loki-jump-date-input]",
+            HTMLInputElement,
+            form,
+        );
+        if (display) {
+            display.value = today;
+            dispatchInput(display);
+        }
+    }
+
+    clearButton.addEventListener("click", () => {
+        const form = $select.id(formId, HTMLFormElement);
+        clearTextFields(form);
+        clearJumpItems(form);
+        setJumpDateToToday(form);
+    });
 }
 
 export function getJumpFormValues(formData: FormData): JumpFormValues {
